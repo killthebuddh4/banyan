@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "outDir": "build",
+    "skipLibCheck": true,
+    "module": "nodenext",
+    "resolveJsonModule": true,
+    "lib": ["ESNext"]
+  },
+  "include": ["banyan/**/*.ts"]
+}
