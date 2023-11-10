@@ -1,4 +1,5 @@
-import { User } from "./types.js";
+import { Channel } from "./Channel.js";
+import { User } from "./User.js";
 import { Client } from "@xmtp/xmtp-js";
 import { Wallet } from "@ethersproject/wallet";
 
@@ -10,7 +11,7 @@ export const init = async ({
   ownerAddress: string;
   name: string;
   description: string;
-}) => {
+}): Promise<Channel> => {
   const wallet = Wallet.createRandom();
   const client = await Client.create(wallet, { env: "production" });
   const stream = await client.conversations.streamAllMessages();

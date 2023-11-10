@@ -1,8 +1,5 @@
+import { User } from "./User.js";
 import { Client, DecodedMessage } from "@xmtp/xmtp-js";
-
-export type User = {
-  address: string;
-};
 
 export type Channel = {
   owner: User;

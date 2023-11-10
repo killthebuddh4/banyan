@@ -1,7 +1,7 @@
 {
   "type": "module",
   "scripts": {
-    "dev": "concurrently \"npm run build:watch\" \"nodemon build/protocol/server.js\"",
+    "dev": "concurrently \"npm run build:watch\" \"nodemon build/copilot/server/server.js\"",
     "test": "mocha build/index.test.js",
     "lint": "eslint .",
     "format": "prettier --check .",
@@ -25,7 +25,9 @@
   },
   "dependencies": {
     "@xmtp/xmtp-js": "^11.2.1",
+    "openai": "^4.17.4",
     "uuid": "^9.0.1",
-    "zod": "^3.22.4"
+    "zod": "^3.22.4",
+    "zod-to-json-schema": "^3.21.4"
   }
 }
