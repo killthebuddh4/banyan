@@ -6,14 +6,17 @@ import { addMessage } from "../store/addMessage.js";
 import { getMessages } from "../store/getMessages.js";
 import { signatureSchema } from "../functions/signatureSchema.js";
 import { spec as acceptChannelInviteSpec } from "../functions/accept-channel-invite/spec.js";
+import { impl as acceptChannelInviteImpl } from "../functions/accept-channel-invite/impl.js";
 import { spec as createChannelSpec } from "../functions/create-channel/spec.js";
 import { impl as createChannelImpl } from "../functions/create-channel/impl.js";
 import { spec as declineChannelInviteSpec } from "../functions/decline-channel-invite/spec.js";
+import { impl as declineChannelInviteImpl } from "../functions/decline-channel-invite/impl.js";
 import { spec as deleteChannelSpec } from "../functions/delete-channel/spec.js";
 import { impl as deleteChannelImpl } from "../functions/delete-channel/impl.js";
 import { spec as inviteMemberToChannelSpec } from "../functions/invite-member-to-channel/spec.js";
-import { spec as leaveChannelSpec } from "../functions/leave-channel/spec.js";
+import { impl as inviteMemberToChannelImpl } from "../functions/invite-member-to-channel/impl.js";
 import { spec as removeMemberFromChannelSpec } from "../functions/remove-member-from-channel/spec.js";
+import { impl as removeMemberFromChannelImpl } from "../functions/remove-member-from-channel/impl.js";
 import { isCommandMessage } from "../superuser/isCommandMessage.js";
 import { DescriptiveError } from "../../lib/DescriptiveError.js";
 import { withSystemMessage } from "../prompt/withSystemMessage.js";
@@ -70,7 +73,6 @@ for await (const message of stream) {
         deleteChannelSpec,
         removeMemberFromChannelSpec,
         inviteMemberToChannelSpec,
-        leaveChannelSpec,
         acceptChannelInviteSpec,
         declineChannelInviteSpec,
       ],
@@ -119,14 +121,81 @@ for await (const message of stream) {
               };
             }
             case "deleteChannel": {
-              const data = await deleteChannelImpl({
+              const channel = await deleteChannelImpl({
                 userDoingTheDeleting: { address: message.senderAddress },
                 channelAddress: functionCall.data.arguments.channelAddress,
+                copilotClient: client,
               });
               return {
                 ok: true,
                 result: {
-                  deletedChannelAddress: data.address,
+                  deletedChannelAddress: channel.address,
+                },
+              };
+            }
+            case "inviteMemberToChannel": {
+              const data = await inviteMemberToChannelImpl({
+                userDoingTheInviting: { address: message.senderAddress },
+                userToInvite: {
+                  address: functionCall.data.arguments.memberAddress,
+                },
+                copilotClient: client,
+                channelAddress: functionCall.data.arguments.channelAddress,
+              });
+
+              addMessage({
+                peerAddress: functionCall.data.arguments.memberAddress,
+                message: data,
+              });
+
+              return {
+                ok: true,
+                result: {
+                  inviteSentToAddress: data.conversation.peerAddress,
+                },
+              };
+            }
+            case "acceptChannelInvite": {
+              const channel = await acceptChannelInviteImpl({
+                userDoingTheAccepting: { address: message.senderAddress },
+                channelAddress: functionCall.data.arguments.channelAddress,
+                copilotClient: client,
+              });
+
+              return {
+                ok: true,
+                result: {
+                  acceptedChannelInvite: channel.address,
+                },
+              };
+            }
+            case "declineChannelInvite": {
+              const channel = await declineChannelInviteImpl({
+                userDoingTheDeclining: { address: message.senderAddress },
+                channelAddress: functionCall.data.arguments.channelAddress,
+              });
+
+              return {
+                ok: true,
+                result: {
+                  declinedChannelInvite: channel.address,
+                },
+              };
+            }
+            case "removeMemberFromChannel": {
+              const channel = await removeMemberFromChannelImpl({
+                userDoingTheRemoving: { address: message.senderAddress },
+                userToRemove: {
+                  address: functionCall.data.arguments.memberAddress,
+                },
+                channelAddress: functionCall.data.arguments.channelAddress,
+                copilotClient: client,
+              });
+
+              return {
+                ok: true,
+                result: {
+                  removedMemberFromChannel: channel.address,
                 },
               };
             }
@@ -165,7 +234,6 @@ for await (const message of stream) {
           deleteChannelSpec,
           removeMemberFromChannelSpec,
           inviteMemberToChannelSpec,
-          leaveChannelSpec,
           acceptChannelInviteSpec,
           declineChannelInviteSpec,
         ],

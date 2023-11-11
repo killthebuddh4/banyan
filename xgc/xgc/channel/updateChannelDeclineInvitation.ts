@@ -49,4 +49,6 @@ export const updateChannelDeclineInvitation = ({
   });
 
   channel.invitations = updatedInvitations;
+
+  return channel;
 };

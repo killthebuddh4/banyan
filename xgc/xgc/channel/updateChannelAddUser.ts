@@ -70,4 +70,6 @@ export const updateChannelAddUser = ({
   }
 
   channel.members.push(userToAdd);
+
+  return channel;
 };

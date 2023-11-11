@@ -57,4 +57,6 @@ export const updateChannelRemoveUser = ({
   }
 
   channel.members.splice(memberIndex, 1);
+
+  return channel;
 };

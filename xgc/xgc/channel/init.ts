@@ -2,6 +2,7 @@ import { Channel } from "./Channel.js";
 import { User } from "./User.js";
 import { Client } from "@xmtp/xmtp-js";
 import { Wallet } from "@ethersproject/wallet";
+import { publishToChannel } from "./publishToChannel.js";
 
 export const init = async ({
   ownerAddress,
@@ -18,6 +19,17 @@ export const init = async ({
   const owner = { address: ownerAddress };
   const members: User[] = [owner];
 
+  const channel = {
+    address: client.address,
+    name,
+    invitations: [],
+    owner,
+    description,
+    members,
+    stream,
+    client,
+  };
+
   (async () => {
     for await (const message of stream) {
       try {
@@ -25,16 +37,15 @@ export const init = async ({
           continue;
         }
 
-        for (const member of members) {
-          if (message.senderAddress === member.address) {
-            continue;
-          } else {
-            const conversation = await client.conversations.newConversation(
-              member.address,
-            );
-            conversation.send(`${message.senderAddress}: ${message.content}`);
-          }
+        if (message.content === undefined) {
+          continue;
         }
+
+        publishToChannel({
+          fromUser: { address: message.senderAddress },
+          channel,
+          message: message.content,
+        });
       } catch (err) {
         console.error(
           "GOT AN ERROR IN CHANNEL MESSAGE HANDLER",
@@ -47,17 +58,6 @@ export const init = async ({
       }
     }
   })();
-
-  const channel = {
-    address: client.address,
-    name,
-    invitations: [],
-    owner,
-    description,
-    members: [owner],
-    stream,
-    client,
-  };
 
   return channel;
 };
