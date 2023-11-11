@@ -1,7 +1,7 @@
 import { DescriptiveError } from "../../../lib/DescriptiveError.js";
 import { User } from "../../../channel/User.js";
-import { readChannel } from "../../../channel/store/readChannel.js";
-import { deleteChannel } from "../../../channel/store/deleteChannel.js";
+import { readChannel } from "../../../channel/readChannel.js";
+import { deleteChannel } from "../../../channel/deleteChannel.js";
 
 const NO_CHANNEL_ERROR_DESCRIPTION = `
   We attempted to delete a channel that does not exist.

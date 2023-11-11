@@ -6,6 +6,10 @@ export type Channel = {
   address: string;
   name: string;
   description: string;
+  invitations: Array<{
+    toAddress: string;
+    status: "pending" | "accepted" | "declined";
+  }>;
   members: User[];
   client: Client;
   stream: AsyncGenerator<DecodedMessage<string | undefined>, any, unknown>;

@@ -1,7 +1,7 @@
-import { Channel } from "../Channel.js";
+import { Channel } from "./Channel.js";
 import { CONFIG } from "./CONFIG.js";
 import { channelStore } from "./channelStore.js";
-import { DescriptiveError } from "../../lib/DescriptiveError.js";
+import { DescriptiveError } from "../lib/DescriptiveError.js";
 
 const CHANNEL_ALREADY_EXISTS_DESCRIPTION = `
   Every channel address is an Ethereum address. Only one channel per address is allowed.

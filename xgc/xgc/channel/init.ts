@@ -51,6 +51,7 @@ export const init = async ({
   const channel = {
     address: client.address,
     name,
+    invitations: [],
     owner,
     description,
     members: [owner],

@@ -1,5 +1,5 @@
-import { DescriptiveError } from "../../lib/DescriptiveError.js";
-import { User } from "../User.js";
+import { DescriptiveError } from "../lib/DescriptiveError.js";
+import { User } from "./User.js";
 import { channelStore } from "./channelStore.js";
 
 const NOT_THE_OWNER_ERROR_DESCRIPTION = `

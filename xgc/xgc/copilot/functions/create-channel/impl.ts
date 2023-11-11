@@ -1,5 +1,4 @@
-import { DescriptiveError } from "../../../lib/DescriptiveError.js";
-import { createChannel } from "../../../channel/store/createChannel.js";
+import { createChannel } from "../../../channel/createChannel.js";
 import { init } from "../../../channel/init.js";
 
 export const impl = async ({

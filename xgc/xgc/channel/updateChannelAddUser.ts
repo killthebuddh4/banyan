@@ -1,5 +1,5 @@
-import { DescriptiveError } from "../../lib/DescriptiveError.js";
-import { User } from "../User.js";
+import { DescriptiveError } from "../lib/DescriptiveError.js";
+import { User } from "./User.js";
 import { channelStore } from "./channelStore.js";
 
 const NO_CHANNEL_ERROR = `
@@ -12,9 +12,14 @@ const ALREADY_A_MEMBER_ERROR = `
   We attempted to add a user to a channel that already has a user with the same address.
 `;
 
-const MUST_BE_OWNER_ERROR = `
-  Every channel has an owner. Only the owner can add users to the channel.
-  We attempted to add a user to a channel without the owner's permission.
+const MUST_BE_THE_INVITED_USER_ERROR = `
+  Only the invited user can accept an invitation. We attempted to accept an invitation
+  on behalf of another user.
+`;
+
+const MUST_BE_INVITED_ERROR = `
+  Every channel has an owner. Only the owner can invite users to the channel.
+  We attempted to add a user that has not been invited to the channel.
 `;
 
 export const updateChannelAddUser = ({
@@ -35,10 +40,10 @@ export const updateChannelAddUser = ({
     );
   }
 
-  if (channel.owner.address !== userDoingTheAdding.address) {
+  if (userDoingTheAdding.address !== userToAdd.address) {
     throw new DescriptiveError(
-      MUST_BE_OWNER_ERROR,
-      `Failed to add user ${userToAdd.address} to channel ${channelAddress} because the user doing the adding is not the owner`,
+      MUST_BE_THE_INVITED_USER_ERROR,
+      `Failed to add user ${userToAdd.address} to channel ${channelAddress} because the user doing the adding is not the invited user`,
     );
   }
 
@@ -50,6 +55,17 @@ export const updateChannelAddUser = ({
     throw new DescriptiveError(
       ALREADY_A_MEMBER_ERROR,
       `Failed to add user ${userToAdd.address} to channel ${channelAddress} because the user is already a member`,
+    );
+  }
+
+  const invitation = channel.invitations.find((m) => {
+    return m.toAddress === userToAdd.address && m.status === "accepted";
+  });
+
+  if (invitation === undefined) {
+    throw new DescriptiveError(
+      MUST_BE_INVITED_ERROR,
+      `Failed to add user ${userToAdd.address} to channel ${channelAddress} because the user has not been invited.`,
     );
   }
 
