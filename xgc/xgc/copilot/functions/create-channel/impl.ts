@@ -12,5 +12,10 @@ export const impl = async ({
 }) => {
   const channel = await init({ ownerAddress, name, description });
   createChannel({ channel });
-  return channel;
+  return {
+    ok: true,
+    result: {
+      createdChannelAddress: channel.address,
+    },
+  };
 };

@@ -1,4 +1,3 @@
-import { Client } from "@xmtp/xmtp-js";
 import { User } from "../../../channel/User.js";
 import { updateChannelDeclineInvitation } from "../../../channel/updateChannelDeclineInvitation.js";
 
@@ -9,8 +8,16 @@ export const impl = async ({
   userDoingTheDeclining: User;
   channelAddress: string;
 }) => {
-  return updateChannelDeclineInvitation({
+  updateChannelDeclineInvitation({
     userDoingTheDeclining,
     channelAddress,
   });
+
+  return {
+    ok: true,
+    result: {
+      userDeclinedAddress: userDoingTheDeclining.address,
+      channelAddress,
+    },
+  };
 };

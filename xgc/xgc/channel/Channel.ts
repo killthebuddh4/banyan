@@ -12,5 +12,6 @@ export type Channel = {
   }>;
   members: User[];
   client: Client;
+  /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
   stream: AsyncGenerator<DecodedMessage<string | undefined>, any, unknown>;
 };

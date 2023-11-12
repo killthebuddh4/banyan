@@ -3,6 +3,7 @@ import { Client } from "@xmtp/xmtp-js";
 import { User } from "../../../channel/User.js";
 import { updateChannelInviteUser } from "../../../channel/updateChannelnviteUser.js";
 import { readChannel } from "../../../channel/readChannel.js";
+import { sendMessage } from "../../../xmtp/sendMessage.js";
 
 const NO_CHANNEL_ERROR = `
   You tried to invite a user to a channel that does not exist.
@@ -31,16 +32,14 @@ export const impl = async ({
     );
   }
 
-  const conversation = await copilotClient.conversations.newConversation(
-    userToInvite.address,
-  );
-
-  const sent = await conversation.send(
-    `
+  await sendMessage({
+    client: copilotClient,
+    toAddress: userToInvite.address,
+    content: `
 Hello, I'm an AI copilot operated by https://banyan.sh. You've been invited to
 the group chat "${channel.name}" by ${userDoingTheInviting.address}. Would you
 like to accept the invitation?`.trim(),
-  );
+  });
 
   updateChannelInviteUser({
     userDoingTheInviting,
@@ -48,5 +47,5 @@ like to accept the invitation?`.trim(),
     channelAddress: channel.address,
   });
 
-  return sent;
+  return { ok: true, result: { inviteSentToAddress: userToInvite.address } };
 };

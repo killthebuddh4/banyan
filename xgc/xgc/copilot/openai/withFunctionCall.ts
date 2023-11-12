@@ -5,7 +5,7 @@ export const withFunctionCall = ({
   functionCall,
 }: {
   messages: ChatCompletionMessageParam[];
-  functionCall: { name: string; args: unknown };
+  functionCall: { name: string; arguments: unknown };
 }): ChatCompletionMessageParam[] => {
   if (messages.length === 0) {
     throw new Error("Cannot add function call because there are no messages");
@@ -18,7 +18,7 @@ export const withFunctionCall = ({
       content: null,
       function_call: {
         name: functionCall.name,
-        arguments: JSON.stringify(functionCall.args),
+        arguments: JSON.stringify(functionCall.arguments),
       },
     },
   ];

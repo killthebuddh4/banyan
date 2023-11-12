@@ -26,5 +26,5 @@ export const impl = async ({
     message: `${userToRemove.address} has left the channel.`,
   });
 
-  return channel;
+  return { ok: true, result: { removedUserAddress: userToRemove.address } };
 };

@@ -38,5 +38,5 @@ export const impl = async ({
     message: `This channel's owner has deleted the channel, messages will no longer be broadcast to the rest of the channel's members.`,
   });
 
-  return channel;
+  return { ok: true, result: { deletedChannelAddress: channel.address } };
 };

@@ -30,5 +30,11 @@ export const impl = async ({
     message: `${userDoingTheAccepting.address} has joined the channel.`,
   });
 
-  return channel;
+  return {
+    ok: true,
+    result: {
+      userAcceptedAddress: userDoingTheAccepting.address,
+      channelAddress: channel.address,
+    },
+  };
 };

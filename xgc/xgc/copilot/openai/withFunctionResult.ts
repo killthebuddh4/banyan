@@ -1,11 +1,11 @@
 import { ChatCompletionMessageParam } from "openai/resources/index.mjs";
 
-export const withFunctionResponse = ({
+export const withFunctionResult = ({
   messages,
-  functionResponse,
+  result,
 }: {
   messages: ChatCompletionMessageParam[];
-  functionResponse: {
+  result: {
     name: string;
     content:
       | {
@@ -42,8 +42,8 @@ export const withFunctionResponse = ({
     ...messages,
     {
       role: "function",
-      name: functionResponse.name,
-      content: JSON.stringify(functionResponse.content),
+      name: result.name,
+      content: JSON.stringify(result.content),
     },
   ];
 };
