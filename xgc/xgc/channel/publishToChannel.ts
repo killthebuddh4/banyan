@@ -1,7 +1,7 @@
 import { User } from "./User.js";
 import { Channel } from "./Channel.js";
 
-export const publishToChannel = ({
+export const publishToChannel = async ({
   fromUser,
   channel,
   message,
@@ -10,15 +10,19 @@ export const publishToChannel = ({
   channel: Channel;
   message: string;
 }) => {
-  for (const member of channel.members) {
-    if (fromUser.address === member.address) {
-      continue;
-    } else {
-      channel.client.conversations
-        .newConversation(member.address)
-        .then((conversation) => {
-          conversation.send(`${fromUser.address}: ${message}`);
-        });
-    }
-  }
+  console.log("PUBLISH SEES THESE MEMBERS", channel.members);
+
+  const conversations = await Promise.all(
+    channel.members.map((member) => {
+      return channel.client.conversations.newConversation(member.address);
+    }),
+  );
+
+  const sent = await Promise.all(
+    conversations.map((conversation) => {
+      return conversation.send(`${fromUser.address}: ${message}`);
+    }),
+  );
+
+  return sent;
 };

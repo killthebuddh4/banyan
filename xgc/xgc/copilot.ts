@@ -2,7 +2,7 @@ import { z } from "zod";
 import { Client } from "@xmtp/xmtp-js";
 import { Wallet } from "@ethersproject/wallet";
 import { createServer } from "./xmtp/createServer.js";
-import { dispatch } from "./copilot/server/dispatch.js";
+import { dispatch } from "./copilot/dispatch.js";
 
 const XGC_PRIVATE_KEY = z.string().parse(process.env.XGC_PRIVATE_KEY);
 

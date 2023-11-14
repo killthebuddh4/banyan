@@ -22,6 +22,8 @@ export const init = async ({
   const channel = {
     address: client.address,
     name,
+    creator: owner,
+    createdAt: new Date(),
     invitations: [],
     owner,
     description,

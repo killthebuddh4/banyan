@@ -15,6 +15,7 @@ export const createServer = async ({
   (async () => {
     for await (const message of stream) {
       cacheMessage({ message });
+      console.log("XMTP MESSAGE RECEIVED FROM ", message.senderAddress);
       try {
         for (const handler of withHandlers) {
           handler({
