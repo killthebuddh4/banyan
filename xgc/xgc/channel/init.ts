@@ -35,7 +35,13 @@ export const init = async ({
   (async () => {
     for await (const message of stream) {
       try {
-        if (message.senderAddress === client.address) {
+        const isMessageFromMember = Boolean(
+          channel.members.find((member) => {
+            return member.address === message.senderAddress;
+          }),
+        );
+
+        if (!isMessageFromMember) {
           continue;
         }
 
