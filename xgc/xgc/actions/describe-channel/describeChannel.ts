@@ -1,4 +1,3 @@
-import { Client } from "@xmtp/xmtp-js";
 import { User } from "../../channel/User.js";
 import { readChannel } from "../../channel/store/readChannel.js";
 import { getChannelDescription } from "../../channel/getChannelDescription.js";

@@ -1,9 +1,9 @@
 import { z } from "zod";
 import { User } from "../../channel/User.js";
-import { signatureSchema } from "../signatureSchema.js";
+import { callSchema } from "../callSchema.js";
 import { zodToJsonSchema } from "zod-to-json-schema";
 
-const jsonSchema = zodToJsonSchema(signatureSchema);
+const jsonSchema = zodToJsonSchema(callSchema);
 
 const schemaSchema = z.object({
   anyOf: z.array(

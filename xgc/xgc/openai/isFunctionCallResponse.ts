@@ -1,4 +1,4 @@
-import { signatureSchema } from "../actions/signatureSchema.js";
+import { callSchema } from "../actions/callSchema.js";
 
 type MaybeFunctionCallResponse = {
   choices: Array<{
@@ -14,6 +14,6 @@ export const isFunctionCallResponse = ({
 }: {
   response: MaybeFunctionCallResponse;
 }) => {
-  return signatureSchema.safeParse(response.choices[0].message.function_call)
+  return callSchema.safeParse(response.choices[0].message.function_call)
     .success;
 };

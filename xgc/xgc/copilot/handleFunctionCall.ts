@@ -1,11 +1,11 @@
 import { z } from "zod";
 import { Client, DecodedMessage } from "@xmtp/xmtp-js";
 import { openaiClient } from "../openai/openAiClient.js";
-import { signatureSchema } from "../actions/signatureSchema.js";
+import { callSchema } from "../actions/callSchema.js";
 import { sendMessage } from "../xmtp/sendMessage.js";
 import { withFunctionCall } from "../openai/withFunctionCall.js";
 import { withFunctionResult } from "../openai/withFunctionResult.js";
-import { convertXmtpMessageToOpenAiMessage } from "../openai/converXmtpMessageToOpenAiMessage.js";
+import { convertXmtpMessageToOpenAiMessage } from "../openai/convertXmtpMessageToOpenAiMessage.js";
 import { execCommand } from "./execCommand.js";
 import { spec as acceptChannelInviteSpec } from "../actions/accept-channel-invite/spec.js";
 import { spec as createChannelSpec } from "../actions/create-channel/spec.js";
@@ -23,7 +23,7 @@ export const handleFunctionCall = async ({
 }: {
   client: Client;
   messages: DecodedMessage[];
-  functionCall: z.infer<typeof signatureSchema>;
+  functionCall: z.infer<typeof callSchema>;
 }) => {
   if (messages.length === 0) {
     throw new Error("No messages to handle inside the user message handler.");

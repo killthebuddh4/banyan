@@ -1,6 +1,6 @@
-import { MessageHandler } from "../xmtp/MessageHandler.js";
+import { MessageHandler } from "../xmtp/server/MessageHandler.js";
 import { sendMessage } from "../xmtp/sendMessage.js";
-import { convertXmtpMessageToOpenAiMessage } from "../openai/converXmtpMessageToOpenAiMessage.js";
+import { convertXmtpMessageToOpenAiMessage } from "../openai/convertXmtpMessageToOpenAiMessage.js";
 import { openaiClient } from "../openai/openAiClient.js";
 import { withSystemMessage } from "../openai/withSystemMessage.js";
 import { isFunctionCallResponse } from "../openai/isFunctionCallResponse.js";

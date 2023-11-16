@@ -12,7 +12,6 @@ export const sendMessage = async ({
 }) => {
   const conversation = await client.conversations.newConversation(toAddress);
   const sent = await conversation.send(content);
-  console.log("SENT XMTP FROM ", client.address, " TO ", toAddress);
   cacheMessage({ message: sent });
   return sent;
 };

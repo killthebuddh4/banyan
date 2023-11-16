@@ -1,5 +1,5 @@
 import { DecodedMessage } from "@xmtp/xmtp-js";
-import { signatureSchema } from "../actions/signatureSchema.js";
+import { callSchema } from "../actions/callSchema.js";
 
 /* *****************************************************************************
  *
@@ -35,7 +35,7 @@ export const getCommandFromMessage = ({
   const argsLines = lines.slice(1);
   const args = argsLines.join("\n");
 
-  return signatureSchema.parse({
+  return callSchema.parse({
     name,
     arguments: args,
   });

@@ -1,4 +1,4 @@
-import { MessageHandler } from "../xmtp/MessageHandler.js";
+import { MessageHandler } from "../xmtp/server/MessageHandler.js";
 import { getCommandFromMessage } from "../xmtp/getCommandFromMessage.js";
 import { execCommand } from "./execCommand.js";
 import { sendMessage } from "../xmtp/sendMessage.js";

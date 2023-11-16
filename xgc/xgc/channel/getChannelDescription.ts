@@ -1,14 +1,6 @@
 import { Channel } from "./Channel.js";
+import { channelDescriptionSchema } from "./channelDescriptionSchema.js";
 
 export const getChannelDescription = ({ channel }: { channel: Channel }) => {
-  return {
-    owner: channel.owner,
-    address: channel.address,
-    createdAt: channel.createdAt,
-    creator: channel.creator,
-    name: channel.name,
-    description: channel.description,
-    invitations: channel.invitations,
-    members: channel.members,
-  };
+  return channelDescriptionSchema.parse(channel);
 };

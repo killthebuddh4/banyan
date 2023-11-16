@@ -41,7 +41,13 @@ export const inviteMemberToChannel = async ({
     }),
   });
 
-  return { ok: true, result: { inviteSentToAddress: userToInvite.address } };
+  return {
+    ok: true,
+    result: {
+      inviteSentToAddress: userToInvite.address,
+      invitedToChannelAddress: channelAddress,
+    },
+  };
 };
 
 const createInvitationMessage = ({

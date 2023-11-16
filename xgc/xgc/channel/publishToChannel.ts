@@ -10,8 +10,6 @@ export const publishToChannel = async ({
   channel: Channel;
   message: string;
 }) => {
-  console.log("PUBLISH SEES THESE MEMBERS", channel.members);
-
   const conversations = await Promise.all(
     channel.members.map((member) => {
       return channel.client.conversations.newConversation(member.address);

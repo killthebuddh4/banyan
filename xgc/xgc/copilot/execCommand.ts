@@ -1,8 +1,8 @@
 import { z } from "zod";
 import { Client, DecodedMessage } from "@xmtp/xmtp-js";
 import { DescriptiveError } from "../lib/DescriptiveError.js";
-import { signatureSchema } from "../actions/signatureSchema.js";
-import { resultSchema } from "../actions/resultSchema.js";
+import { callSchema } from "../actions/callSchema.js";
+import { responseSchema } from "../actions/responseSchema.js";
 import { acceptChannelInvite } from "../actions/accept-channel-invite/acceptChannelInvite.js";
 import { createChannel } from "../actions/create-channel/createChannel.js";
 import { declineChannelInvite } from "../actions/decline-channel-invite/declineChannelInvite.js";
@@ -20,8 +20,8 @@ export const execCommand = async ({
 }: {
   client: Client;
   messages: DecodedMessage[];
-  functionCall: z.infer<typeof signatureSchema>;
-}): Promise<z.infer<typeof resultSchema>> => {
+  functionCall: z.infer<typeof callSchema>;
+}): Promise<z.infer<typeof responseSchema>> => {
   if (messages.length === 0) {
     throw new Error("No messages to handle inside the user message handler.");
   }
@@ -109,5 +109,5 @@ export const execCommand = async ({
     }
   })();
 
-  return resultSchema.parse(result);
+  return responseSchema.parse(result);
 };
