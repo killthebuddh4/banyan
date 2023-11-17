@@ -2,7 +2,7 @@
   "type": "module",
   "scripts": {
     "dev": "concurrently \"npm run build:watch\" \"nodemon build/xgc/copilot.js\"",
-    "test": "mocha build/test",
+    "test": "mocha",
     "lint": "eslint .",
     "format": "prettier --check .",
     "types": "tsc --noEmit",
