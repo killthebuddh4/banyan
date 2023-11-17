@@ -18,10 +18,12 @@ import { spec as listAvailableCommandsSpec } from "../actions/list-available-com
 
 export const handleFunctionCall = async ({
   client,
+  message,
   messages,
   functionCall,
 }: {
   client: Client;
+  message: DecodedMessage;
   messages: DecodedMessage[];
   functionCall: z.infer<typeof callSchema>;
 }) => {
@@ -47,7 +49,7 @@ export const handleFunctionCall = async ({
 
   const functionCallResult = await execCommand({
     client,
-    messages,
+    message,
     functionCall,
   });
 

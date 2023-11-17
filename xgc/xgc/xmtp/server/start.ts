@@ -1,6 +1,5 @@
 import { Server } from "./Server.js";
-import { cacheMessage } from "../cacheMessage.js";
-import { getMessages } from "../getMessages.js";
+import { requestSchema } from "../client/requestSchema.js";
 
 export const start = async ({ server }: { server: Server }) => {
   if (server.stream !== null) {
@@ -14,14 +13,26 @@ export const start = async ({ server }: { server: Server }) => {
 
   (async () => {
     for await (const message of stream) {
-      cacheMessage({ message });
+      if (message.senderAddress === server.client.address) {
+        continue;
+      }
+
+      const parsed = requestSchema.safeParse(message.content);
+      if (!parsed.success) {
+        console.log(
+          "IGNORING A NON-REQUEST MESSAGE FROM ",
+          message.senderAddress,
+        );
+        continue;
+      }
+
       try {
         for (const handler of server.handlers.values()) {
           handler({
             client: server.client,
-            messages: getMessages({
-              peerAddress: message.conversation.peerAddress,
-            }),
+            message,
+            requestId: parsed.data.requestId,
+            content: parsed.data.content,
           });
         }
       } catch (err) {

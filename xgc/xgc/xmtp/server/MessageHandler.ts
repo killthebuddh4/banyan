@@ -2,8 +2,12 @@ import { DecodedMessage, Client } from "@xmtp/xmtp-js";
 
 export type MessageHandler = ({
   client,
-  messages,
+  message,
+  requestId,
+  content,
 }: {
   client: Client;
-  messages: DecodedMessage[];
+  message: DecodedMessage;
+  requestId: string;
+  content: unknown;
 }) => Promise<void>;

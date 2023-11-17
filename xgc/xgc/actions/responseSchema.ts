@@ -8,6 +8,7 @@ import { responseSchema as removeMemberFromChannelSchema } from "./remove-member
 import { responseSchema as listCreatedChannelsSchema } from "./list-created-channels/responseSchema.js";
 import { responseSchema as listAvailableCommandsSchema } from "./list-available-commands/responseSchema.js";
 import { responseSchema as describeChannelSchema } from "./describe-channel/responseSchema.js";
+import { errorSchema } from "./errorSchema.js";
 
 export const responseSchema = z.union([
   createChannelResponseSchema,
@@ -19,8 +20,5 @@ export const responseSchema = z.union([
   listCreatedChannelsSchema,
   listAvailableCommandsSchema,
   describeChannelSchema,
-  z.object({
-    ok: z.literal(false),
-    error: z.string(),
-  }),
+  errorSchema,
 ]);

@@ -1,8 +1,9 @@
 import { z } from "zod";
 import { Server } from "../../xmtp/server/Server.js";
-import { create as xmtpClientCreate } from "../../xmtp/client/create.js";
+import { createClient as xmtpClientCreate } from "../../xmtp/client/createClient.js";
 import { responseSchema } from "./responseSchema.js";
-import { jsonStringSchema } from "../../lib/jsonStringSchema.js";
+import { callSchema } from "./callSchema.js";
+import { errorSchema } from "../../actions/errorSchema.js";
 
 export const createClient = ({
   usingLocalServer,
@@ -11,12 +12,15 @@ export const createClient = ({
   usingLocalServer: Server;
   forRemoteServerAddress: string;
 }) => {
-  return xmtpClientCreate({
+  const client = xmtpClientCreate({
     usingLocalServer,
     forRemoteServerAddress,
-    usingResponseSchema: z.object({
-      senderAddress: z.literal(forRemoteServerAddress),
-      content: jsonStringSchema.pipe(responseSchema),
-    }),
   });
+  return async (args: z.infer<typeof callSchema>["arguments"]) => {
+    const response = await client({
+      name: "removeMemberFromChannel",
+      arguments: args,
+    });
+    return responseSchema.or(errorSchema).parse(response.content);
+  };
 };

@@ -3,10 +3,12 @@ import { logGood } from "../lib/logGood.js";
 import { logBad } from "../lib/logBad.js";
 import { createClient as createChannelCreateClient } from "../../xgc/actions/create-channel/createClient.js";
 import { createClient as describeChannelCreateClient } from "../../xgc/actions/describe-channel/createClient.js";
+import { createClient as deleteChannelCreateClient } from "../../xgc/actions/delete-channel/createClient.js";
+
 import { CONFIG } from "../lib/CONFIG.js";
 
-describe("0", () => {
-  it("create a channel", async function () {
+describe("4", () => {
+  it("delete a channel", async function () {
     this.timeout(10000000000000);
 
     const cccc = createChannelCreateClient({
@@ -15,6 +17,11 @@ describe("0", () => {
     });
 
     const dccc = describeChannelCreateClient({
+      usingLocalServer: serverForAdmin,
+      forRemoteServerAddress: CONFIG.remoteServerAddress,
+    });
+
+    const deleteClient = deleteChannelCreateClient({
       usingLocalServer: serverForAdmin,
       forRemoteServerAddress: CONFIG.remoteServerAddress,
     });
@@ -29,15 +36,14 @@ describe("0", () => {
       throw new Error("failed to create channel");
     }
 
+    await deleteClient({
+      channelAddress: created.result.createdChannelAddress,
+    });
+
     const described = await dccc({
       channelAddress: created.result.createdChannelAddress,
     });
 
-    if (!described.ok) {
-      logBad(described);
-      throw new Error("failed to describe channel");
-    } else {
-      logGood(described);
-    }
+    logGood(described);
   });
 });

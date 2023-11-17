@@ -15,7 +15,7 @@ export const describeChannel = async ({
   });
 
   if (channel === undefined) {
-    throw new Error("Channel not found.");
+    return { ok: false, error: "Channel does not exist" };
   }
 
   const description = getChannelDescription({ channel });

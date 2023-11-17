@@ -1,12 +1,14 @@
 import { serverForAdmin } from "../lib/serverForAdmin.js";
+import { serverForAlice } from "../lib/serverForAlice.js";
 import { logGood } from "../lib/logGood.js";
 import { logBad } from "../lib/logBad.js";
 import { createClient as createChannelCreateClient } from "../../xgc/actions/create-channel/createClient.js";
 import { createClient as describeChannelCreateClient } from "../../xgc/actions/describe-channel/createClient.js";
+import { createClient as inviteMemberToChannelCreateClient } from "../../xgc/actions/invite-member-to-channel/createClient.js";
 import { CONFIG } from "../lib/CONFIG.js";
 
-describe("0", () => {
-  it("create a channel", async function () {
+describe("1", () => {
+  it("invite to a channel", async function () {
     this.timeout(10000000000000);
 
     const cccc = createChannelCreateClient({
@@ -15,6 +17,11 @@ describe("0", () => {
     });
 
     const dccc = describeChannelCreateClient({
+      usingLocalServer: serverForAdmin,
+      forRemoteServerAddress: CONFIG.remoteServerAddress,
+    });
+
+    const iccc = inviteMemberToChannelCreateClient({
       usingLocalServer: serverForAdmin,
       forRemoteServerAddress: CONFIG.remoteServerAddress,
     });
@@ -29,15 +36,20 @@ describe("0", () => {
       throw new Error("failed to create channel");
     }
 
-    const described = await dccc({
+    await iccc({
+      channelAddress: created.result.createdChannelAddress,
+      memberAddress: serverForAlice.client.address,
+    });
+
+    const withInvites = await dccc({
       channelAddress: created.result.createdChannelAddress,
     });
 
-    if (!described.ok) {
-      logBad(described);
+    if (!withInvites.ok) {
+      logBad(withInvites);
       throw new Error("failed to describe channel");
-    } else {
-      logGood(described);
     }
+
+    logGood(withInvites);
   });
 });

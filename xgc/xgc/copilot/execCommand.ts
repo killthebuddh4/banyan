@@ -15,39 +15,33 @@ import { describeChannel } from "../actions/describe-channel/describeChannel.js"
 
 export const execCommand = async ({
   client,
-  messages,
+  message,
   functionCall,
 }: {
   client: Client;
-  messages: DecodedMessage[];
+  message: DecodedMessage;
   functionCall: z.infer<typeof callSchema>;
 }): Promise<z.infer<typeof responseSchema>> => {
-  if (messages.length === 0) {
-    throw new Error("No messages to handle inside the user message handler.");
-  }
-
-  const lastMessage = messages[messages.length - 1];
-
   const result = await (async () => {
     try {
       switch (functionCall.name) {
         case "createChannel": {
           return await createChannel({
-            ownerAddress: lastMessage.senderAddress,
+            ownerAddress: message.senderAddress,
             name: functionCall.arguments.name,
             description: functionCall.arguments.description,
           });
         }
         case "deleteChannel": {
           return await deleteChannel({
-            userDoingTheDeleting: { address: lastMessage.senderAddress },
+            userDoingTheDeleting: { address: message.senderAddress },
             channelAddress: functionCall.arguments.channelAddress,
             copilotClient: client,
           });
         }
         case "inviteMemberToChannel": {
           return await inviteMemberToChannel({
-            userDoingTheInviting: { address: lastMessage.senderAddress },
+            userDoingTheInviting: { address: message.senderAddress },
             userToInvite: {
               address: functionCall.arguments.memberAddress,
             },
@@ -57,20 +51,20 @@ export const execCommand = async ({
         }
         case "acceptChannelInvite": {
           return await acceptChannelInvite({
-            userDoingTheAccepting: { address: lastMessage.senderAddress },
+            userDoingTheAccepting: { address: message.senderAddress },
             channelAddress: functionCall.arguments.channelAddress,
             copilotClient: client,
           });
         }
         case "declineChannelInvite": {
           return await declineChannelInvite({
-            userDoingTheDeclining: { address: lastMessage.senderAddress },
+            userDoingTheDeclining: { address: message.senderAddress },
             channelAddress: functionCall.arguments.channelAddress,
           });
         }
         case "removeMemberFromChannel": {
           return await removeMemberFromChannel({
-            userDoingTheRemoving: { address: lastMessage.senderAddress },
+            userDoingTheRemoving: { address: message.senderAddress },
             userToRemove: {
               address: functionCall.arguments.memberAddress,
             },
@@ -80,19 +74,19 @@ export const execCommand = async ({
         }
         case "listCreatedChannels": {
           return await listCreatedChannels({
-            userDoingTheListing: { address: lastMessage.senderAddress },
-            creatorAddress: lastMessage.senderAddress,
+            userDoingTheListing: { address: message.senderAddress },
+            creatorAddress: message.senderAddress,
           });
         }
         case "listAvailableCommands": {
           return await listAvailableCommands({
-            userDoingTheListing: { address: lastMessage.senderAddress },
+            userDoingTheListing: { address: message.senderAddress },
             options: functionCall.arguments.options,
           });
         }
         case "describeChannel": {
           return await describeChannel({
-            userDoingTheReading: { address: lastMessage.senderAddress },
+            userDoingTheReading: { address: message.senderAddress },
             channelAddress: functionCall.arguments.channelAddress,
           });
         }

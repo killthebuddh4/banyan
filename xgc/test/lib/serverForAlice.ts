@@ -1,4 +1,4 @@
-import { create as serverCreate } from "../../xgc/xmtp/server/create.js";
+import { createServer as serverCreate } from "../../xgc/xmtp/server/create.js";
 import { start } from "../../xgc/xmtp/server/start.js";
 import { Client } from "@xmtp/xmtp-js";
 import { Wallet } from "@ethersproject/wallet";

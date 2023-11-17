@@ -1,4 +1,3 @@
-import { cacheMessage } from "./cacheMessage.js";
 import { Client } from "@xmtp/xmtp-js";
 
 export const sendMessage = async ({
@@ -11,7 +10,5 @@ export const sendMessage = async ({
   toAddress: string;
 }) => {
   const conversation = await client.conversations.newConversation(toAddress);
-  const sent = await conversation.send(content);
-  cacheMessage({ message: sent });
-  return sent;
+  return conversation.send(content);
 };
