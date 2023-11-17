@@ -8,7 +8,9 @@
     "types": "tsc --noEmit",
     "build": "tsc",
     "build:watch": "tsc --watch",
-    "check": "npm run lint && npm run format && npm run types && npm run build && npm run test"
+    "check": "npm run lint && npm run format && npm run types && npm run build && npm run test",
+    "xmtp:tail": "node build/scripts/tail.js",
+    "xmtp:send": "node build/scripts/send.js"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.4",
