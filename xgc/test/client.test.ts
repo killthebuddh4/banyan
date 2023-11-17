@@ -21,20 +21,24 @@ const CONFIG = {
   remoteServerAddress: "0xD7C0462bFc1f9cB88e31748b0E3Db018821Ec193",
 };
 
+console.log(`REMOTE ADDRESS ${CONFIG.remoteServerAddress}`);
+
 const localWallet = Wallet.createRandom();
 const localClient = await Client.create(localWallet, { env: "production" });
 const localServer = serverCreate({ fromClient: localClient });
-
 await start({ server: localServer });
-
-console.log(`REMOTE ADDRESS ${CONFIG.remoteServerAddress}`);
-console.log(`LOCAL ADDRESS ${localClient.address}`);
+console.log(`SERVER STARTED FOR LOCAL ADDRESS ${localClient.address}`);
+const userWallet = Wallet.createRandom();
+const userClient = await Client.create(userWallet, { env: "production" });
+const userServer = serverCreate({ fromClient: userClient });
+await start({ server: userServer });
+console.log(`SERVER STARTED FOR USER ADDRESS ${userClient.address}`);
 
 describe("client", () => {
   it("createChannel", async function () {
     this.timeout(10000000000000);
 
-    const response = await createChannelClient()({
+    const created = await createChannelClient()({
       input: makeInputString({
         name: "/createChannel",
         args: {
@@ -44,7 +48,16 @@ describe("client", () => {
       }),
     });
 
-    logGood(response);
+    const description = await describeChannelClient()({
+      input: makeInputString({
+        name: "/describeChannel",
+        args: {
+          channelAddress: created.content.result.createdChannelAddress,
+        },
+      }),
+    });
+
+    logGood(description);
   });
 
   it("deleteChannel", async function () {
@@ -115,6 +128,70 @@ describe("client", () => {
 
     logGood(invited);
   });
+
+  it("acceptChannelInvite", async function () {
+    this.timeout(10000000000000);
+
+    const created = await createChannelClient()({
+      input: makeInputString({
+        name: "/createChannel",
+        args: {
+          name: "test channel",
+          description: "test channel description",
+        },
+      }),
+    });
+
+    await inviteMemberClient()({
+      input: makeInputString({
+        name: "/inviteMemberToChannel",
+        args: {
+          channelAddress: created.content.result.createdChannelAddress,
+          memberAddress: userWallet.address,
+        },
+      }),
+    });
+
+    const noMembers = await describeChannelClient()({
+      input: makeInputString({
+        name: "/describeChannel",
+        args: {
+          channelAddress: created.content.result.createdChannelAddress,
+        },
+      }),
+    });
+
+    logGood(noMembers);
+
+    const acceptChannelInviteClient = clientCreate({
+      usingLocalServer: userServer,
+      forRemoteServerAddress: CONFIG.remoteServerAddress,
+      usingResponseSchema: z.object({
+        senderAddress: z.literal(CONFIG.remoteServerAddress),
+        content: jsonStringSchema.pipe(acceptChannelInviteSchema),
+      }),
+    });
+
+    await acceptChannelInviteClient()({
+      input: makeInputString({
+        name: "/acceptChannelInvite",
+        args: {
+          channelAddress: created.content.result.createdChannelAddress,
+        },
+      }),
+    });
+
+    const withMembers = await describeChannelClient()({
+      input: makeInputString({
+        name: "/describeChannel",
+        args: {
+          channelAddress: created.content.result.createdChannelAddress,
+        },
+      }),
+    });
+
+    logGood(withMembers);
+  });
 });
 
 const createChannelClient = clientCreate({
@@ -141,15 +218,6 @@ const inviteMemberClient = clientCreate({
   usingResponseSchema: z.object({
     senderAddress: z.literal(CONFIG.remoteServerAddress),
     content: jsonStringSchema.pipe(inviteMemberToChannelSchema),
-  }),
-});
-
-const acceptChannelInviteClient = clientCreate({
-  usingLocalServer: localServer,
-  forRemoteServerAddress: CONFIG.remoteServerAddress,
-  usingResponseSchema: z.object({
-    senderAddress: z.literal(CONFIG.remoteServerAddress),
-    content: jsonStringSchema.pipe(acceptChannelInviteSchema),
   }),
 });
 

@@ -1,6 +1,5 @@
 import { z } from "zod";
 import { responseSchema as createChannelResponseSchema } from "./create-channel/responseSchema.js";
-import { responseSchema as createChannelSchema } from "./create-channel/responseSchema.js";
 import { responseSchema as inviteMemberToChannelSchema } from "./invite-member-to-channel/responseSchema.js";
 import { responseSchema as acceptChannelInviteSchema } from "./accept-channel-invite/responseSchema.js";
 import { responseSchema as declineChannelInviteSchema } from "./decline-channel-invite/responseSchema.js";

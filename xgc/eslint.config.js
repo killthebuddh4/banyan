@@ -12,15 +12,6 @@ export default [
     },
   },
   {
-    files: ["**/*.test.js"],
-    languageOptions: {
-      globals: {
-        ...globals.mocha,
-      },
-    },
-  },
-  js.configs.recommended,
-  {
     files: ["*.ts", "**/*.ts"],
     plugins: {
       "@typescript-eslint": ts,

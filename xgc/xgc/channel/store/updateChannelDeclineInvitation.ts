@@ -54,6 +54,13 @@ export const updateChannelDeclineInvitation = ({
     );
   }
 
+  if (invitation.toAddress !== userDoingTheDeclining.address) {
+    throw new DescriptiveError(
+      NOT_THE_INVITED_USER_ERROR,
+      `Failed to decline invitation to user ${userDoingTheDeclining.address} to channel ${channelAddress} because the user is not the invited user.`,
+    );
+  }
+
   if (invitation.status === "accepted") {
     throw new DescriptiveError(
       ALREADY_ACCEPTED_ERROR,

@@ -10,10 +10,16 @@ export const create = <Z extends z.ZodTypeAny>({
   usingLocalServer,
   forRemoteServerAddress,
   usingResponseSchema,
+  options,
 }: {
   usingLocalServer: Server;
   forRemoteServerAddress: string;
   usingResponseSchema: Z;
+  options?: {
+    onMessage?: () => void;
+    onIgnore?: () => void;
+    onAccept?: () => void;
+  };
 }) => {
   if (usingLocalServer.stream === null) {
     throw new Error(
@@ -33,13 +39,25 @@ export const create = <Z extends z.ZodTypeAny>({
       );
 
       const handler: MessageHandler = async ({ messages }) => {
+        if (options?.onMessage !== undefined) {
+          options.onMessage();
+        }
+
         const message = getLastMessage({ fromMessages: messages });
 
         const response = usingResponseSchema.safeParse(message);
 
         if (!response.success) {
+          if (options?.onIgnore !== undefined) {
+            options.onIgnore();
+          }
+
           return;
         } else {
+          if (options?.onAccept !== undefined) {
+            options.onAccept();
+          }
+
           resolver(response.data);
           unsub();
         }
