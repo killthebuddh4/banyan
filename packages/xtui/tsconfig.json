@@ -1,0 +1,7 @@
+{
+	"extends": "@sindresorhus/tsconfig",
+	"compilerOptions": {
+		"outDir": "build"
+	},
+	"include": ["xtui/**/*.tsx"]
+}

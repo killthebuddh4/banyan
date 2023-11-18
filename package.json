@@ -1,0 +1,6 @@
+{
+  "private": true,
+  "name": "banyan-computer-company",
+  "packageManager": "npm@9.5.0",
+  "workspaces": [ "packages/*" ]
+}
