@@ -25,6 +25,9 @@ export const readChannel = ({
     channel.owner.address !== userDoingTheReading.address &&
     userDoingTheReading.address !== CONFIG.superuserAddress
   ) {
+    console.log("WHAT");
+    console.log("channel.owner.address", channel.owner.address);
+    console.log("userDoingTheReading.address", userDoingTheReading.address);
     throw new DescriptiveError(
       NOT_THE_OWNER_ERROR_DESCRIPTION,
       `Failed to read channel ${channelAddress} because the user doing the reading is not the owner`,

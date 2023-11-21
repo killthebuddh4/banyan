@@ -16,6 +16,7 @@ export const createClient = ({
   usingLocalServer: Server;
   forRemoteServerAddress: string;
   options?: {
+    timeout?: number;
     onMessage?: ({ message }: { message: DecodedMessage }) => void;
     onIgnore?: ({ message }: { message: DecodedMessage }) => void;
     onAccept?: ({ message }: { message: DecodedMessage }) => void;
@@ -39,12 +40,22 @@ export const createClient = ({
       message: DecodedMessage;
     }) => void;
 
+    let rejecter: (error: Error) => void;
+
+    const timeout = setTimeout(
+      () => {
+        rejecter(new Error("Request timed out"));
+      },
+      options?.timeout || 10000,
+    );
+
     const responsePromise = new Promise<{
       requestId: string;
       message: DecodedMessage;
       content: unknown;
-    }>((resolve) => {
+    }>((resolve, reject) => {
       resolver = resolve;
+      rejecter = reject;
     });
 
     const handler: MessageHandler = async ({ requestId, message, content }) => {
@@ -62,6 +73,7 @@ export const createClient = ({
           options.onAccept({ message });
         }
 
+        clearTimeout(timeout);
         resolver({
           message,
           content,

@@ -15,7 +15,12 @@ export const deleteChannel = ({
   userDoingTheDeleting: User;
   channel: Channel;
 }) => {
+  console.log("channel.owner.address", channel.owner.address);
+  console.log("userDoingTheDeleting.address", userDoingTheDeleting.address);
   if (channel.owner.address !== userDoingTheDeleting.address) {
+    console.log("WHAT");
+    console.log("channel.owner.address", channel.owner.address);
+    console.log("userDoingTheDeleting.address", userDoingTheDeleting.address);
     throw new DescriptiveError(
       NOT_THE_OWNER_ERROR_DESCRIPTION,
       `Failed to delete channel ${channel.address} because the user doing the deleting is not the owner`,
