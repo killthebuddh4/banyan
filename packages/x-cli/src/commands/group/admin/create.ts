@@ -7,8 +7,8 @@ import { stop } from "x-core/xmtp/server/stop.js";
 import { Client } from "@xmtp/xmtp-js";
 import { Wallet } from "@ethersproject/wallet";
 import { readConfig } from "../../../config/readConfig.js";
-import { isTaken } from "../../../alias/isTaken.js";
-import { setAlias } from "../../../alias/setAlias.js";
+import { isTaken } from "../../../config/alias/isTaken.js";
+import { setAlias } from "../../../config/alias/setAlias.js";
 
 export const create = new Command("create")
   .description("Create a new group")
@@ -36,7 +36,7 @@ export const create = new Command("create")
 
     const client = createChannelCreateClient({
       usingLocalServer: server,
-      forRemoteServerAddress: config.remoteServerAddress,
+      forRemoteServerAddress: config.groupServerAddress,
     });
 
     const created = await client({

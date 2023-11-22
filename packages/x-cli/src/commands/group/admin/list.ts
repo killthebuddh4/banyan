@@ -19,7 +19,7 @@ export const list = new Command("list")
     await start({ server });
     const serverClient = createClient({
       usingLocalServer: server,
-      forRemoteServerAddress: config.remoteServerAddress,
+      forRemoteServerAddress: config.groupServerAddress,
     });
     const groups = await serverClient({});
     console.log(JSON.stringify(groups, null, 2));

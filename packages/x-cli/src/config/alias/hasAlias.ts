@@ -1,4 +1,4 @@
-import { readConfig } from "../config/readConfig.js";
+import { readConfig } from "../readConfig.js";
 
 export const hasAlias = async ({ source }: { source: string }) => {
   const config = await readConfig();

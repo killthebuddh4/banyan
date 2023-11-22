@@ -7,7 +7,7 @@ import { stop } from "x-core/xmtp/server/stop.js";
 import { Client } from "@xmtp/xmtp-js";
 import { Wallet } from "@ethersproject/wallet";
 import { readConfig } from "../../../config/readConfig.js";
-import { resolve } from "../../../alias/resolve.js";
+import { resolve } from "../../../config/alias/resolve.js";
 
 export const join = new Command("join")
   .description("Join a group")
@@ -25,7 +25,7 @@ export const join = new Command("join")
     await start({ server });
     const serverClient = createClient({
       usingLocalServer: server,
-      forRemoteServerAddress: config.remoteServerAddress,
+      forRemoteServerAddress: config.groupServerAddress,
     });
     const group = await resolve({ aliasOrSource: options.group });
     const accepted = await serverClient({

@@ -4,25 +4,24 @@ A command-line interface for [xmtp](https://xmtp.org).
 
 # Roadmap
 
-- conversation list
-  - tui
-  - list
-  - listen
-- one on one conversation (+ burner options)
-  - tui 
-  - list
-  - listen
-  - publish
+- conversation (list)
+  - [ ] tui
+  - [x] list
+  - [x] listen
+- conversation (dm) (+ burner options)
+  - [ ] tui 
+  - [ ] list
+  - [x] listen
+  - [x] send
 - groups
-  - list
-  - create
-  - delete
-  - describe
-  - invite
-  - accept
-  - decline
-  - remove user
-  - tui
-  - list
-  - listen
-  - publish
+  - [x] list
+  - [x] create
+  - [x] delete
+  - [x] describe
+  - [x] invite
+  - [x] accept
+  - [x] decline
+  - [x] remove user
+  - [ ] tui
+  - [ ] listen
+  - [ ] publish

@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { Command } from "commander";
-import { createClient } from "x-core/actions/delete-channel/createClient.js";
+import { createClient } from "x-core/actions/decline-channel-invite/createClient.js";
 import { createServer } from "x-core/xmtp/server/create.js";
 import { start } from "x-core/xmtp/server/start.js";
 import { stop } from "x-core/xmtp/server/stop.js";
@@ -9,9 +9,8 @@ import { Wallet } from "@ethersproject/wallet";
 import { readConfig } from "../../../config/readConfig.js";
 import { resolve } from "../../../config/alias/resolve.js";
 
-/* del because delete is a reserved word */
-export const del = new Command("delete")
-  .description("Delete a group")
+export const decline = new Command("decline")
+  .description("Decline an invitation.")
   .requiredOption("-g, --group <group>", "Group alias or address")
   .action(async (rawOpts) => {
     const options = z
@@ -29,9 +28,9 @@ export const del = new Command("delete")
       forRemoteServerAddress: config.groupServerAddress,
     });
     const group = await resolve({ aliasOrSource: options.group });
-    const deleted = await serverClient({
+    const declined = await serverClient({
       channelAddress: group,
     });
-    console.log(JSON.stringify(deleted, null, 2));
+    console.log(JSON.stringify(declined, null, 2));
     stop({ server });
   });
