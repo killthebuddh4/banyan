@@ -4,7 +4,7 @@
     "./*.js": "./build/src/*.js"
   },
   "scripts": {
-    "dev": "concurrently \"npm run build:watch\" \"nodemon build/src/server.js\"",
+    "dev": "nodemon build/src/server.js",
     "test": "mocha",
     "lint": "eslint .",
     "format": "prettier --check .",
