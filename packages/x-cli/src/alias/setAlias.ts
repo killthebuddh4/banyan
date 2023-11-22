@@ -1,7 +1,7 @@
-import { readConfig } from "./config/readConfig.js";
-import { writeConfig } from "./config/writeConfig.js";
+import { readConfig } from "../config/readConfig.js";
+import { writeConfig } from "../config/writeConfig.js";
 
-export const writeAlias = async ({
+export const setAlias = async ({
   alias,
   source,
 }: {

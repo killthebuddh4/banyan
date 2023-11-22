@@ -1,6 +1,6 @@
 # Overview
 
-TODO
+A command-line interface for [xmtp](https://xmtp.org).
 
 # Roadmap
 
