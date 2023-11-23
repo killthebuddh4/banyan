@@ -3,7 +3,7 @@ import { Box, Text } from "ink";
 import { MessageInput } from "./MessageInput.js";
 import * as Xmtp from "./xmtp.js";
 
-export const Group = ({
+export const DirectMessage = ({
   pk,
   peerAddress,
 }: {
@@ -14,8 +14,6 @@ export const Group = ({
     Xmtp.subscribeToClientStore,
     Xmtp.getClient,
   );
-
-  console.error("client is ", client?.address);
 
   const conversation = useSyncExternalStore(
     Xmtp.subscribeToConversationStore,
@@ -39,7 +37,6 @@ export const Group = ({
       return;
     }
 
-    console.error("starting client");
     Xmtp.startClient({ pk });
   }, [client, pk]);
 
@@ -48,7 +45,6 @@ export const Group = ({
       return;
     }
 
-    console.error("starting conversation");
     Xmtp.startConversation({ peerAddress });
   }, [client, peerAddress]);
 
@@ -84,32 +80,16 @@ export const Group = ({
     <Box flexDirection="column" height={height} width={65}>
       <Box flexDirection="column" flexGrow={1}>
         {messages.map((m) => {
-          if (m.senderAddress !== peerAddress) {
-            // Only show messages from the group server
-            return null;
-          } else {
-            const parsed = parseServerMessage({ notParsed: m.content });
-            const color =
-              parsed.senderAddress === peerAddress ? "green" : "blue";
-            return (
-              <Box flexDirection="column" marginTop={1} key={m.id}>
-                <Text color={color}>{parsed.senderAddress}</Text>
-                <Text>{parsed.content}</Text>
-              </Box>
-            );
-          }
+          const color = m.senderAddress === peerAddress ? "green" : "blue";
+          return (
+            <Box flexDirection="column" marginTop={1} key={m.id}>
+              <Text color={color}>{m.senderAddress}</Text>
+              <Text>{m.content}</Text>
+            </Box>
+          );
         })}
       </Box>
       <MessageInput peerAddress={peerAddress} />
     </Box>
   );
-};
-
-const parseServerMessage = ({ notParsed }: { notParsed: string }) => {
-  const senderAddress = notParsed.split(":")[0];
-  const content = notParsed.split(":")[1];
-  return {
-    senderAddress,
-    content,
-  };
 };

@@ -2,7 +2,7 @@
   "name": "xtui",
   "type": "module",
   "scripts": {
-    "dev": "nodemon --no-stdin ./build/cli.js",
+    "dev": "nodemon --no-stdin ./build/App.js 2>${XGC_ERR_LOG}",
     "build": "tsc",
     "build:watch": "tsc --watch"
   },
