@@ -6,8 +6,8 @@ import { start } from "x-core/xmtp/server/start.js";
 import { stop } from "x-core/xmtp/server/stop.js";
 import { Client } from "@xmtp/xmtp-js";
 import { Wallet } from "@ethersproject/wallet";
-import { readConfig } from "../../../config/readConfig.js";
-import { resolve } from "../../../config/alias/resolve.js";
+import { readConfig } from "x-core/config/readConfig.js";
+import { resolve } from "x-core/config/alias/resolve.js";
 
 export const kick = new Command("kick")
   .description("Remove a user from a group.")

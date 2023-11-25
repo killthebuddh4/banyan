@@ -1,7 +1,7 @@
 import { Command } from "commander";
 import { Client } from "@xmtp/xmtp-js";
 import { Wallet } from "@ethersproject/wallet";
-import { readConfig } from "../../config/readConfig.js";
+import { readConfig } from "x-core/config/readConfig.js";
 
 export const list = new Command("list")
   .description("List your conversations.")

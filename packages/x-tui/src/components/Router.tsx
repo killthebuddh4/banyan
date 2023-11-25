@@ -7,12 +7,16 @@ import { getRoute } from "../router/getRoute.js";
 import { setRoute } from "../router/setRoute.js";
 import { routerStore } from "../router/routerStore.js";
 import { optionsSchema } from "../cli/optionsSchema.js";
+import { useConfig } from "../config/useConfig.js";
+import { useInput } from "ink";
 
 export const Router = ({
   options,
 }: {
   options: z.infer<typeof optionsSchema>;
 }) => {
+  const config = useConfig();
+
   const route = useSyncExternalStore(
     createSubscribe({ store: routerStore }),
     () => getRoute({ store: routerStore }),
@@ -37,14 +41,25 @@ export const Router = ({
     }
   }, [options.peerAddress]);
 
-  if (route === null) {
+  useInput((_input, key) => {
+    if (key.tab) {
+      setRoute({
+        store: routerStore,
+        route: {
+          route: "list",
+        },
+      });
+    }
+  });
+
+  if (route === null || config === null) {
     return null;
   } else if (route.route === "list") {
-    return <ConversationList pk={options.privateKey} />;
+    return <ConversationList pk={config.privateKey} />;
   } else if (route.route === "conversation") {
     return (
       <Conversation
-        pk={options.privateKey}
+        pk={config.privateKey}
         peerAddress={route.conversation.peerAddress}
       />
     );

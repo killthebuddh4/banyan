@@ -16,7 +16,8 @@
     "ink": "^4.1.0",
     "ink-spinner": "^5.0.0",
     "ink-text-input": "^5.0.1",
-    "react": "^18.2.0"
+    "react": "^18.2.0",
+    "x-core": "*"
   },
   "devDependencies": {
     "@sindresorhus/tsconfig": "^3.0.1",

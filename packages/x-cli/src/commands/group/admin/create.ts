@@ -6,9 +6,9 @@ import { start } from "x-core/xmtp/server/start.js";
 import { stop } from "x-core/xmtp/server/stop.js";
 import { Client } from "@xmtp/xmtp-js";
 import { Wallet } from "@ethersproject/wallet";
-import { readConfig } from "../../../config/readConfig.js";
-import { isTaken } from "../../../config/alias/isTaken.js";
-import { setAlias } from "../../../config/alias/setAlias.js";
+import { readConfig } from "x-core/config/readConfig.js";
+import { isTaken } from "x-core/config/alias/isTaken.js";
+import { setAlias } from "x-core/config/alias/setAlias.js";
 
 export const create = new Command("create")
   .description("Create a new group")

@@ -2,8 +2,8 @@ import { z } from "zod";
 import { Command } from "commander";
 import { Client, DecodedMessage } from "@xmtp/xmtp-js";
 import { Wallet } from "@ethersproject/wallet";
-import { readConfig } from "../../config/readConfig.js";
-import { resolve } from "../../config/alias/resolve.js";
+import { readConfig } from "x-core/config/readConfig.js";
+import { resolve } from "x-core/config/alias/resolve.js";
 
 const userAndCidSchema = z.object({
   user: z.string(),

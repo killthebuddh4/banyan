@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { Command } from "commander";
-import { getDefaultConfigPath } from "../config/getDefaultConfigPath.js";
-import { setActiveConfigPath } from "../config/setActiveConfigPath.js";
+import { getDefaultConfigPath } from "x-core/config/getDefaultConfigPath.js";
+import { setActiveConfigPath } from "x-core/config/setActiveConfigPath.js";
 
 export const x = new Command()
   .option(

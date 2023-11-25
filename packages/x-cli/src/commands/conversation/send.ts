@@ -2,8 +2,8 @@ import { Command } from "commander";
 import { z } from "zod";
 import { Client } from "@xmtp/xmtp-js";
 import { Wallet } from "@ethersproject/wallet";
-import { readConfig } from "../../config/readConfig.js";
-import { resolve } from "../../config/alias/resolve.js";
+import { readConfig } from "x-core/config/readConfig.js";
+import { resolve } from "x-core/config/alias/resolve.js";
 
 export const send = new Command("send")
   .requiredOption("-u, --user <user>", "Alias or address of the user.")

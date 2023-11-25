@@ -6,7 +6,7 @@ import { start } from "x-core/xmtp/server/start.js";
 import { stop } from "x-core/xmtp/server/stop.js";
 import { Client } from "@xmtp/xmtp-js";
 import { Wallet } from "@ethersproject/wallet";
-import { readConfig } from "../../../config/readConfig.js";
+import { readConfig } from "x-core/config/readConfig.js";
 
 export const list = new Command("list")
   // TODO List groups you are a member of.
