@@ -10,4 +10,4 @@ export type MessageHandler = ({
   server: Server;
   subscriber: Metadata;
   message: DecodedMessage;
-}) => Promise<DecodedMessage>;
+}) => Promise<void>;
