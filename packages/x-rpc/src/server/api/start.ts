@@ -5,8 +5,7 @@ import { onStreamError } from "../onStreamError.js";
 import { onAlreadyRunning } from "../onAlreadyRunning.js";
 import { onUncaughtHandlerError } from "../onUncaughtHandlerError.js";
 import { onMessageReceived } from "../onMessageReceived.js";
-import { onHandlerCalled } from "../onHandlerCalled.js";
-import { invokeHandler } from "../invokeHandler.js";
+import { callSubscriber } from "../callSubscriber.js";
 import { stop } from "../stop.js";
 
 export const start = async ({ server }: { server: Server }) => {
@@ -33,12 +32,10 @@ export const start = async ({ server }: { server: Server }) => {
       onMessageReceived({ server, message });
 
       try {
-        for (const handler of server.handlers.values()) {
-          onHandlerCalled({ server, metadata: handler.metadata });
-
-          invokeHandler({
+        for (const subscriber of server.subscribers.values()) {
+          callSubscriber({
             server,
-            metadata: handler.metadata,
+            subscriber,
             message,
           });
         }

@@ -11,9 +11,8 @@ export const create = ({
 }): Server => {
   return {
     client: usingClient,
-    handlers: new Map(),
+    subscribers: new Map(),
     stream: null,
-    cache: [],
     options: options || {},
   };
 };

@@ -2,7 +2,7 @@ import { DecodedMessage } from "@xmtp/xmtp-js";
 import { Metadata } from "./Metadata.js";
 import { Server } from "./Server.js";
 
-export type MessageHandler = ({
+export type Filter = ({
   server,
   subscriber,
   message,
@@ -10,4 +10,4 @@ export type MessageHandler = ({
   server: Server;
   subscriber: Metadata;
   message: DecodedMessage;
-}) => Promise<DecodedMessage>;
+}) => Promise<boolean>;

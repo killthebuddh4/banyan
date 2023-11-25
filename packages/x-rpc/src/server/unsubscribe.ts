@@ -2,16 +2,16 @@ import { Server } from "./Server.js";
 
 export const unsubscribe = ({
   fromServer,
-  handlerId,
+  subscriberId,
 }: {
   fromServer: Server;
-  handlerId: string;
+  subscriberId: string;
 }) => {
-  if (!fromServer.handlers.has(handlerId)) {
-    throw new Error(`Handler ${handlerId} does not exist`);
+  if (!fromServer.subscribers.has(subscriberId)) {
+    throw new Error(`Subscriber ${subscriberId} does not exist`);
   }
 
-  fromServer.handlers.delete(handlerId);
+  fromServer.subscribers.delete(subscriberId);
 
   return fromServer;
 };

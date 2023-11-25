@@ -1,41 +1,34 @@
 import { Server } from "../Server.js";
-import { Metadata } from "../Metadata.js";
-import { MessageHandler } from "../MessageHandler.js";
 import { unsubscribe } from "../unsubscribe.js";
+import { Subscriber } from "../Subscriber.js";
 
 export const subscribe = ({
   toServer,
-  withMetadata,
-  usingHandler,
+  subscriber,
   options,
 }: {
   toServer: Server;
-  withMetadata: Metadata;
-  usingHandler: MessageHandler;
+  subscriber: Subscriber;
   options?: {
     overrideExistingHandler?: boolean;
   };
 }) => {
-  if (toServer.handlers.has(withMetadata.handler.id)) {
+  if (toServer.subscribers.has(subscriber.metadata.id)) {
     if (options?.overrideExistingHandler === true) {
       // do nothing
     } else {
       throw new Error(
-        `A handler with the id ${withMetadata.handler.id} has already subscribed to the server`,
+        `A handler with the id ${subscriber.metadata.id} has already subscribed to the server`,
       );
     }
   }
 
-  toServer.handlers.set(withMetadata.handler.id, {
-    metadata: withMetadata,
-    handler: usingHandler,
-    tracers: new Map(),
-  });
+  toServer.subscribers.set(subscriber.metadata.id, subscriber);
 
   return () => {
     unsubscribe({
       fromServer: toServer,
-      handlerId: withMetadata.handler.id,
+      subscriberId: subscriber.metadata.id,
     });
   };
 };
