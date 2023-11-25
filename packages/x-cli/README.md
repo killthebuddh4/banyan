@@ -11,6 +11,7 @@ A command-line interface for [xmtp](https://xmtp.org).
 - conversation (dm) (+ burner options)
   - [ ] tui 
   - [ ] list
+  - [ ] create
   - [x] listen
   - [x] send
 - groups
