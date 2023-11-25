@@ -1,11 +1,11 @@
 import React, { useEffect, useSyncExternalStore } from "react";
 import { z } from "zod";
-import { Conversation } from "../conversation/Conversation.js";
-import { ConversationList } from "../conversation-list/ConversationList.js";
-import { createSubscribe } from "./createSubscribe.js";
-import { getRoute } from "./getRoute.js";
-import { setRoute } from "./setRoute.js";
-import { routerStore } from "./routerStore.js";
+import { Conversation } from "./Conversation.js";
+import { ConversationList } from "./ConversationList.js";
+import { createSubscribe } from "../router/createSubscribe.js";
+import { getRoute } from "../router/getRoute.js";
+import { setRoute } from "../router/setRoute.js";
+import { routerStore } from "../router/routerStore.js";
 import { optionsSchema } from "../cli/optionsSchema.js";
 
 export const Router = ({

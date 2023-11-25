@@ -3,7 +3,7 @@ import { render } from "ink";
 // import { Group } from "./Group.js";
 import { program } from "commander";
 import { optionsSchema } from "./optionsSchema.js";
-import { Router } from "../router/Router.js";
+import { Router } from "../components/Router.js";
 
 program
   .requiredOption("-k, --private-key <privateKey>")

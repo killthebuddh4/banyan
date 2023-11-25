@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { Box, Text } from "ink";
-import { MessageInput } from "./MessageInput.js";
+import { MessageInput } from "../conversation/MessageInput.js";
 import { clientStore } from "../xmtp/client/clientStore.js";
 import { useClient } from "../xmtp/client/useClient.js";
 import { messageStreamStore } from "../xmtp/message-stream/messageStreamStore.js";
