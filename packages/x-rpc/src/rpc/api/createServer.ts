@@ -1,5 +1,4 @@
 import { RpcOptions } from "../RpcOptions.js";
-import { Options } from "../../server/Options.js";
 import { Server } from "../../server/Server.js";
 import { subscribe } from "../../server/api/subscribe.js";
 import { start } from "../../server/api/start.js";
