@@ -5,6 +5,7 @@
   },
   "scripts": {
     "rpc": "nodemon ./build/src/rpc.js",
+    "rpc:client": "node ./build/src/rpc-client.js",
     "lint": "eslint .",
     "format": "prettier --check .",
     "types": "tsc --noEmit",

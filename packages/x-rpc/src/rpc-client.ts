@@ -1,16 +1,13 @@
 import { z } from "zod";
-import { createServer as createRpcServer } from "./rpc/api/createServer.js";
+import { createClient } from "./rpc/api/createClient.js";
+import { createRpcRoute } from "./rpc/createRpcRoute.js";
 import { RpcRoute } from "./rpc/RpcRoute.js";
 import { create as createServer } from "./server/api/create.js";
+import { start } from "./server/api/start.js";
 import { Client } from "@xmtp/xmtp-js";
 import { Wallet } from "@ethersproject/wallet";
-import { setActiveConfigPath } from "x-core/config/setActiveConfigPath.js";
-import { getDefaultConfigPath } from "x-core/config/getDefaultConfigPath.js";
-import { readConfig } from "x-core/config/readConfig.js";
 
-setActiveConfigPath({ activeConfigPath: getDefaultConfigPath() });
-const config = await readConfig();
-const wallet = new Wallet(config.privateKey);
+const wallet = Wallet.createRandom();
 const client = await Client.create(wallet, { env: "production" });
 
 const server = createServer({
@@ -29,10 +26,10 @@ const server = createServer({
   },
 });
 
-const routes = new Map<string, RpcRoute<z.ZodTypeAny, z.ZodTypeAny>>();
+const stop = await start({ server });
 
-routes.set("sum", {
-  address: server.client.address,
+const sumRoute = createRpcRoute({
+  address: "0xbB5697194fa6E94c6B2c9d460b695fb5cf731eAB",
   inputSchema: z.object({
     a: z.number(),
     b: z.number(),
@@ -42,8 +39,8 @@ routes.set("sum", {
   handler: async ({ a, b }) => a + b,
 });
 
-routes.set("divide", {
-  address: server.client.address,
+const divideRoute = createRpcRoute({
+  address: "0xbB5697194fa6E94c6B2c9d460b695fb5cf731eAB",
   inputSchema: z.object({
     num: z.number(),
     denom: z.number(),
@@ -53,18 +50,24 @@ routes.set("divide", {
   handler: async ({ num, denom }) => num / denom,
 });
 
-const rpc = createRpcServer({
-  usingServer: server,
-  withRoutes: routes,
-  options: {
-    onJsonParseError: () => console.log("RPC :: JSON parse error"),
-    onRequestParseError: () => console.log("RPC :: Request parse error"),
-    onMethodNotFound: () => console.log("RPC :: Method not found"),
-    onInvalidParams: () => console.log("RPC :: Invalid params"),
-    onServerError: () => console.log("RPC :: Server error"),
-    onHandlerError: () => console.log("RPC :: Handler error"),
-    onMethodCalled: () => console.log("RPC :: Method called"),
-  },
+const sumClient = createClient({
+  usingLocalServer: server,
+  forRoute: sumRoute,
 });
 
-rpc();
+const divideClient = createClient({
+  usingLocalServer: server,
+  forRoute: divideRoute,
+});
+
+const sum = await sumClient({ a: 1, b: 2 });
+
+const divide = await divideClient({ num: 1, denom: 2 });
+
+console.log("sum", sum);
+
+console.log("divide", divide);
+
+if (typeof stop === "function") {
+  stop();
+}

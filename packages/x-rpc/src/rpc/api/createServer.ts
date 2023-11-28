@@ -7,13 +7,13 @@ import { RpcRoute } from "../RpcRoute.js";
 import { createRpcRouter } from "../createRpcRouter.js";
 import crypto from "crypto";
 
-export const create = ({
+export const createServer = ({
   usingServer,
   withRoutes,
   options,
 }: {
   usingServer: Server;
-  withRoutes: Map<string, RpcRoute>;
+  withRoutes: Map<string, RpcRoute<any, any>>;
   options?: RpcOptions;
 }) => {
   subscribe({

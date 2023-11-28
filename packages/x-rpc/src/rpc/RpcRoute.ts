@@ -1,11 +1,9 @@
 import { z } from "zod";
 
-export type RpcRoute<
-  I extends z.ZodTypeAny = any,
-  O extends z.ZodTypeAny = any,
-> = {
+export type RpcRoute<I extends z.ZodTypeAny, O extends z.ZodTypeAny> = {
+  address: string;
   inputSchema: I;
   outputSchema: O;
   method: string;
-  handler: (input: I) => Promise<z.infer<O>>;
+  handler: (input: z.infer<I>) => Promise<z.infer<O>>;
 };

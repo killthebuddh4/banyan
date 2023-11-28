@@ -1,3 +1,4 @@
+import { z } from "zod";
 import { MessageHandler } from "../server/MessageHandler.js";
 import { rpcRequestSchema } from "./rpcRequestSchema.js";
 import { jsonStringSchema } from "x-core/lib/jsonStringSchema.js";
@@ -6,11 +7,14 @@ import { RpcRoute } from "./RpcRoute.js";
 import { sendResponse } from "./sendResponse.js";
 import { RpcOptions } from "./RpcOptions.js";
 
-export const createRpcRouter = ({
+export const createRpcRouter = <
+  I extends z.ZodTypeAny,
+  O extends z.ZodTypeAny,
+>({
   routeStore,
   withOptions,
 }: {
-  routeStore: Map<string, RpcRoute>;
+  routeStore: Map<string, RpcRoute<I, O>>;
   withOptions?: RpcOptions;
 }): MessageHandler => {
   return async ({ message }) => {
@@ -38,8 +42,6 @@ export const createRpcRouter = ({
      * ************************************************************************/
 
     const request = rpcRequestSchema.safeParse(json.data);
-
-    console.log("json", json.data);
 
     if (!request.success) {
       if (withOptions?.onRequestParseError === undefined) {
