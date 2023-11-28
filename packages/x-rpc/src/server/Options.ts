@@ -13,10 +13,3 @@ export type Options = {
   onMessageReceived?: ({ message }: { message: DecodedMessage }) => void;
   onNotStarted?: () => void;
 };
-
-// peerAddress
-// context
-// context/cid
-// context/metadata
-// timestamp
-// content

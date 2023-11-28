@@ -1,7 +1,10 @@
 {
   "type": "module",
+  "exports": {
+    "./*.js": "./build/src/*.js"
+  },
   "scripts": {
-    "dev": "nodemon build/src/server.js",
+    "rpc": "nodemon ./build/src/rpc.js",
     "lint": "eslint .",
     "format": "prettier --check .",
     "types": "tsc --noEmit",
