@@ -25,6 +25,7 @@ export const createServer = ({
         return message.senderAddress !== usingServer.client.address;
       },
       handler: createRpcRouter({
+        onServer: usingServer,
         routeStore: withRoutes,
         withOptions: options,
       }),

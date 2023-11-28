@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { DecodedMessage } from "@xmtp/xmtp-js";
 import { Server } from "../../server/Server.js";
 import { MessageHandler } from "../../server/MessageHandler.js";
 import { subscribe } from "../../server/api/subscribe.js";
@@ -13,10 +12,12 @@ import { sendRequest } from "../sendRequest.js";
 export const createClient = <I extends z.ZodTypeAny, O extends z.ZodTypeAny>({
   usingLocalServer,
   forRoute,
+  remoteServerAddress,
   options,
 }: {
   usingLocalServer: Server;
   forRoute: RpcRoute<I, O>;
+  remoteServerAddress: string;
   options?: {
     timeout?: number;
   };
@@ -48,8 +49,8 @@ export const createClient = <I extends z.ZodTypeAny, O extends z.ZodTypeAny>({
       rejecter = reject;
     });
 
-    const handler: MessageHandler = async ({ message }) => {
-      if (message.conversation.peerAddress !== forRoute.address) {
+    const handler: MessageHandler = async ({ server, message }) => {
+      if (message.conversation.peerAddress !== remoteServerAddress) {
         // TODO
         return;
       }
@@ -108,7 +109,7 @@ export const createClient = <I extends z.ZodTypeAny, O extends z.ZodTypeAny>({
 
     await sendRequest({
       usingLocalServer,
-      toRoute: forRoute,
+      toAddress: remoteServerAddress,
       request: {
         id: requestId,
         method: forRoute.method,

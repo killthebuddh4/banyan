@@ -6,14 +6,17 @@ import { withIdSchema } from "./withIdSchema.js";
 import { RpcRoute } from "./RpcRoute.js";
 import { sendResponse } from "./sendResponse.js";
 import { RpcOptions } from "./RpcOptions.js";
+import { Server } from "../server/Server.js";
 
 export const createRpcRouter = <
   I extends z.ZodTypeAny,
   O extends z.ZodTypeAny,
 >({
+  onServer,
   routeStore,
   withOptions,
 }: {
+  onServer: Server;
   routeStore: Map<string, RpcRoute<I, O>>;
   withOptions?: RpcOptions;
 }): MessageHandler => {
@@ -149,12 +152,18 @@ export const createRpcRouter = <
         withOptions.onMethodCalled({ method: request.data.method });
       }
 
-      const result = await route.handler(input.data);
+      const result = await route.handler({
+        context: route.createContext({
+          server: onServer,
+          message,
+          request: request.data,
+        }),
+        input: input.data,
+      });
 
       if (request.data.id === undefined) {
         // do nothing, request is a notification
       } else {
-        console.log("result", result);
         // TODO, retries et al.
         sendResponse({
           toMessage: message,

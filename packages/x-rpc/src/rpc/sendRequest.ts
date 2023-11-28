@@ -5,16 +5,14 @@ import { RpcRoute } from "./RpcRoute.js";
 
 export const sendRequest = async ({
   usingLocalServer,
-  toRoute,
+  toAddress,
   request,
 }: {
   usingLocalServer: Server;
-  toRoute: RpcRoute<any, any>;
+  toAddress: string;
   request: z.infer<typeof rpcRequestSchema>;
 }) => {
   const conversation =
-    await usingLocalServer.client.conversations.newConversation(
-      toRoute.address,
-    );
+    await usingLocalServer.client.conversations.newConversation(toAddress);
   return conversation.send(JSON.stringify(request));
 };
