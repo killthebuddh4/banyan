@@ -6,7 +6,7 @@ import { readConfig } from "x-core/config/readConfig.js";
 export const list = new Command("list")
   .description("List your conversations.")
   .action(async () => {
-    const config = await readConfig();
+    const config = await readConfig({});
     const wallet = new Wallet(config.privateKey);
     const client = await Client.create(wallet, { env: "production" });
     const conversations = await client.conversations.list();

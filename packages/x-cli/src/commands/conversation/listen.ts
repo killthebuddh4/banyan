@@ -23,7 +23,7 @@ export const listen = new Command("listen")
   .option("--cid <conversation id>", "Conversation ID.")
   .action(async (options) => {
     const opts = optionSchema.parse(options);
-    const config = await readConfig();
+    const config = await readConfig({});
     const wallet = new Wallet(config.privateKey);
     const client = await Client.create(wallet, { env: "production" });
 

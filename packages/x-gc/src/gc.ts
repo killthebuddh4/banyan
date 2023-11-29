@@ -12,6 +12,7 @@ import { route as inviteMemberToChannelRoute } from "./routes/invite-member-to-c
 import { route as declineChannelInviteRoute } from "./routes/decline-channel-invite/route.js";
 import { route as acceptChannelInviteRoute } from "./routes/accept-channel-invite/route.js";
 import { route as removeMemberFromChannelRoute } from "./routes/remove-member-from-channel/route.js";
+import { route as heartbeatRoute } from "./routes/heartbeat/route.js";
 import { env } from "./options/xmtp/env.js";
 import { onAlreadyRunning } from "./options/onAlreadyRunning.js";
 import { onStreamBefore } from "./options/onStreamBefore.js";
@@ -58,6 +59,7 @@ const routes = new Map<string, RpcRoute<any, any>>([
   [declineChannelInviteRoute.method, declineChannelInviteRoute],
   [inviteMemberToChannelRoute.method, inviteMemberToChannelRoute],
   [removeMemberFromChannelRoute.method, removeMemberFromChannelRoute],
+  [heartbeatRoute.method, heartbeatRoute],
 ]);
 
 const groupServer = createRpcServer({

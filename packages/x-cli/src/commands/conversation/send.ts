@@ -18,7 +18,7 @@ export const send = new Command("send")
         message: z.string().min(1),
       })
       .parse(rawOpts);
-    const config = await readConfig();
+    const config = await readConfig({});
     const wallet = new Wallet(config.privateKey);
     const client = await Client.create(wallet, { env: "production" });
     const address = await resolve({ aliasOrSource: opts.user });

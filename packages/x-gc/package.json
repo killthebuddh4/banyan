@@ -4,7 +4,7 @@
     "./*.js": "./build/src/*.js"
   },
   "scripts": {
-    "dev": "nodemon build/gc.js",
+    "dev": "nodemon build/src/gc.js",
     "dev:client": "node build/gc-client.js",
     "lint": "eslint .",
     "format": "prettier --check .",

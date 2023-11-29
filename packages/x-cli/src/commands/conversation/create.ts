@@ -16,7 +16,7 @@ export const create = new Command("create")
         cid: z.string().optional(),
       })
       .parse(rawOpts);
-    const config = await readConfig();
+    const config = await readConfig({});
     const wallet = new Wallet(config.privateKey);
     const client = await Client.create(wallet, { env: "production" });
     const address = await resolve({ aliasOrSource: opts.user });
