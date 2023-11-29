@@ -12,11 +12,11 @@ const NO_CHANNEL_ERROR_DESCRIPTION = `
 export const deleteChannel = async ({
   userDoingTheDeleting,
   channelAddress,
-  copilotClient,
+  copilotAddress,
 }: {
   userDoingTheDeleting: User;
   channelAddress: string;
-  copilotClient: Client;
+  copilotAddress: string;
 }) => {
   let channel = readChannel({
     userDoingTheReading: userDoingTheDeleting,
@@ -35,7 +35,7 @@ export const deleteChannel = async ({
   channel.stream.return(null);
 
   publishToChannel({
-    fromUser: { address: copilotClient.address },
+    fromUser: { address: copilotAddress },
     channel,
     message: `This channel's owner has deleted the channel, messages will no longer be broadcast to the rest of the channel's members.`,
   });

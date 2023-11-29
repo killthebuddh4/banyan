@@ -2,12 +2,14 @@ import { readFile } from "fs/promises";
 import { jsonStringSchema } from "../lib/jsonStringSchema.js";
 import { configSchema } from "./configSchema.js";
 import { getActiveConfigPath } from "./getActiveConfigPath.js";
+import { getDefaultConfigPath } from "./getDefaultConfigPath.js";
 
-export const readConfig = async () => {
-  const configPath = getActiveConfigPath();
-  if (typeof configPath !== "string") {
-    throw new Error("No active config path");
-  }
-  const data = await readFile(configPath, { encoding: "utf-8" });
+export const readConfig = async ({
+  overridePath,
+}: {
+  overridePath?: string;
+}) => {
+  const path = overridePath || getActiveConfigPath() || getDefaultConfigPath();
+  const data = await readFile(path, { encoding: "utf-8" });
   return jsonStringSchema.pipe(configSchema).parse(data);
 };

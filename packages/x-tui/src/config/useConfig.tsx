@@ -9,7 +9,7 @@ export const useConfig = () => {
   );
 
   useEffect(() => {
-    readConfig().then(setConfig);
+    readConfig({}).then(setConfig);
   }, []);
 
   return config;

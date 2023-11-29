@@ -37,6 +37,8 @@ export const createClient = <I extends z.ZodTypeAny, O extends z.ZodTypeAny>({
 
     let rejecter: (error: Error) => void;
 
+    let unsubscribe: () => void;
+
     const timeout = setTimeout(
       () => {
         rejecter(new Error("Request timed out"));
@@ -49,7 +51,7 @@ export const createClient = <I extends z.ZodTypeAny, O extends z.ZodTypeAny>({
       rejecter = reject;
     });
 
-    const handler: MessageHandler = async ({ server, message }) => {
+    const handler: MessageHandler = async ({ message }) => {
       if (message.conversation.peerAddress !== remoteServerAddress) {
         // TODO
         return;
@@ -92,11 +94,11 @@ export const createClient = <I extends z.ZodTypeAny, O extends z.ZodTypeAny>({
       }
 
       clearTimeout(timeout);
-
+      unsubscribe();
       resolver(validatedOutput.data);
     };
 
-    subscribe({
+    unsubscribe = subscribe({
       toServer: usingLocalServer,
       subscriber: {
         metadata: {

@@ -3,58 +3,74 @@ import { Wallet } from "@ethersproject/wallet";
 import { create as createServer } from "x-rpc/server/api/create.js";
 import { createServer as createRpcServer } from "x-rpc/rpc/api/createServer.js";
 import { RpcRoute } from "x-rpc/rpc/RpcRoute.js";
-import { setActiveConfigPath } from "x-core/config/setActiveConfigPath.js";
-import { getDefaultConfigPath } from "x-core/config/getDefaultConfigPath.js";
 import { readConfig } from "x-core/config/readConfig.js";
 import { route as createChannelRoute } from "./routes/create-channel/route.js";
-import { route as declineChannelInviteRoute } from "./routes/decline-channel-invite/route.js";
 import { route as describeChannelRoute } from "./routes/describe-channel/route.js";
+import { route as deleteChannelRoute } from "./routes/delete-channel/route.js";
+import { route as listCreatedChannelsRoute } from "./routes/list-created-channels/route.js";
+import { route as inviteMemberToChannelRoute } from "./routes/invite-member-to-channel/route.js";
+import { route as declineChannelInviteRoute } from "./routes/decline-channel-invite/route.js";
+import { route as acceptChannelInviteRoute } from "./routes/accept-channel-invite/route.js";
+import { route as removeMemberFromChannelRoute } from "./routes/remove-member-from-channel/route.js";
+import { env } from "./options/xmtp/env.js";
+import { onAlreadyRunning } from "./options/onAlreadyRunning.js";
+import { onStreamBefore } from "./options/onStreamBefore.js";
+import { onStreamError } from "./options/onStreamError.js";
+import { onStreamSuccess } from "./options/onStreamSuccess.js";
+import { onUncaughtHandlerError } from "./options/onUncaughtHandlerError.js";
+import { onSubscriberCalled } from "./options/onSubscriberCalled.js";
+import { onMessageReceived } from "./options/onMessageReceived.js";
+import { onNotStarted } from "./options/onNotStarted.js";
+import { onJsonParseError } from "./options/rpc/onJsonParseError.js";
+import { onRequestParseError } from "./options/rpc/onRequestParseError.js";
+import { onMethodNotFound } from "./options/rpc/onMethodNotFound.js";
+import { onInvalidParams } from "./options/rpc/onInvalidParams.js";
+import { onServerError } from "./options/rpc/onServerError.js";
+import { onHandlerError } from "./options/rpc/onHandlerError.js";
+import { onMethodCalled } from "./options/rpc/onMethodCalled.js";
 
-setActiveConfigPath({ activeConfigPath: getDefaultConfigPath() });
-const config = await readConfig();
+const config = await readConfig({});
 const wallet = new Wallet(config.privateKey);
-const client = await Client.create(wallet, { env: "production" });
+const client = await Client.create(wallet, { env });
 
 const server = createServer({
   usingClient: client,
   options: {
-    onAlreadyRunning: () => console.log("Already running"),
+    onAlreadyRunning,
     onStream: {
-      before: () => console.log("RAW :: Before stream"),
-      success: () => console.log("RAW :: Started stream"),
-      error: () => console.log("RAW :: Error"),
+      before: onStreamBefore,
+      success: onStreamSuccess,
+      error: onStreamError,
     },
-    onUncaughtHandlerError: () => console.log("RAW :: Uncaught handler error"),
-    onSubscriberCalled: () => console.log("RAW :: Subscriber called"),
-    onMessageReceived: ({ message }) => {
-      if (message.senderAddress === client.address) {
-        // do nothing
-        console.log("MESSAGE SENT", message.content);
-      } else {
-        console.log("MESSAGE RECEIVED", message.content);
-      }
-    },
-    onNotStarted: () => console.log("RAW :: Not started"),
+    onUncaughtHandlerError,
+    onSubscriberCalled,
+    onMessageReceived,
+    onNotStarted,
   },
 });
 
 const routes = new Map<string, RpcRoute<any, any>>([
-  ["createChannel", createChannelRoute],
-  ["declineChannelInvite", declineChannelInviteRoute],
-  ["describeChannel", describeChannelRoute],
+  [createChannelRoute.method, createChannelRoute],
+  [deleteChannelRoute.method, deleteChannelRoute],
+  [describeChannelRoute.method, describeChannelRoute],
+  [listCreatedChannelsRoute.method, listCreatedChannelsRoute],
+  [acceptChannelInviteRoute.method, acceptChannelInviteRoute],
+  [declineChannelInviteRoute.method, declineChannelInviteRoute],
+  [inviteMemberToChannelRoute.method, inviteMemberToChannelRoute],
+  [removeMemberFromChannelRoute.method, removeMemberFromChannelRoute],
 ]);
 
 const groupServer = createRpcServer({
   usingServer: server,
   withRoutes: routes,
   options: {
-    onJsonParseError: () => console.log("RPC :: JSON parse error"),
-    onRequestParseError: () => console.log("RPC :: Request parse error"),
-    onMethodNotFound: () => console.log("RPC :: Method not found"),
-    onInvalidParams: () => console.log("RPC :: Invalid params"),
-    onServerError: () => console.log("RPC :: Server error"),
-    onHandlerError: () => console.log("RPC :: Handler error"),
-    onMethodCalled: () => console.log("RPC :: Method called"),
+    onJsonParseError,
+    onRequestParseError,
+    onMethodNotFound,
+    onInvalidParams,
+    onServerError,
+    onHandlerError,
+    onMethodCalled,
   },
 });
 
