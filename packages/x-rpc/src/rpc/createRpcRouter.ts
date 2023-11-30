@@ -164,6 +164,11 @@ export const createRpcRouter = <
       if (request.data.id === undefined) {
         // do nothing, request is a notification
       } else {
+        if (withOptions?.onResponse === undefined) {
+          // do nothing
+        } else {
+          withOptions.onResponse({ message });
+        }
         // TODO, retries et al.
         sendResponse({
           toMessage: message,

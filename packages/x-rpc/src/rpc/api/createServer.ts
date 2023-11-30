@@ -22,6 +22,18 @@ export const createServer = ({
         id: crypto.randomUUID(),
       },
       filter: async ({ message }) => {
+        if (options?.useConversationId) {
+          const conversationId = message.conversation.context?.conversationId;
+
+          if (conversationId === undefined) {
+            return false;
+          }
+
+          if (!conversationId.startsWith("xmtrpc")) {
+            return false;
+          }
+        }
+
         return message.senderAddress !== usingServer.client.address;
       },
       handler: createRpcRouter({

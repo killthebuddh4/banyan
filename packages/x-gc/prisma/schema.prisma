@@ -1,0 +1,73 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("XGC_SQLITE_URL")
+}
+
+model User {
+  id                  String        @id @default(uuid())
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+  address             String        @unique
+  createdGroups       Group[]       @relation("creator")
+  ownedGroups         Group[]       @relation("owner")
+  memberOfGroups      GroupMember[]
+  receivedInvitations Invitation[]  @relation("invitedUser")
+  sentInvitations     Invitation[]  @relation("invitedByUser")
+}
+
+model Group {
+  id          String        @id @default(uuid())
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  address     String        @unique
+  name        String
+  description String
+  creator     User          @relation("creator", fields: [creatorId], references: [id])
+  creatorId   String
+  owner       User          @relation("owner", fields: [ownerId], references: [id])
+  ownerId     String
+  members     GroupMember[]
+  invitations Invitation[]
+
+  @@unique([creatorId, name])
+}
+
+model GroupMember {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  group     Group    @relation(fields: [groupId], references: [id])
+  groupId   String
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+
+  @@unique([groupId, userId])
+}
+
+model Invitation {
+  id              String             @id @default(uuid())
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  group           Group              @relation(fields: [groupId], references: [id])
+  groupId         String
+  invitedUser     User               @relation("invitedUser", fields: [invitedUserId], references: [id])
+  invitedUserId   String
+  invitedByUser   User               @relation("invitedByUser", fields: [invitedByUserId], references: [id])
+  invitedByUserId String
+  status          InvitationStatus[]
+
+  @@unique([groupId, invitedUserId])
+}
+
+model InvitationStatus {
+  id           String     @id @default(uuid())
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  invitation   Invitation @relation(fields: [invitationId], references: [id])
+  invitationId String
+  status       String
+}

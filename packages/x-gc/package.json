@@ -4,7 +4,7 @@
     "./*.js": "./build/src/*.js"
   },
   "scripts": {
-    "dev": "nodemon build/src/gc.js",
+    "dev": "XGC_SQLITE_URL='file:./dev.db' nodemon build/src/gc.js",
     "dev:client": "node build/gc-client.js",
     "lint": "eslint .",
     "format": "prettier --check .",
@@ -20,10 +20,12 @@
     "eslint": "^8.53.0",
     "nodemon": "^3.0.1",
     "prettier": "^3.0.3",
+    "prisma": "^5.6.0",
     "tsconfig": "*",
     "typescript": "^5.2.2"
   },
   "dependencies": {
+    "@prisma/client": "^5.6.0",
     "@xmtp/xmtp-js": "^11.2.1",
     "commander": "^11.1.0",
     "x-core": "*",

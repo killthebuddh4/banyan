@@ -1,7 +1,6 @@
 import { z } from "zod";
 import { Server } from "../server/Server.js";
 import { rpcRequestSchema } from "./rpcRequestSchema.js";
-import { RpcRoute } from "./RpcRoute.js";
 
 export const sendRequest = async ({
   usingLocalServer,
@@ -13,6 +12,9 @@ export const sendRequest = async ({
   request: z.infer<typeof rpcRequestSchema>;
 }) => {
   const conversation =
-    await usingLocalServer.client.conversations.newConversation(toAddress);
+    await usingLocalServer.client.conversations.newConversation(toAddress, {
+      conversationId: "xmtrpc",
+      metadata: {},
+    });
   return conversation.send(JSON.stringify(request));
 };

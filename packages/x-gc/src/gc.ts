@@ -4,14 +4,14 @@ import { create as createServer } from "x-rpc/server/api/create.js";
 import { createServer as createRpcServer } from "x-rpc/rpc/api/createServer.js";
 import { RpcRoute } from "x-rpc/rpc/RpcRoute.js";
 import { readConfig } from "x-core/config/readConfig.js";
-import { route as createChannelRoute } from "./routes/create-channel/route.js";
-import { route as describeChannelRoute } from "./routes/describe-channel/route.js";
-import { route as deleteChannelRoute } from "./routes/delete-channel/route.js";
-import { route as listCreatedChannelsRoute } from "./routes/list-created-channels/route.js";
-import { route as inviteMemberToChannelRoute } from "./routes/invite-member-to-channel/route.js";
-import { route as declineChannelInviteRoute } from "./routes/decline-channel-invite/route.js";
-import { route as acceptChannelInviteRoute } from "./routes/accept-channel-invite/route.js";
-import { route as removeMemberFromChannelRoute } from "./routes/remove-member-from-channel/route.js";
+import { route as createGroupRoute } from "./routes/create-group/route.js";
+import { route as describeGroupRoute } from "./routes/describe-group/route.js";
+import { route as deleteGroupRoute } from "./routes/delete-group/route.js";
+import { route as listGroupsRoute } from "./routes/list-groups/route.js";
+import { route as inviteToGroupRoute } from "./routes/invite-to-group/route.js";
+import { route as declineGroupInviteRoute } from "./routes/decline-group-invite/route.js";
+import { route as acceptGroupInviteRoute } from "./routes/accept-group-invite/route.js";
+import { route as deleteMemberRoute } from "./routes/delete-member/route.js";
 import { route as heartbeatRoute } from "./routes/heartbeat/route.js";
 import { env } from "./options/xmtp/env.js";
 import { onAlreadyRunning } from "./options/onAlreadyRunning.js";
@@ -29,6 +29,8 @@ import { onInvalidParams } from "./options/rpc/onInvalidParams.js";
 import { onServerError } from "./options/rpc/onServerError.js";
 import { onHandlerError } from "./options/rpc/onHandlerError.js";
 import { onMethodCalled } from "./options/rpc/onMethodCalled.js";
+import { useConversationId } from "./options/useConversationId.js";
+import { onResponse } from "./options/onResponse.js";
 
 const config = await readConfig({});
 const wallet = new Wallet(config.privateKey);
@@ -51,14 +53,14 @@ const server = createServer({
 });
 
 const routes = new Map<string, RpcRoute<any, any>>([
-  [createChannelRoute.method, createChannelRoute],
-  [deleteChannelRoute.method, deleteChannelRoute],
-  [describeChannelRoute.method, describeChannelRoute],
-  [listCreatedChannelsRoute.method, listCreatedChannelsRoute],
-  [acceptChannelInviteRoute.method, acceptChannelInviteRoute],
-  [declineChannelInviteRoute.method, declineChannelInviteRoute],
-  [inviteMemberToChannelRoute.method, inviteMemberToChannelRoute],
-  [removeMemberFromChannelRoute.method, removeMemberFromChannelRoute],
+  [createGroupRoute.method, createGroupRoute],
+  [deleteGroupRoute.method, deleteGroupRoute],
+  [describeGroupRoute.method, describeGroupRoute],
+  [listGroupsRoute.method, listGroupsRoute],
+  [acceptGroupInviteRoute.method, acceptGroupInviteRoute],
+  [declineGroupInviteRoute.method, declineGroupInviteRoute],
+  [inviteToGroupRoute.method, inviteToGroupRoute],
+  [deleteMemberRoute.method, deleteMemberRoute],
   [heartbeatRoute.method, heartbeatRoute],
 ]);
 
@@ -73,6 +75,8 @@ const groupServer = createRpcServer({
     onServerError,
     onHandlerError,
     onMethodCalled,
+    useConversationId,
+    onResponse,
   },
 });
 

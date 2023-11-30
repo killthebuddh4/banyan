@@ -11,7 +11,9 @@ import { stop } from "../stop.js";
 export const start = async ({ server }: { server: Server }) => {
   if (server.stream !== null) {
     onAlreadyRunning({ server });
-    return server;
+    return () => {
+      stop({ server });
+    };
   }
 
   onStreamBefore({ server });
@@ -20,7 +22,8 @@ export const start = async ({ server }: { server: Server }) => {
   try {
     stream = await server.client.conversations.streamAllMessages();
   } catch (err) {
-    return onStreamError({ server, err });
+    onStreamError({ server, err });
+    throw new Error("Failed to start server");
   }
 
   onStreamSuccess({ server });
