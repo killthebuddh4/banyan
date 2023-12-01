@@ -2,8 +2,8 @@ import React from "react";
 import { render } from "ink";
 // import { Group } from "./Group.js";
 import { program } from "commander";
-import { optionsSchema } from "./optionsSchema.js";
-import { Router } from "../components/Router.js";
+import { optionsSchema } from "./cli/optionsSchema.js";
+import { Router } from "./components/Router.js";
 import { getDefaultConfigPath } from "xm-lib/config/getDefaultConfigPath.js";
 import { setActiveConfigPath } from "xm-lib/config/setActiveConfigPath.js";
 

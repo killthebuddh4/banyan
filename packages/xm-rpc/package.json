@@ -2,7 +2,7 @@
   "name": "@killthebuddha/xm-rpc",
   "type": "module",
   "exports": {
-    "./*.js": "./build/src/*.js"
+    "./*.js": "./build/*.js"
   },
   "scripts": {
     "dev": "tsc --watch",

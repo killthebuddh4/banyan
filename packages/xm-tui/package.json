@@ -2,7 +2,7 @@
   "name": "@killthebuddha/xm-tui",
   "type": "module",
   "scripts": {
-    "start": "node build/cli/cli.js",
+    "start": "node build/app.js",
     "dev": "tsc --watch",
     "types": "tsc --noEmit",
     "build": "tsc"
