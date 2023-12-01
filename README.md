@@ -18,6 +18,7 @@ clients.
 - `xm-tui`
 - `xm-rpc`
 - `xm-react` (coming soon!)
+- `xm-d` (coming soon!)
 
 # Examples
 

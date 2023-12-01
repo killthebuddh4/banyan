@@ -5,8 +5,8 @@
     "./*.js": "./build/src/*.js"
   },
   "scripts": {
+    "start": "node build/gc.js",
     "dev": "tsc --watch",
-    "tmp": "tsc && concurrently \"tsc --watch\" \"XGC_SQLITE_URL='file:./dev.db' nodemon build/src/gc.js\"",
     "lint": "eslint .",
     "format": "prettier --check .",
     "types": "tsc --noEmit",
