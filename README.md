@@ -17,6 +17,7 @@ clients.
 - `xm-cli`
 - `xm-tui`
 - `xm-rpc`
+- `xm-react` (coming soon!)
 
 # Examples
 
