@@ -10,7 +10,7 @@
     "lint": "eslint .",
     "format": "prettier --check .",
     "types": "tsc --noEmit",
-    "build": "tsc",
+    "build": "prisma generate && tsc",
     "clean": "rm -rf build"
   },
   "devDependencies": {
