@@ -32,7 +32,9 @@ import { onMethodCalled } from "./options/rpc/onMethodCalled.js";
 import { useConversationId } from "./options/useConversationId.js";
 import { onResponse } from "./options/onResponse.js";
 
-const config = await readConfig({});
+const config = await readConfig({
+  overridePath: process.env.XGC_CONFIG_PATH,
+});
 const wallet = new Wallet(config.privateKey);
 const client = await Client.create(wallet, { env });
 
