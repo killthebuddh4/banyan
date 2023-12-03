@@ -5,7 +5,7 @@
     "./*.js": "./build/*.js"
   },
   "scripts": {
-    "start": "node build/server.js",
+    "start": "prisma migrate deploy && node build/server.js",
     "dev": "tsc --watch",
     "lint": "eslint .",
     "format": "prettier --check .",
