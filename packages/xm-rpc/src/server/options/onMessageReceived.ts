@@ -1,4 +1,4 @@
-import { Server } from "./Server.js";
+import { Server } from "../Server.js";
 import { DecodedMessage } from "@xmtp/xmtp-js";
 
 export const onMessageReceived = ({

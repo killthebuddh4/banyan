@@ -25,7 +25,8 @@ import { onHandlerError } from "./options/rpc/onHandlerError.js";
 import { onMethodCalled } from "./options/rpc/onMethodCalled.js";
 import { useConversationId } from "./options/useConversationId.js";
 import { onResponse } from "./options/onResponse.js";
-import { db } from "./lib/db.js";
+import { db } from "./db.js";
+import { sendMessage } from "xm-lib/sendMessage.js";
 
 const config = await readConfig({
   overridePath: process.env.XM_VAL_CONFIG_PATH,
@@ -152,7 +153,7 @@ const routes = new Map<string, RpcRoute<any, any>>([
         });
 
         if (existing !== null) {
-          const written = await db.value.update({
+          await db.value.update({
             where: {
               key: input.key,
             },
@@ -160,16 +161,8 @@ const routes = new Map<string, RpcRoute<any, any>>([
               value: input.value,
             },
           });
-
-          return {
-            ok: true,
-            result: {
-              key: written.key,
-              value: written.value,
-            },
-          };
         } else {
-          const written = await db.value.create({
+          await db.value.create({
             data: {
               key: input.key,
               value: input.value,
@@ -180,15 +173,36 @@ const routes = new Map<string, RpcRoute<any, any>>([
               },
             },
           });
-
-          return {
-            ok: true,
-            result: {
-              key: written.key,
-              value: written.value,
-            },
-          };
         }
+
+        const subscribers = await db.subscriber.findMany({
+          where: {
+            value: {
+              key: input.key,
+            },
+          },
+          include: {
+            user: true,
+          },
+        });
+
+        for (const subscriber of subscribers) {
+          // TODO We need to send a structured message. We also need to make
+          // sure to send a deleted message if the value was deleted.
+          sendMessage({
+            client,
+            toAddress: subscriber.user.address,
+            content: input.value,
+          });
+        }
+
+        return {
+          ok: true,
+          result: {
+            key: input.key,
+            value: input.value,
+          },
+        };
       },
     }),
   ],
@@ -197,9 +211,131 @@ const routes = new Map<string, RpcRoute<any, any>>([
     createRoute({
       createContext,
       method: "delete",
-      inputSchema: z.unknown(),
+      inputSchema: z.object({
+        key: z.string(),
+      }),
       outputSchema: z.unknown(),
-      handler: async () => undefined,
+      handler: async ({ context, input }) => {
+        const value = await db.value.findUnique({
+          where: {
+            key: input.key,
+          },
+          include: {
+            owner: true,
+            readers: {
+              include: {
+                user: true,
+              },
+            },
+          },
+        });
+
+        if (value === null) {
+          return {
+            ok: false,
+            result: {
+              value: undefined,
+            },
+          };
+        }
+
+        const reader = { address: context.message.senderAddress };
+
+        const readerIsOwner = value.owner.address === reader.address;
+
+        if (!readerIsOwner) {
+          return {
+            ok: false,
+            result: {
+              value: undefined,
+            },
+          };
+        }
+
+        const deleted = await db.value.delete({
+          where: {
+            key: input.key,
+          },
+        });
+
+        return {
+          ok: true,
+          result: {
+            value: deleted.value,
+          },
+        };
+      },
+    }),
+  ],
+  [
+    "publish",
+    createRoute({
+      createContext,
+      method: "publish",
+      inputSchema: z.object({
+        key: z.string(),
+        reader: z.object({
+          address: z.string(),
+        }),
+      }),
+      outputSchema: z.unknown(),
+      handler: async ({ context, input }) => {
+        const value = await db.value.findUnique({
+          where: {
+            key: input.key,
+          },
+          include: {
+            owner: true,
+            readers: {
+              include: {
+                user: true,
+              },
+            },
+          },
+        });
+
+        if (value === null) {
+          return {
+            ok: false,
+            result: {
+              value: undefined,
+            },
+          };
+        }
+
+        if (value.owner.address !== context.message.senderAddress) {
+          return {
+            ok: false,
+            result: {
+              value: undefined,
+            },
+          };
+        }
+
+        await db.reader.create({
+          data: {
+            user: {
+              connect: {
+                address: input.reader.address,
+              },
+            },
+            value: {
+              connect: {
+                key: input.key,
+              },
+            },
+          },
+        });
+
+        return {
+          ok: true,
+          result: {
+            reader: {
+              address: input.reader.address,
+            },
+          },
+        };
+      },
     }),
   ],
   [
@@ -207,9 +343,84 @@ const routes = new Map<string, RpcRoute<any, any>>([
     createRoute({
       createContext,
       method: "subscribe",
-      inputSchema: z.unknown(),
+      inputSchema: z.object({
+        key: z.string(),
+      }),
       outputSchema: z.unknown(),
-      handler: async () => undefined,
+      handler: async ({ context, input }) => {
+        const value = await db.value.findUnique({
+          where: {
+            key: input.key,
+          },
+          include: {
+            owner: true,
+            readers: {
+              include: {
+                user: true,
+              },
+            },
+          },
+        });
+
+        if (value === null) {
+          return {
+            ok: false,
+            result: {
+              value: undefined,
+            },
+          };
+        }
+
+        const readers = await db.reader.findMany({
+          where: {
+            value: {
+              key: input.key,
+            },
+          },
+          include: {
+            user: true,
+          },
+        });
+
+        const senderIsReader = Boolean(
+          readers.find((reader) => {
+            return reader.user.address === context.message.senderAddress;
+          }),
+        );
+
+        if (!senderIsReader) {
+          return {
+            ok: false,
+            result: {
+              value: undefined,
+            },
+          };
+        }
+
+        await db.subscriber.create({
+          data: {
+            user: {
+              connect: {
+                address: context.message.senderAddress,
+              },
+            },
+            value: {
+              connect: {
+                key: input.key,
+              },
+            },
+          },
+        });
+
+        return {
+          ok: true,
+          result: {
+            subscriber: {
+              address: context.message.senderAddress,
+            },
+          },
+        };
+      },
     }),
   ],
 ]);

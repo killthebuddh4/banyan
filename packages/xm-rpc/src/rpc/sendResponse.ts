@@ -9,6 +9,6 @@ export const sendResponse = async ({
   toMessage: DecodedMessage;
   response: z.infer<typeof rpcResponseSchema>;
 }) => {
-  console.log("SENDING SOMETHING RESPONSE");
+  console.log("SENDING A RESPONSE");
   return toMessage.conversation.send(JSON.stringify(response));
 };

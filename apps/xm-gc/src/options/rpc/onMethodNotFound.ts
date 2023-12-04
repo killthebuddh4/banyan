@@ -1,3 +1,3 @@
 export const onMethodNotFound = () => {
-  console.log("Method not found");
+  console.log("xm-gc :: Rpc Method not found");
 };

@@ -1,3 +1,3 @@
 export const onStreamError = () => {
-  console.log("Stream error");
+  console.log("xm-gc :: Stream error");
 };

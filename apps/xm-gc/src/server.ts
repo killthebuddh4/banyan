@@ -1,6 +1,8 @@
 import { Client } from "@xmtp/xmtp-js";
 import { Wallet } from "@ethersproject/wallet";
 import { create as createServer } from "@killthebuddha/xm-rpc/server/api/create.js";
+import { subscribe } from "@killthebuddha/xm-rpc/server/api/subscribe.js";
+import { start } from "@killthebuddha/xm-rpc/server/api/start.js";
 import { createServer as createRpcServer } from "@killthebuddha/xm-rpc/rpc/api/createServer.js";
 import { RpcRoute } from "@killthebuddha/xm-rpc/rpc/RpcRoute.js";
 import { readConfig } from "xm-lib/config/readConfig.js";
@@ -67,9 +69,9 @@ const routes = new Map<string, RpcRoute<any, any>>([
 ]);
 
 const groupServer = createRpcServer({
-  usingServer: server,
-  withRoutes: routes,
-  options: {
+  onServer: server,
+  routeStore: routes,
+  withOptions: {
     onJsonParseError,
     onRequestParseError,
     onMethodNotFound,
@@ -82,4 +84,10 @@ const groupServer = createRpcServer({
   },
 });
 
-groupServer();
+await start({ server });
+
+const stream = subscribe({ toServer: server });
+
+for await (const message of stream) {
+  groupServer({ server, message });
+}

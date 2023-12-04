@@ -1,3 +1,3 @@
 export const onStreamSuccess = () => {
-  console.log("Stream success");
+  console.log("xm-gc :: Stream success");
 };

@@ -1,9 +1,8 @@
-import { Metadata } from "./Metadata.js";
-import { MessageHandler } from "./MessageHandler.js";
-import { Filter } from "./Filter.js";
+import { DecodedMessage } from "@xmtp/xmtp-js";
 
 export type Subscriber = {
-  metadata: Metadata;
-  filter: Filter;
-  handler: MessageHandler;
+  metadata: {
+    id: string;
+  };
+  handler: (message: DecodedMessage) => void;
 };

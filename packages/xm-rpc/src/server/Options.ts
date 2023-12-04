@@ -1,5 +1,5 @@
 import { DecodedMessage } from "@xmtp/xmtp-js";
-import { Metadata } from "./Metadata.js";
+import { Subscriber } from "./Subscriber.js";
 
 export type Options = {
   onAlreadyRunning?: () => void;
@@ -9,7 +9,8 @@ export type Options = {
     error?: (err: unknown) => void;
   };
   onUncaughtHandlerError?: (err: unknown) => void;
-  onSubscriberCalled?: ({ metadata }: { metadata: Metadata }) => void;
+  onSubscriberCalled?: ({ subscriber }: { subscriber: Subscriber }) => void;
   onMessageReceived?: ({ message }: { message: DecodedMessage }) => void;
+  onMessageSent?: ({ message }: { message: DecodedMessage }) => void;
   onNotStarted?: () => void;
 };

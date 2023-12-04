@@ -1,3 +1,3 @@
 export const onStreamBefore = () => {
-  console.log("Stream before");
+  console.log("xm-gc :: Stream before");
 };

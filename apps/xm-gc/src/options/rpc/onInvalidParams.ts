@@ -1,3 +1,3 @@
 export const onInvalidParams = () => {
-  console.log("Invalid params");
+  console.log("xm-gc :: Invalid params");
 };

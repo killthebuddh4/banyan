@@ -1,3 +1,3 @@
 export const onHandlerError = () => {
-  console.log("Handler error");
+  console.log("xm-gc :: Rpc Handler error");
 };

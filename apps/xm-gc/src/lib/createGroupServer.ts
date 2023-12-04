@@ -6,6 +6,8 @@ import { start } from "@killthebuddha/xm-rpc/server/api/start.js";
 import { subscribe } from "@killthebuddha/xm-rpc/server/api/subscribe.js";
 import { db } from "./db.js";
 
+/* TODO There's no way to restart the group server on reboot because we don't
+ * save the keys. */
 export const createGroupServer = async ({
   ownerAddress,
   name,
@@ -20,62 +22,58 @@ export const createGroupServer = async ({
   const server = createServer({
     usingClient: client,
   });
-  const stop = await start({ server });
 
-  subscribe({
+  await start({ server });
+
+  const stream = subscribe({
     toServer: server,
-    subscriber: {
-      metadata: {
-        id: "group server",
-      },
-      filter: async ({ message }) => {
-        if (message.senderAddress === client.address) {
-          return false;
-        }
-
-        if (message.content === undefined) {
-          return false;
-        }
-
-        if (message.content.length === 0) {
-          return false;
-        }
-
-        return true;
-      },
-      handler: async ({ message }) => {
-        const members = await db.groupMember.findMany({
-          where: {
-            group: {
-              address: client.address,
-            },
-          },
-          include: {
-            user: true,
-          },
-        });
-
-        const senderIsMember = Boolean(
-          members.find((member) => {
-            return member.user.address === message.senderAddress;
-          }),
-        );
-
-        if (!senderIsMember) {
-          return;
-        }
-
-        publishToGroup({
-          fromMember: { address: message.senderAddress },
-          group: { address: client.address },
-          message: message.content,
-        });
-      },
-    },
   });
+
+  (async () => {
+    for await (const message of stream) {
+      if (message.senderAddress === client.address) {
+        return;
+      }
+
+      if (message.content === undefined) {
+        return;
+      }
+
+      if (message.content.length === 0) {
+        return;
+      }
+
+      const members = await db.groupMember.findMany({
+        where: {
+          group: {
+            address: client.address,
+          },
+        },
+        include: {
+          user: true,
+        },
+      });
+
+      const senderIsMember = Boolean(
+        members.find((member) => {
+          return member.user.address === message.senderAddress;
+        }),
+      );
+
+      if (!senderIsMember) {
+        return;
+      }
+
+      publishToGroup({
+        fromMember: { address: message.senderAddress },
+        group: { address: client.address },
+        message: message.content,
+      });
+    }
+  })();
 
   return {
     client,
-    stop,
+    stop: () => stream.return(),
   };
 };

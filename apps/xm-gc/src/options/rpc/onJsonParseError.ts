@@ -1,3 +1,3 @@
 export const onJsonParseError = () => {
-  console.log("JSON parse error");
+  console.log("xm-gc :: JSON parse error");
 };

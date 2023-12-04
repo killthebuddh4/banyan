@@ -1,3 +1,3 @@
 export const onUncaughtHandlerError = () => {
-  console.log("Uncaught handler error");
+  console.log("xm-gc :: Uncaught handler error");
 };

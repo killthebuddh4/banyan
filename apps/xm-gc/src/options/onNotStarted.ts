@@ -1,3 +1,3 @@
 export const onNotStarted = () => {
-  console.log("Not started");
+  console.log("xm-gc :: Not started");
 };

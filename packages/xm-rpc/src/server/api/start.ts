@@ -1,11 +1,11 @@
 import { Server } from "../Server.js";
-import { onStreamBefore } from "../onStreamBefore.js";
-import { onStreamSuccess } from "../onStreamSuccess.js";
-import { onStreamError } from "../onStreamError.js";
-import { onAlreadyRunning } from "../onAlreadyRunning.js";
-import { onUncaughtHandlerError } from "../onUncaughtHandlerError.js";
-import { onMessageReceived } from "../onMessageReceived.js";
-import { callSubscriber } from "../callSubscriber.js";
+import { onStreamBefore } from "../options/onStreamBefore.js";
+import { onStreamSuccess } from "../options/onStreamSuccess.js";
+import { onStreamError } from "../options/onStreamError.js";
+import { onAlreadyRunning } from "../options/onAlreadyRunning.js";
+import { onUncaughtHandlerError } from "../options/onUncaughtHandlerError.js";
+import { onMessageReceived } from "../options/onMessageReceived.js";
+import { onSubscriberCalled } from "../options/onSubscriberCalled.js";
 import { stop } from "../stop.js";
 
 export const start = async ({ server }: { server: Server }) => {
@@ -32,15 +32,17 @@ export const start = async ({ server }: { server: Server }) => {
 
   (async () => {
     for await (const message of stream) {
+      if (message.senderAddress === server.client.address) {
+        continue;
+      }
+
       onMessageReceived({ server, message });
 
       try {
         for (const subscriber of server.subscribers.values()) {
-          callSubscriber({
-            server,
-            subscriber,
-            message,
-          });
+          onSubscriberCalled({ server, subscriber });
+
+          subscriber.handler(message);
         }
       } catch (err) {
         onUncaughtHandlerError({ server, err });
@@ -48,6 +50,8 @@ export const start = async ({ server }: { server: Server }) => {
     }
   })();
 
+  /* TODO, We need to instrument the stopping logic with a way to notify all
+   * subscribers. */
   return () => {
     stop({ server });
   };

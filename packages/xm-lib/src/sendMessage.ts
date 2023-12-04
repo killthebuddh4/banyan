@@ -9,6 +9,7 @@ export const sendMessage = async ({
   content: string;
   toAddress: string;
 }) => {
+  console.log("SENDING", content);
   const conversation = await client.conversations.newConversation(toAddress);
   return conversation.send(content);
 };

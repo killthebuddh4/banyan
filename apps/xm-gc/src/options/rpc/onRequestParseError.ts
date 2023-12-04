@@ -1,3 +1,3 @@
 export const onRequestParseError = () => {
-  console.log("Request parse error");
+  console.log("xm-gc :: Rpc Request parse error");
 };

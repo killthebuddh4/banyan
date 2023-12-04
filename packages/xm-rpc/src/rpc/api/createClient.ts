@@ -1,6 +1,5 @@
 import { z } from "zod";
 import { Server } from "../../server/Server.js";
-import { MessageHandler } from "../../server/MessageHandler.js";
 import { subscribe } from "../../server/api/subscribe.js";
 import { v4 as uuid } from "uuid";
 import { RpcRoute } from "../RpcRoute.js";
@@ -33,83 +32,7 @@ export const createClient = <I extends z.ZodTypeAny, O extends z.ZodTypeAny>({
   ): Promise<z.infer<typeof forRoute.outputSchema>> => {
     const requestId = uuid();
 
-    let resolver: (output: O) => void;
-
-    let rejecter: (error: Error) => void;
-
-    let unsubscribe: () => void;
-
-    const timeout = setTimeout(
-      () => {
-        rejecter(new Error("Request timed out"));
-      },
-      options?.timeout || 10000,
-    );
-
-    const promiseToReturn = new Promise<O>((resolve, reject) => {
-      resolver = resolve;
-      rejecter = reject;
-    });
-
-    const handler: MessageHandler = async ({ message }) => {
-      if (message.conversation.peerAddress !== remoteServerAddress) {
-        // TODO
-        return;
-      }
-
-      const idFromResponse = jsonStringSchema
-        .pipe(withIdSchema)
-        .safeParse(message.content);
-
-      if (!idFromResponse.success) {
-        // TODO
-        return;
-      }
-
-      if (idFromResponse.data.id !== requestId) {
-        return;
-      }
-
-      const response = jsonStringSchema
-        .pipe(rpcResponseSchema)
-        .safeParse(message.content);
-
-      if (!response.success) {
-        // TODO
-        return;
-      }
-
-      if (!("result" in response.data)) {
-        // TODO
-        return;
-      }
-
-      const validatedOutput = forRoute.outputSchema.safeParse(
-        response.data.result,
-      );
-
-      if (!validatedOutput.success) {
-        // TODO
-        return;
-      }
-
-      clearTimeout(timeout);
-      unsubscribe();
-      resolver(validatedOutput.data);
-    };
-
-    unsubscribe = subscribe({
-      toServer: usingLocalServer,
-      subscriber: {
-        metadata: {
-          id: requestId,
-        },
-        filter: async () => true,
-        handler,
-      },
-    });
-
-    await sendRequest({
+    sendRequest({
       usingLocalServer,
       toAddress: remoteServerAddress,
       request: {
@@ -119,6 +42,59 @@ export const createClient = <I extends z.ZodTypeAny, O extends z.ZodTypeAny>({
       },
     });
 
-    return promiseToReturn;
+    const timeout = setTimeout(
+      () => {
+        throw new Error("Request timed out");
+      },
+      options?.timeout || 10000,
+    );
+
+    const stream = subscribe({ toServer: usingLocalServer, options });
+
+    for await (const message of stream) {
+      if (message.senderAddress !== remoteServerAddress) {
+        // TODO
+        continue;
+      }
+
+      const idFromResponse = jsonStringSchema
+        .pipe(withIdSchema)
+        .safeParse(message.content);
+
+      if (!idFromResponse.success) {
+        // TODO
+        continue;
+      }
+
+      if (idFromResponse.data.id !== requestId) {
+        continue;
+      }
+
+      const response = jsonStringSchema
+        .pipe(rpcResponseSchema)
+        .safeParse(message.content);
+
+      if (!response.success) {
+        // TODO
+        continue;
+      }
+
+      if (!("result" in response.data)) {
+        // TODO
+        continue;
+      }
+
+      const validatedOutput = forRoute.outputSchema.safeParse(
+        response.data.result,
+      );
+
+      if (!validatedOutput.success) {
+        // TODO
+        continue;
+      }
+
+      clearTimeout(timeout);
+      return validatedOutput.data;
+    }
   };
 };

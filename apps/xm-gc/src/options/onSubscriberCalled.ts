@@ -1,3 +1,3 @@
 export const onSubscriberCalled = () => {
-  console.log("Subscriber called");
+  console.log("xm-gc :: Subscriber called");
 };

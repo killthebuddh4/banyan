@@ -1,3 +1,3 @@
 export const onAlreadyRunning = () => {
-  console.log("Already running");
+  console.log("xm-gc :: Already running");
 };

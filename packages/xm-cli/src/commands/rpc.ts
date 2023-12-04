@@ -31,7 +31,14 @@ export const rpc = new Command("rpc")
     const config = await readConfig({});
     const wallet = new Wallet(config.privateKey);
     const client = await Client.create(wallet, { env: "production" });
-    const server = createServer({ usingClient: client });
+    const server = createServer({
+      usingClient: client,
+      options: {
+        onMessageReceived: ({ message }) => {
+          console.log("message received", message.content);
+        },
+      },
+    });
     const serverAddress = await resolve({ aliasOrSource: opts.server });
     const stop = await start({ server });
     const rpcClient = createClient({

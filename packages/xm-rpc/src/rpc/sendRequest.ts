@@ -11,6 +11,7 @@ export const sendRequest = async ({
   toAddress: string;
   request: z.infer<typeof rpcRequestSchema>;
 }) => {
+  console.log("SENDING A REQUEST");
   const conversation =
     await usingLocalServer.client.conversations.newConversation(toAddress, {
       conversationId: "xmtrpc",

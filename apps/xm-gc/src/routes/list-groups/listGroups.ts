@@ -5,6 +5,7 @@ export const listGroups = async ({
 }: {
   userDoingTheListing: { address: string };
 }) => {
+  console.log("LISTING GROUPS");
   const groups = await db.group.findMany({
     where: {
       members: {

@@ -1,3 +1,3 @@
 export const onMethodCalled = () => {
-  console.log("Method called");
+  console.log("xm-gc :: Rpc Method called");
 };

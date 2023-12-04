@@ -1,3 +1,3 @@
 export const onServerError = () => {
-  console.log("Server error");
+  console.log("xm-gc :: Rpc Server error");
 };

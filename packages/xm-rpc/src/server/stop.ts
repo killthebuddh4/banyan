@@ -1,5 +1,5 @@
 import { Server } from "./Server.js";
-import { onNotStarted } from "./onNotStarted.js";
+import { onNotStarted } from "./options/onNotStarted.js";
 
 export const stop = ({ server }: { server: Server }) => {
   if (server.stream === null) {
