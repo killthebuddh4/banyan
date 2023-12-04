@@ -1,0 +1,8 @@
+{
+  "compilerOptions": {
+    "module": "nodenext",
+    "outDir": "./build/test"
+  },
+  "extends": "tsconfig/base.json",
+  "include": ["test/**/*.ts"]
+}

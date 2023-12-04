@@ -23,3 +23,4 @@ clients.
 # Examples
 
 - `xm-gc`
+- `xm-val`
