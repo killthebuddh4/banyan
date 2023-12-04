@@ -7,6 +7,7 @@ import { create as createServer } from "@killthebuddha/xm-rpc/server/api/create.
 import { start } from "@killthebuddha/xm-rpc/server/api/start.js";
 import { createClient } from "@killthebuddha/xm-rpc/rpc/api/createClient.js";
 import { createRoute } from "@killthebuddha/xm-rpc/rpc/api/createRoute.js";
+import { createStream } from "@killthebuddha/xm-rpc/rpc/api/createStream.js";
 import { create as createContext } from "@killthebuddha/xm-rpc/rpc/context/create.js";
 import { readConfig } from "xm-lib/config/readConfig.js";
 import { optionsStore } from "./x/optionsStore.js";
@@ -25,6 +26,7 @@ export const rpc = new Command("rpc")
     "--args <input>",
     "Either JSON arguments for method or a path to a JSON file containing the arguments.",
   )
+  .option("--stream", "Expect a streaming response.")
   .description("Create a new conversation")
   .action(async (rawOpts) => {
     const opts = optionsSchema.parse(rawOpts);
@@ -40,8 +42,8 @@ export const rpc = new Command("rpc")
       },
     });
     const serverAddress = await resolve({ aliasOrSource: opts.server });
-    const stop = await start({ server });
-    const rpcClient = createClient({
+
+    const rpcServerArgs = {
       remoteServerAddress: serverAddress,
       usingLocalServer: server,
       forRoute: createRoute({
@@ -51,13 +53,26 @@ export const rpc = new Command("rpc")
         outputSchema: z.unknown(),
         handler: async () => undefined,
       }),
-    });
+    };
+
     const input = getArguments({ userInput: opts.args });
-    const response = await rpcClient(input);
-    out({
-      data: response,
-      options: { pretty: getPretty({ store: optionsStore }) },
-    });
+
+    const pretty = getPretty({ store: optionsStore });
+
+    const stop = await start({ server });
+
+    if (opts.stream) {
+      const rpcStream = await createStream(rpcServerArgs)({ input });
+
+      for await (const message of rpcStream) {
+        out({ data: message, options: { pretty } });
+      }
+    } else {
+      const rpcClient = createClient(rpcServerArgs);
+      const response = await rpcClient(input);
+      out({ data: response, options: { pretty } });
+    }
+
     if (typeof stop === "function") {
       stop();
     }

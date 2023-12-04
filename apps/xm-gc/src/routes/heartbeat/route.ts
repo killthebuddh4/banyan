@@ -12,4 +12,7 @@ export const route = createRoute({
   handler: () => {
     return heartbeat();
   },
+  options: {
+    mode: "stream",
+  },
 });

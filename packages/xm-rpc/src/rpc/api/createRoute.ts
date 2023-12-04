@@ -9,6 +9,7 @@ export const createRoute = <I extends z.ZodTypeAny, O extends z.ZodTypeAny>({
   inputSchema,
   outputSchema,
   handler,
+  options,
 }: {
   createContext: CreateContext;
   method: string;
@@ -21,6 +22,9 @@ export const createRoute = <I extends z.ZodTypeAny, O extends z.ZodTypeAny>({
     context: RpcContext;
     input: z.infer<I>;
   }) => Promise<z.infer<O>>;
+  options?: {
+    mode: "stream" | "function";
+  };
 }): RpcRoute<typeof inputSchema, typeof outputSchema> => {
   return {
     createContext,
@@ -28,5 +32,6 @@ export const createRoute = <I extends z.ZodTypeAny, O extends z.ZodTypeAny>({
     outputSchema,
     method,
     handler,
+    options,
   };
 };

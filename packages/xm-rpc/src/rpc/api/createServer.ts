@@ -30,14 +30,11 @@ export const createServer = <I extends z.ZodTypeAny, O extends z.ZodTypeAny>({
       }
     }
 
-    console.log("A");
     /* *************************************************************************
      * JSON PARSE
      * ************************************************************************/
 
     const json = jsonStringSchema.safeParse(message.content);
-
-    console.log("B");
 
     if (!json.success) {
       if (withOptions?.onJsonParseError === undefined) {
@@ -46,7 +43,6 @@ export const createServer = <I extends z.ZodTypeAny, O extends z.ZodTypeAny>({
         withOptions.onJsonParseError();
       }
 
-      console.log("B");
       // TODO. We can't respond because we don't know the id of the request.
       // Based on my current understanding of json-rpc-2.0, this doesn't make
       // sense, so I think I must be missing something.
@@ -60,7 +56,6 @@ export const createServer = <I extends z.ZodTypeAny, O extends z.ZodTypeAny>({
     const request = rpcRequestSchema.safeParse(json.data);
 
     if (!request.success) {
-      console.log("C");
       if (withOptions?.onRequestParseError === undefined) {
         // do nothing
       } else {
@@ -100,7 +95,6 @@ export const createServer = <I extends z.ZodTypeAny, O extends z.ZodTypeAny>({
     const route = routeStore.get(request.data.method);
 
     if (route === undefined) {
-      console.log("D");
       if (withOptions?.onMethodNotFound === undefined) {
         // do nothing
       } else {
@@ -132,7 +126,6 @@ export const createServer = <I extends z.ZodTypeAny, O extends z.ZodTypeAny>({
     const input = route.inputSchema.safeParse(request.data.params);
 
     if (!input.success) {
-      console.log("E");
       if (withOptions?.onInvalidParams === undefined) {
         // do nothing
       } else {
@@ -157,7 +150,6 @@ export const createServer = <I extends z.ZodTypeAny, O extends z.ZodTypeAny>({
       return;
     }
 
-    console.log("F");
     /* *************************************************************************
      * CALL THE METHOD'S HANDLER
      * ************************************************************************/
@@ -181,19 +173,40 @@ export const createServer = <I extends z.ZodTypeAny, O extends z.ZodTypeAny>({
       if (request.data.id === undefined) {
         // do nothing, request is a notification
       } else {
-        if (withOptions?.onResponse === undefined) {
-          // do nothing
+        if (route.options?.mode === "stream") {
+          // TODO How do we make this actually type safe? How can we check to
+          // see if the handler returned an AsyncGenerator?
+          const gen = result as AsyncGenerator<O, unknown, unknown>;
+          for await (const item of gen) {
+            if (withOptions?.onResponse === undefined) {
+              // do nothing
+            } else {
+              withOptions.onResponse({ message });
+            }
+            sendResponse({
+              toMessage: message,
+              response: {
+                id: request.data.id,
+                result: item,
+              },
+            });
+          }
         } else {
-          withOptions.onResponse({ message });
+          if (withOptions?.onResponse === undefined) {
+            // do nothing
+          } else {
+            withOptions.onResponse({ message });
+          }
+
+          // TODO, retries et al.
+          sendResponse({
+            toMessage: message,
+            response: {
+              id: request.data.id,
+              result,
+            },
+          });
         }
-        // TODO, retries et al.
-        sendResponse({
-          toMessage: message,
-          response: {
-            id: request.data.id,
-            result,
-          },
-        });
       }
     } catch (error) {
       /* *************************************************************************

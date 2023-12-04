@@ -8,4 +8,7 @@ export type RpcRoute<I extends z.ZodTypeAny, O extends z.ZodTypeAny> = {
   outputSchema: O;
   method: string;
   handler: RpcHandler<z.infer<I>, z.infer<O>>;
+  options?: {
+    mode: "stream" | "function";
+  };
 };
