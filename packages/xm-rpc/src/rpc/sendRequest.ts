@@ -1,21 +1,20 @@
 import { z } from "zod";
-import { Server } from "../server/Server.js";
 import { rpcRequestSchema } from "./rpcRequestSchema.js";
+import { Client } from "@xmtp/xmtp-js";
 
 export const sendRequest = async ({
-  usingLocalServer,
+  client,
   toAddress,
   request,
 }: {
-  usingLocalServer: Server;
+  client: Client;
   toAddress: string;
   request: z.infer<typeof rpcRequestSchema>;
 }) => {
   console.log("SENDING A REQUEST");
-  const conversation =
-    await usingLocalServer.client.conversations.newConversation(toAddress, {
-      conversationId: "xmtrpc",
-      metadata: {},
-    });
+  const conversation = await client.conversations.newConversation(toAddress, {
+    conversationId: "xmtrpc",
+    metadata: {},
+  });
   return conversation.send(JSON.stringify(request));
 };

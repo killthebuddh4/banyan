@@ -1,4 +1,4 @@
-import { RpcContext } from "./context/RpcContext.js";
+import { RpcContext } from "./RpcContext.js";
 
 export type RpcHandler<I, O> = ({
   context,

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { CreateContext } from "./context/CreateContext.js";
+import { CreateContext } from "./CreateContext.js";
 import { RpcHandler } from "./RpcHandler.js";
 
 export type RpcRoute<I extends z.ZodTypeAny, O extends z.ZodTypeAny> = {

@@ -1,4 +1,4 @@
-import { createGroupServer } from "../../lib/createGroupServer.js";
+import { startGroupServer } from "../../lib/startGroupServer.js";
 import { db } from "../../lib/db.js";
 import { cacheStore } from "../../cache/cacheStore.js";
 import { addGroupServer } from "../../cache/addGroupServer.js";
@@ -24,7 +24,7 @@ export const createGroup = async ({
     // TODO: Check if the error is because the user already exists
   }
 
-  const groupServer = await createGroupServer({
+  const groupServer = await startGroupServer({
     ownerAddress: userDoingTheCreating.address,
     name,
     description,

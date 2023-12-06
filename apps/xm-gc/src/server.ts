@@ -1,9 +1,7 @@
 import { Client } from "@xmtp/xmtp-js";
 import { Wallet } from "@ethersproject/wallet";
-import { create as createServer } from "@killthebuddha/xm-rpc/server/api/create.js";
-import { subscribe } from "@killthebuddha/xm-rpc/server/api/subscribe.js";
-import { start } from "@killthebuddha/xm-rpc/server/api/start.js";
-import { createServer as createRpcServer } from "@killthebuddha/xm-rpc/rpc/api/createServer.js";
+import { createStream } from "@killthebuddha/xm-rpc/api/createStream.js";
+import { createRouter } from "@killthebuddha/xm-rpc/api/createRouter.js";
 import { RpcRoute } from "@killthebuddha/xm-rpc/rpc/RpcRoute.js";
 import { readConfig } from "xm-lib/config/readConfig.js";
 import { route as createGroupRoute } from "./routes/create-group/route.js";
@@ -40,22 +38,6 @@ const config = await readConfig({
 const wallet = new Wallet(config.privateKey);
 const client = await Client.create(wallet, { env });
 
-const server = createServer({
-  usingClient: client,
-  options: {
-    onAlreadyRunning,
-    onStream: {
-      before: onStreamBefore,
-      success: onStreamSuccess,
-      error: onStreamError,
-    },
-    onUncaughtHandlerError,
-    onSubscriberCalled,
-    onMessageReceived,
-    onNotStarted,
-  },
-});
-
 const routes = new Map<string, RpcRoute<any, any>>([
   [createGroupRoute.method, createGroupRoute],
   [deleteGroupRoute.method, deleteGroupRoute],
@@ -68,8 +50,8 @@ const routes = new Map<string, RpcRoute<any, any>>([
   [heartbeatRoute.method, heartbeatRoute],
 ]);
 
-const groupServer = createRpcServer({
-  onServer: server,
+const server = createRouter({
+  client,
   routeStore: routes,
   withOptions: {
     onJsonParseError,
@@ -84,10 +66,22 @@ const groupServer = createRpcServer({
   },
 });
 
-await start({ server });
+const stream = await createStream({
+  client,
+  options: {
+    onAlreadyRunning,
+    onStream: {
+      before: onStreamBefore,
+      success: onStreamSuccess,
+      error: onStreamError,
+    },
+    onUncaughtHandlerError,
+    onSubscriberCalled,
+    onMessageReceived,
+    onNotStarted,
+  },
+});
 
-const stream = subscribe({ toServer: server });
-
-for await (const message of stream) {
-  groupServer({ server, message });
+for await (const message of stream.select({ selector: async () => true })) {
+  server({ message });
 }
