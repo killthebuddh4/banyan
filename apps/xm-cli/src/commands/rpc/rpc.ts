@@ -12,6 +12,7 @@ import { getPretty } from "../x/getPretty.js";
 import { optionsSchema } from "./optionsSchema.js";
 import { getArguments } from "./getArguments.js";
 import { createRpcStream } from "@killthebuddha/xm-rpc/api/createRpcStream.js";
+import { rpcStreamTerminatorSchema } from "@killthebuddha/xm-rpc/rpc/rpcStreamTerminatorSchema.js";
 
 export const rpc = new Command("rpc")
   .requiredOption(
@@ -50,8 +51,11 @@ export const rpc = new Command("rpc")
     if (opts.stream) {
       const rpcStream = await createRpcStream(rpcArgs)({ input });
 
-      for await (const message of rpcStream) {
-        out({ data: message, options: { pretty } });
+      for await (const response of rpcStream) {
+        out({ data: response, options: { pretty } });
+        if (rpcStreamTerminatorSchema.safeParse(response)) {
+          break;
+        }
       }
     } else {
       const rpcClient = createRpc(rpcArgs);

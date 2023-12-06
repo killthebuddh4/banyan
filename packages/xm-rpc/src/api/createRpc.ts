@@ -77,6 +77,7 @@ export const createRpc = <I extends z.ZodTypeAny, O extends z.ZodTypeAny>({
       }
 
       clearTimeout(timeout);
+      stream.stop();
       return validatedOutput.data;
     }
   };
