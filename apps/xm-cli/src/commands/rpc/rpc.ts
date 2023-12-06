@@ -57,13 +57,10 @@ export const rpc = new Command("rpc")
           break;
         }
       }
+      rpcStream.return(null);
     } else {
       const rpcClient = createRpc(rpcArgs);
       const response = await rpcClient(input);
       out({ data: response, options: { pretty } });
-    }
-
-    if (typeof stop === "function") {
-      stop();
     }
   });

@@ -48,6 +48,10 @@ if (existingOwner === null) {
   });
 }
 
+/* TODO stash/recover API. This api is extremely simple except for it wraps the
+ * written value in an encrypted envelope. It uses a secondary XMTP identity to
+ * encrypt and decrypt the value. */
+
 const routes = new Map<string, RpcRoute<any, any>>([
   [
     "read",
