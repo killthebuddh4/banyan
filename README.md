@@ -61,11 +61,11 @@ encrypted APIs on top of XMTP.
 
 ## roadmap
 
-- [] Create a typesafe message stream
-- [] Create an RPC route
-- [] Create an RPC router
-- [] Create an RPC route client
-- [] Create an RPC stream client
+- [ ] Create a typesafe message stream
+- [ ] Create an RPC route
+- [ ] Create an RPC router
+- [ ] Create an RPC route client
+- [ ] Create an RPC stream client
 
 ## down the road
 
@@ -82,15 +82,15 @@ self-hostable server implementation but also a (typesafe) JavaScript client.
 - [x] Publish a value (allow others to read it)
 - [x] Recall a value (stop others from reading it)
 - [x] Subscribe to a value
-- [] Sync (store to store replication)
-- [] Stash a value (write an encrypted value)
-- [] Recover a value (read an encrypted value)
-- [] Expiration dates
-- [] Read receipts
+- [ ] Sync (store to store replication)
+- [ ] Stash a value (write an encrypted value)
+- [ ] Recover a value (read an encrypted value)
+- [ ] Expiration dates
+- [ ] Read receipts
 
 ## down the road
 
-- [] Add support for `postgres`, `redis`, and `fs` storage backends
+- [ ] Add support for `postgres`, `redis`, and `fs` storage backends
 
 # xm-xrc
 
@@ -98,18 +98,18 @@ self-hostable server implementation but also a (typesafe) JavaScript client.
 
 ## roadmap
 
-- [] Create a group
-- [] Delete a group
-- [] Invite a user to a group
-- [] Revoke an invitation to a group
-- [] Join a group
-- [] Leave a group
-- [] Send a group message
-- [] Kick a user from a group
-- [] List your groups
-- [] Read a group's stats
-- [] Sync a group (to another server)
-- [] Export a group
+- [ ] Create a group
+- [ ] Delete a group
+- [ ] Invite a user to a group
+- [ ] Revoke an invitation to a group
+- [ ] Join a group
+- [ ] Leave a group
+- [ ] Send a group message
+- [ ] Kick a user from a group
+- [ ] List your groups
+- [ ] Read a group's stats
+- [ ] Sync a group (to another server)
+- [ ] Export a group
 
 # xm-tui
 
@@ -117,10 +117,10 @@ self-hostable server implementation but also a (typesafe) JavaScript client.
 
 ## roadmap
 
-- [] Conversation list view
-- [] Conversation view
-- [] Open in browser (or app)
-- [] `xm-xrc` support
+- [ ] Conversation list view
+- [ ] Conversation view
+- [ ] Open in browser (or app)
+- [ ] `xm-xrc` support
 
 # xm-react
 
