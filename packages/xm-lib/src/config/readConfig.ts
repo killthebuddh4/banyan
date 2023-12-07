@@ -1,5 +1,5 @@
 import { readFile } from "fs/promises";
-import { jsonStringSchema } from "../jsonStringSchema.js";
+import { jsonStringSchema } from "../util/jsonStringSchema.js";
 import { configSchema } from "./configSchema.js";
 import { getActiveConfigPath } from "./getActiveConfigPath.js";
 import { getDefaultConfigPath } from "./getDefaultConfigPath.js";

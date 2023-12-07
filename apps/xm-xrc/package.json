@@ -1,5 +1,5 @@
 {
-  "name": "@killthebuddha/xm-gc",
+  "name": "@killthebuddha/xm-xrc",
   "type": "module",
   "exports": {
     "./*.js": "./build/*.js"

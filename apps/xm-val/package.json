@@ -1,29 +1,35 @@
 {
-  "name": "xm-cli",
+  "name": "@killthebuddha/xm-val",
   "type": "module",
+  "exports": {
+    "./*.js": "./build/*.js"
+  },
   "scripts": {
-    "start": "node build/cli.js",
+    "start": "prisma migrate deploy && node build/server.js",
     "dev": "tsc --watch",
     "lint": "eslint .",
     "format": "prettier --check .",
     "types": "tsc --noEmit",
-    "build": "tsc",
+    "build": "prisma generate && tsc",
     "clean": "rm -rf build"
   },
   "devDependencies": {
     "@types/node": "^20.8.10",
     "@typescript-eslint/eslint-plugin": "^6.10.0",
     "@typescript-eslint/parser": "^6.10.0",
+    "concurrently": "^8.2.2",
     "eslint": "^8.53.0",
     "nodemon": "^3.0.1",
     "prettier": "^3.0.3",
+    "prisma": "^5.6.0",
     "tsconfig": "*",
     "typescript": "^5.2.2"
   },
   "dependencies": {
+    "@killthebuddha/xm-rpc": "*",
+    "@prisma/client": "^5.6.0",
     "@xmtp/xmtp-js": "^11.2.1",
     "commander": "^11.1.0",
-    "xm-lib": "*",
-    "@killthebuddha/xm-rpc": "*"
+    "xm-lib": "*"
   }
 }
