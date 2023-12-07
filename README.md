@@ -3,8 +3,6 @@
 `xm` is a suite of tools for building and deploying [XMTP](https://xmtp.org)
 applications.
 
-# contents
-
 - [xmtp application?](#xmtp-application?)
 - [what can you do with `xm`?](#what-can-you-do-with-xm)
 - [goals](#goals)
