@@ -6,6 +6,8 @@ applications.
 # contents
 
 - [what can you do with `xm`?](#what-can-you-do-with-xm)
+- [xmtp application?](#xmtp-application?)
+- [goals](#goals)
 - [xm-ctl](#xm-ctl)
 - [xm-rpc](#xm-rpc)
 - [xm-val](#xm-val)
@@ -14,14 +16,34 @@ applications.
 - [xm-react](#xm-react)
 - [xm-api](#xm-api)
 
+# xmtp application?
+
+An XMTP application is a function deployed to the
+[XMTP](https://xmtp.org) network. That is, it's discoverable via its Ethereum
+address, receives its input as XMTP messages, and publishes its output as
+XMTP messages.
+
+An XMTP application _is the simplest, safest, and fastest way to deploy useful
+software to the internet_.
+
 # what can you do with `xm`?
 
-- `xm` is to application developers as `ssh` is to sysadmins
+- `xm` is to application developers as `vim` is to text editors
 - `xm` is a nano-application framework
 - `xm` is the next evolution of unix coreutils
 - `xm` is a global service mesh for AI copilots
 - `xm` is a blazingly simple way to do private messaging
 - `xm` is the early web made new
+
+# goals
+
+- `xm` must be _extensible_
+- `xm` must be _interoperable_
+- `xm` must be _composable_
+- `xm` must be _minimal_
+- `xm` must be _simple_
+- `xm` must be _useable_
+- `xm` must be _hackable_
 
 # xm-ctl
 
@@ -56,17 +78,21 @@ self-hostable server implementation but also a (typesafe) JavaScript client.
 
 ## roadmap
 
-- [] Write a value to the store
-- [] Read a value from the store
-- [] Delete a value from the store
-- [] Publish a value (allow others to read it)
-- [] Recall a value (stop others from reading it)
-- [] Subscribe to a value
+- [x] Write a value to the store
+- [x] Read a value from the store
+- [x] Delete a value from the store
+- [x] Publish a value (allow others to read it)
+- [x] Recall a value (stop others from reading it)
+- [x] Subscribe to a value
 - [] Sync (store to store replication)
 - [] Stash a value (write an encrypted value)
 - [] Recover a value (read an encrypted value)
 - [] Expiration dates
 - [] Read receipts
+
+## down the road
+
+- [] Add support for `postgres`, `redis`, and `fs` storage backends
 
 # xm-xrc
 
