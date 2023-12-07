@@ -5,8 +5,8 @@ applications.
 
 # contents
 
-- [what can you do with `xm`?](#what-can-you-do-with-xm)
 - [xmtp application?](#xmtp-application?)
+- [what can you do with `xm`?](#what-can-you-do-with-xm)
 - [goals](#goals)
 - [xm-ctl](#xm-ctl)
 - [xm-rpc](#xm-rpc)
