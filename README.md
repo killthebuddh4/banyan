@@ -49,10 +49,10 @@ software to the internet_.
 
 ## roadmap
 
-- [] A generic client for `xm-rpc` servers
-- [] "Native" support for all `xm-val` commands
-- [] "Native" support for all `xm-xrc` commands
-- [] "Native" support for each `xm-tui` screen
+- [ ] A generic client for `xm-rpc` servers
+- [ ] "Native" support for all `xm-val` commands
+- [ ] "Native" support for all `xm-xrc` commands
+- [ ] "Native" support for each `xm-tui` screen
 
 # xm-rpc
 
