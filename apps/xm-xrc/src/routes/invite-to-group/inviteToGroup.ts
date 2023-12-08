@@ -1,5 +1,5 @@
 import { Client } from "@xmtp/xmtp-js";
-import { sendMessage } from "xm-lib/sendMessage.js";
+import { sendMessage } from "xm-lib/util/sendMessage.js";
 import { db } from "../../lib/db.js";
 
 export const inviteToGroup = async ({

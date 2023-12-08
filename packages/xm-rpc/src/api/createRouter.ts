@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { rpcRequestSchema } from "../rpc/rpcRequestSchema.js";
-import { jsonStringSchema } from "xm-lib/jsonStringSchema.js";
+import { jsonStringSchema } from "xm-lib/util/jsonStringSchema.js";
 import { withIdSchema } from "../rpc/withIdSchema.js";
 import { RpcRoute } from "../rpc/RpcRoute.js";
 import { sendResponse } from "../rpc/sendResponse.js";

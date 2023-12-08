@@ -3,7 +3,7 @@
   "type": "module",
   "scripts": {
     "start": "node build/cli.js",
-    "dev": "tsc --watch",
+    "dev": "tsc --watch --preserveWatchOutput",
     "lint": "eslint .",
     "format": "prettier --check .",
     "types": "tsc --noEmit",

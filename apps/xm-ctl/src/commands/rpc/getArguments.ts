@@ -1,4 +1,4 @@
-import { jsonStringSchema } from "xm-lib/jsonStringSchema.js";
+import { jsonStringSchema } from "xm-lib/util/jsonStringSchema.js";
 import { readFileSync } from "fs";
 
 export const getArguments = ({ userInput }: { userInput: string }) => {

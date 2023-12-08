@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { dateStringSchema } from "xm-lib/dateStringSchema.js";
+import { dateStringSchema } from "xm-lib/util/dateStringSchema.js";
 
 const successSchema = z.object({
   ok: z.literal(true),

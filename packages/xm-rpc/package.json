@@ -5,7 +5,7 @@
     "./*.js": "./build/*.js"
   },
   "scripts": {
-    "dev": "tsc --watch",
+    "dev": "tsc --watch --preserveWatchOutput",
     "rpc": "nodemon ./build/src/rpc.js",
     "rpc:client": "node ./build/src/rpc-client.js",
     "lint": "eslint .",

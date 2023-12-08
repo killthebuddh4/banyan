@@ -2,7 +2,7 @@ import { z } from "zod";
 import { v4 as uuid } from "uuid";
 import { RpcRoute } from "../rpc/RpcRoute.js";
 import { rpcResponseSchema } from "../rpc/rpcResponseSchema.js";
-import { jsonStringSchema } from "xm-lib/jsonStringSchema.js";
+import { jsonStringSchema } from "xm-lib/util/jsonStringSchema.js";
 import { createStream } from "./createStream.js";
 import { sendRequest } from "../rpc/sendRequest.js";
 import { Client } from "@xmtp/xmtp-js";

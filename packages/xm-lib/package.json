@@ -5,7 +5,7 @@
     "./*.js": "./build/*.js"
   },
   "scripts": {
-    "dev": "tsc --watch",
+    "dev": "tsc --watch --preserveWatchOutput",
     "test": "mocha",
     "lint": "eslint .",
     "format": "prettier --check .",

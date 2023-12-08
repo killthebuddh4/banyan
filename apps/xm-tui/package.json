@@ -3,7 +3,7 @@
   "type": "module",
   "scripts": {
     "start": "node build/app.js",
-    "dev": "tsc --watch",
+    "dev": "tsc --watch --preserveWatchOutput",
     "types": "tsc --noEmit",
     "build": "tsc",
     "clean": "rm -rf build"
