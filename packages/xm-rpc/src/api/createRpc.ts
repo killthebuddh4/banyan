@@ -20,6 +20,15 @@ export const createRpc = <I extends z.ZodTypeAny, O extends z.ZodTypeAny>({
     address: string;
   };
   options?: {
+    onSendRequest?: ({
+      id,
+      method,
+      params,
+    }: {
+      id: string;
+      method: string;
+      params: z.infer<I>;
+    }) => void;
     timeout?: number;
   };
 }) => {
@@ -27,6 +36,14 @@ export const createRpc = <I extends z.ZodTypeAny, O extends z.ZodTypeAny>({
     input: z.infer<typeof forRoute.inputSchema>,
   ): Promise<z.infer<typeof forRoute.outputSchema>> => {
     const requestId = uuid();
+
+    if (options?.onSendRequest) {
+      options.onSendRequest({
+        id: requestId,
+        method: forRoute.method,
+        params: input,
+      });
+    }
 
     sendRequest({
       client,

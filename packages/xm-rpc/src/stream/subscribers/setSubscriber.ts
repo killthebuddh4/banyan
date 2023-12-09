@@ -10,13 +10,19 @@ export const setSubscriber = ({
   clientAddress: string;
   subscriber: Subscriber;
 }) => {
-  const subscribers = store.get(clientAddress) ?? new Map();
+  if (!store.has(clientAddress)) {
+    store.set(clientAddress, new Map());
+  }
+
+  const subscribers = store.get(clientAddress);
+
+  if (subscribers === undefined) {
+    throw new Error("Subscribers should not be undefined, we just set it.");
+  }
 
   if (subscribers.has(subscriber.metadata.id)) {
-    return;
+    throw new Error("Subscriber already exists");
   }
 
   subscribers.set(subscriber.metadata.id, subscriber);
-
-  store.set(clientAddress, subscribers);
 };

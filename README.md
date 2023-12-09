@@ -54,6 +54,10 @@ software to the internet_.
 - [ ] "Native" support for all `xm-xrc` commands
 - [ ] "Native" support for each `xm-tui` screen
 
+## down the road
+
+## todo
+
 # xm-rpc
 
 `xm-rpc` is a library for building end-to-end typesafe and
@@ -69,28 +73,40 @@ encrypted APIs on top of XMTP.
 
 ## down the road
 
+- [ ] `npm publish` routes for client generation
+- [ ] "push-button" FaaS deployment
+- [ ] A superergonomic API heavily inspired by [trpc](https://trpc.io).
+
+## todo
+
+- [ ] More granular logging options
+
 # xm-val
 
-`xm-val` is a key-value server built on top of `xm-rpc`. It provides not only
+`xm-val` is a key-value server built on top of `xm-rpc`. It provides not only a
 self-hostable server implementation but also a (typesafe) JavaScript client.
 
 ## roadmap
 
-- [x] Write a value to the store
 - [x] Read a value from the store
+- [x] Write a value to the store
+- [x] List keys in the store
 - [x] Delete a value from the store
 - [x] Publish a value (allow others to read it)
 - [x] Recall a value (stop others from reading it)
-- [x] Subscribe to a value
+- [ ] A typesafe JavaScript client
 - [ ] Sync (store to store replication)
 - [ ] Stash a value (write an encrypted value)
 - [ ] Recover a value (read an encrypted value)
-- [ ] Expiration dates
+- [ ] Leasing (i.e. TTL)
 - [ ] Read receipts
 
-## down the road
+# down the road
 
 - [ ] Add support for `postgres`, `redis`, and `fs` storage backends
+- [ ] `xm-val-p2p`, a peer-to-peer key-value store
+
+## todo
 
 # xm-xrc
 
@@ -111,6 +127,10 @@ self-hostable server implementation but also a (typesafe) JavaScript client.
 - [ ] Sync a group (to another server)
 - [ ] Export a group
 
+## down the road
+
+## todo
+
 # xm-tui
 
 `xm-tui` is a hyper-minimal command-line interface for XMTP.
@@ -121,6 +141,10 @@ self-hostable server implementation but also a (typesafe) JavaScript client.
 - [ ] Conversation view
 - [ ] Open in browser (or app)
 - [ ] `xm-xrc` support
+
+## down the road
+
+## todo
 
 # xm-react
 

@@ -53,7 +53,7 @@ export const create = ({ client }: { client: Client }) =>
         });
       }
 
-      const subscribers = await db.subscriber.findMany({
+      const listeners = await db.listener.findMany({
         where: {
           value: {
             key: input.key,
@@ -64,12 +64,12 @@ export const create = ({ client }: { client: Client }) =>
         },
       });
 
-      for (const subscriber of subscribers) {
+      for (const listener of listeners) {
         // TODO We need to send a structured message. We also need to make
         // sure to send a deleted message if the value was deleted.
         sendMessage({
           client,
-          toAddress: subscriber.user.address,
+          toAddress: listener.user.address,
           content: input.value,
         });
       }

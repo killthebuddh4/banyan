@@ -8,10 +8,11 @@ import { Client, DecodedMessage } from "@xmtp/xmtp-js";
 import { streamStore } from "../stream/streams/streamStore.js";
 import { startStream } from "../stream/streams/startStream.js";
 import { Options } from "../stream/options/Options.js";
-import { Subscriber } from "../stream/subscribers/Subscriber.js";
 import { subscriberStore } from "../stream/subscribers/subscriberStore.js";
 import { setSubscriber } from "../stream/subscribers/setSubscriber.js";
 import { getSubscribers } from "../stream/subscribers/getSubscribers.js";
+import { deleteSubscriber } from "../stream/subscribers/deleteSubscriber.js";
+import crypto from "crypto";
 
 export const createStream = async ({
   client,
@@ -32,9 +33,7 @@ export const createStream = async ({
 
   onStreamSuccess({ options });
 
-  const subscribers = new Map<string, Subscriber>();
-
-  const rootStream = (async function* () {
+  (async () => {
     for await (const message of stream) {
       if (message.senderAddress === client.address) {
         continue;
@@ -45,7 +44,7 @@ export const createStream = async ({
       try {
         const subscribers = getSubscribers({
           store: subscriberStore,
-          clientAddress: message.senderAddress,
+          clientAddress: client.address,
         });
 
         for (const subscriber of subscribers.values()) {
@@ -67,7 +66,7 @@ export const createStream = async ({
   const selectors = new Map<string, AsyncGenerator>();
 
   const stop = async () => {
-    rootStream.return();
+    stream.return();
     for (const selector of selectors.values()) {
       selector.return(null);
     }
@@ -85,7 +84,11 @@ export const createStream = async ({
               metadata: { id: uuid },
               selector,
               handler: (message) => {
-                subscribers.delete(uuid);
+                deleteSubscriber({
+                  store: subscriberStore,
+                  clientAddress: client.address,
+                  subscriberId: uuid,
+                });
                 resolve(message);
               },
             },

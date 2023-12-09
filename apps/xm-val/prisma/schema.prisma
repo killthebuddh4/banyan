@@ -5,29 +5,29 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-  url      = env("XGC_SQLITE_URL")
+  url      = env("XM_VAL_SQLITE_URL")
 }
 
 model User {
-  id             String       @id @default(uuid())
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
-  address        String       @unique
+  id             String     @id @default(uuid())
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+  address        String     @unique
   ownedValues    Value[]
   readableValues Reader[]
-  Subscriber     Subscriber[]
+  listeners      Listener[]
 }
 
 model Value {
-  id          String       @id @default(uuid())
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  key         String       @unique
-  value       String
-  owner       User         @relation(fields: [ownerId], references: [id])
-  ownerId     String
-  readers     Reader[]
-  subscribers Subscriber[]
+  id        String     @id @default(uuid())
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  key       String     @unique
+  value     String
+  owner     User       @relation(fields: [ownerId], references: [id])
+  ownerId   String
+  readers   Reader[]
+  listeners Listener[]
 }
 
 model Reader {
@@ -40,7 +40,7 @@ model Reader {
   valueId   String
 }
 
-model Subscriber {
+model Listener {
   id        String   @id @default(uuid())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

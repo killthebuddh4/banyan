@@ -2,11 +2,14 @@
   "name": "@killthebuddha/xm-val",
   "type": "module",
   "exports": {
-    "./*.js": "./build/*.js"
+    "./*.js": "./build/src/*.js"
   },
   "scripts": {
-    "start": "prisma migrate deploy && node build/server.js",
-    "dev": "tsc --watch --preserveWatchOutput",
+    "start": "prisma migrate deploy && node build/src/server.js",
+    "dev": "concurrently 'prisma generate --watch' 'tsc --watch --preserveWatchOutput'",
+    "test:serve": "XM_VAL_OWNER_ADDRESS='0xTEST' XM_VAL_SQLITE_URL=file:./test.db XM_VAL_CONFIG_PATH=~/.xrc.val.test.json npm run start",
+    "test:run": "XM_VAL_CONFIG_PATH=~/.xrc.val.test.json mocha",
+    "test": "concurrently npm:test:*",
     "lint": "eslint .",
     "format": "prettier --check .",
     "types": "tsc --noEmit",

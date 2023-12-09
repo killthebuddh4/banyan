@@ -24,39 +24,44 @@ import { useConversationId } from "./options/useConversationId.js";
 import { onResponse } from "./options/onResponse.js";
 import { db } from "./lib/db.js";
 import { create as createWriteRoute } from "./routes/write/create.js";
+import { route as readRoute } from "./routes/read/route.js";
 import { route as deleteRoute } from "./routes/delete/route.js";
 import { route as publishRoute } from "./routes/publish/route.js";
-import { route as subscribeRoute } from "./routes/subscribe/route.js";
+import { route as recallRoute } from "./routes/recall/route.js";
+import { route as listRoute } from "./routes/list/route.js";
+import { route as heartbeatRoute } from "./routes/heartbeat/route.js";
 
 const config = await readConfig({
   overridePath: process.env.XM_VAL_CONFIG_PATH,
 });
 const wallet = new Wallet(config.privateKey);
+
+console.log("XM_VAL_SERVER_ADDRESS", wallet.address);
+
 const client = await Client.create(wallet, { env });
 
 const existingOwner = await db.user.findUnique({
   where: {
-    address: process.env.XGC_VAL_OWNER_ADDRESS,
+    address: process.env.XM_VAL_OWNER_ADDRESS,
   },
 });
 
 if (existingOwner === null) {
   await db.user.create({
     data: {
-      address: process.env.XGC_VAL_OWNER_ADDRESS as string,
+      address: process.env.XM_VAL_OWNER_ADDRESS as string,
     },
   });
 }
 
-/* TODO stash/recover API. This api is extremely simple except for it wraps the
- * written value in an encrypted envelope. It uses a secondary XMTP identity to
- * encrypt and decrypt the value. */
-
 const routes = new Map<string, RpcRoute<any, any>>([
   ["write", createWriteRoute({ client })],
+  ["read", readRoute],
   ["delete", deleteRoute],
+  ["list", listRoute],
   ["publish", publishRoute],
-  ["subscribe", subscribeRoute],
+  ["recall", recallRoute],
+  ["heartbeat", heartbeatRoute],
 ]);
 
 const valServer = createRouter({

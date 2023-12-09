@@ -7,13 +7,11 @@ export const getSubscribers = ({
   store: Store;
   clientAddress: string;
 }) => {
-  let subscribers = store.get(clientAddress);
-
-  if (!subscribers) {
+  if (!store.has(clientAddress)) {
     store.set(clientAddress, new Map());
   }
 
-  subscribers = store.get(clientAddress);
+  const subscribers = store.get(clientAddress);
 
   if (subscribers === undefined) {
     throw new Error("Subscribers should not be undefined, we just set it.");
