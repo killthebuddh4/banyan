@@ -22,7 +22,6 @@ import { onHandlerError } from "./options/rpc/onHandlerError.js";
 import { onMethodCalled } from "./options/rpc/onMethodCalled.js";
 import { useConversationId } from "./options/useConversationId.js";
 import { onResponse } from "./options/onResponse.js";
-import { db } from "./lib/db.js";
 import { create as createWriteRoute } from "./routes/write/create.js";
 import { route as readRoute } from "./routes/read/route.js";
 import { route as deleteRoute } from "./routes/delete/route.js";
@@ -36,23 +35,7 @@ const config = await readConfig({
 });
 const wallet = new Wallet(config.privateKey);
 
-console.log("XM_VAL_SERVER_ADDRESS", wallet.address);
-
 const client = await Client.create(wallet, { env });
-
-const existingOwner = await db.user.findUnique({
-  where: {
-    address: process.env.XM_VAL_OWNER_ADDRESS,
-  },
-});
-
-if (existingOwner === null) {
-  await db.user.create({
-    data: {
-      address: process.env.XM_VAL_OWNER_ADDRESS as string,
-    },
-  });
-}
 
 const routes = new Map<string, RpcRoute<any, any>>([
   ["write", createWriteRoute({ client })],

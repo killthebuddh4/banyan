@@ -4,6 +4,8 @@ import { createRoute } from "@killthebuddha/xm-rpc/api/createRoute.js";
 import { db } from "../../lib/db.js";
 import { sendMessage } from "xm-lib/util/sendMessage.js";
 import { Client } from "@xmtp/xmtp-js";
+import { RpcError } from "@killthebuddha/xm-rpc/rpc/errors/RpcError.js";
+import { errors } from "@killthebuddha/xm-rpc/rpc/errors/errors.js";
 
 export const create = ({ client }: { client: Client }) =>
   createRoute({
@@ -17,20 +19,23 @@ export const create = ({ client }: { client: Client }) =>
     handler: async ({ context, input }) => {
       const writer = { address: context.message.senderAddress };
 
-      if (writer.address !== process.env.XGC_VAL_OWNER_ADDRESS) {
-        return {
-          ok: false,
-          result: {},
-        };
-      }
-
       const existing = await db.value.findUnique({
         where: {
           key: input.key,
         },
+        include: {
+          owner: true,
+        },
       });
 
       if (existing !== null) {
+        if (existing.owner.address !== writer.address) {
+          throw new RpcError(
+            `User ${writer.address} does not own key ${input.key}`,
+            errors.FORBIDDEN.code,
+          );
+        }
+
         await db.value.update({
           where: {
             key: input.key,

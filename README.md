@@ -80,6 +80,7 @@ encrypted APIs on top of XMTP.
 ## todo
 
 - [ ] More granular logging options
+- [ ] Better options for error handling, retries, etc.
 
 # xm-val
 

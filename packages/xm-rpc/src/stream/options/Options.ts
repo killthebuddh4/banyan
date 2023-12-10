@@ -13,4 +13,5 @@ export type Options = {
   onMessageReceived?: ({ message }: { message: DecodedMessage }) => void;
   onMessageSent?: ({ message }: { message: DecodedMessage }) => void;
   onNotStarted?: () => void;
+  onSelfSentMessage?: ({ message }: { message: DecodedMessage }) => void;
 };

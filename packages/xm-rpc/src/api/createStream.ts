@@ -4,6 +4,7 @@ import { onStreamError } from "../stream/options/onStreamError.js";
 import { onUncaughtHandlerError } from "../stream/options/onUncaughtHandlerError.js";
 import { onMessageReceived } from "../stream/options/onMessageReceived.js";
 import { onSubscriberCalled } from "../stream/options/onSubscriberCalled.js";
+import { onSelfSentMessage } from "../stream/options/onSelfSentMessage.js";
 import { Client, DecodedMessage } from "@xmtp/xmtp-js";
 import { streamStore } from "../stream/streams/streamStore.js";
 import { startStream } from "../stream/streams/startStream.js";
@@ -36,6 +37,7 @@ export const createStream = async ({
   (async () => {
     for await (const message of stream) {
       if (message.senderAddress === client.address) {
+        onSelfSentMessage({ options, message });
         continue;
       }
 

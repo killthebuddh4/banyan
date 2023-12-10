@@ -3,9 +3,12 @@ import { rpcRequestSchema } from "../rpc/rpcRequestSchema.js";
 import { jsonStringSchema } from "xm-lib/util/jsonStringSchema.js";
 import { withIdSchema } from "../rpc/withIdSchema.js";
 import { RpcRoute } from "../rpc/RpcRoute.js";
-import { sendResponse } from "../rpc/sendResponse.js";
+import { sendResponse } from "../rpc/response/sendResponse.js";
 import { RpcOptions } from "../rpc/RpcOptions.js";
 import { Client, DecodedMessage } from "@xmtp/xmtp-js";
+import { sendError } from "../rpc/errors/sendError.js";
+import { errors } from "../rpc/errors/errors.js";
+import { RpcError } from "../rpc/errors/RpcError.js";
 
 export const createRouter = <I extends z.ZodTypeAny, O extends z.ZodTypeAny>({
   client,
@@ -42,10 +45,12 @@ export const createRouter = <I extends z.ZodTypeAny, O extends z.ZodTypeAny>({
         withOptions.onJsonParseError();
       }
 
-      // TODO. We can't respond because we don't know the id of the request.
-      // Based on my current understanding of json-rpc-2.0, this doesn't make
-      // sense, so I think I must be missing something.
-      return;
+      return sendError({
+        toMessage: message,
+        requestId: null,
+        code: errors.PARSE_ERROR.code,
+        message: "Failed to JSON.parse the message.content",
+      });
     }
 
     /* *************************************************************************
@@ -65,26 +70,22 @@ export const createRouter = <I extends z.ZodTypeAny, O extends z.ZodTypeAny>({
 
       const withId = withIdSchema.safeParse(json.data);
       if (!withId.success) {
-        // TODO. We can't do anything here either, see above.
-      } else {
-        sendResponse({
+        return sendError({
           toMessage: message,
-          response: {
-            id: withId.data.id,
-            error: {
-              code: -32600,
-              message:
-                "The message was not parseable into valid request object.",
-              data: {
-                label: "bad-request",
-                description: "The JSON sent is not a valid Request object.",
-              },
-            },
-          },
+          requestId: null,
+          code: errors.INVALID_REQUEST.code,
+          message:
+            "We could JSON.parse the message, but didn't find an id field.",
+        });
+      } else {
+        return sendError({
+          toMessage: message,
+          requestId: withId.data.id,
+          code: errors.INVALID_REQUEST.code,
+          message:
+            "We could JSON.parse the request, but the rest of the request was not JSON-RPC-2.0 compliant.",
         });
       }
-
-      return;
     }
 
     /* *************************************************************************
@@ -100,22 +101,12 @@ export const createRouter = <I extends z.ZodTypeAny, O extends z.ZodTypeAny>({
         withOptions.onMethodNotFound({ attempted: request.data.method });
       }
 
-      sendResponse({
+      return sendError({
         toMessage: message,
-        response: {
-          id: request.data.id,
-          error: {
-            code: -32601,
-            message: `Method not found: ${request.data.method}`,
-            data: {
-              label: "method-not-found",
-              description: "The method does not exist / is not available.",
-            },
-          },
-        },
+        requestId: request.data.id,
+        code: errors.METHOD_NOT_FOUND.code,
+        message: `Method not found: ${request.data.method}`,
       });
-
-      return;
     }
 
     /* *************************************************************************
@@ -131,22 +122,12 @@ export const createRouter = <I extends z.ZodTypeAny, O extends z.ZodTypeAny>({
         withOptions.onInvalidParams({ method: request.data.method });
       }
 
-      sendResponse({
+      return sendError({
         toMessage: message,
-        response: {
-          id: request.data.id,
-          error: {
-            code: -32602,
-            message: "Invalid method parameter(s).",
-            data: {
-              label: "invalid-params",
-              description: "Invalid method parameter(s).",
-            },
-          },
-        },
+        requestId: request.data.id,
+        code: errors.INVALID_PARAMS.code,
+        message: `Invalid params for method: ${request.data.method}`,
       });
-      // TODO
-      return;
     }
 
     /* *************************************************************************
@@ -184,10 +165,7 @@ export const createRouter = <I extends z.ZodTypeAny, O extends z.ZodTypeAny>({
             }
             sendResponse({
               toMessage: message,
-              response: {
-                id: request.data.id,
-                result: item,
-              },
+              result,
             });
           }
         } else {
@@ -197,13 +175,9 @@ export const createRouter = <I extends z.ZodTypeAny, O extends z.ZodTypeAny>({
             withOptions.onResponse({ message });
           }
 
-          // TODO, retries et al.
           sendResponse({
             toMessage: message,
-            response: {
-              id: request.data.id,
-              result,
-            },
+            result,
           });
         }
       }
@@ -221,28 +195,24 @@ export const createRouter = <I extends z.ZodTypeAny, O extends z.ZodTypeAny>({
       if (request.data.id === undefined) {
         // do nothing, request is a notification
       } else {
-        const errorMessage = (() => {
-          if (!(error instanceof Error)) {
-            return "unknown error";
-          } else {
-            return error.message;
-          }
-        })();
+        console.log("WE GOT A SERVER ERRRO");
 
-        sendResponse({
-          toMessage: message,
-          response: {
-            id: request.data.id,
-            error: {
-              code: -32603,
-              message: errorMessage,
-              data: {
-                label: "internal-error",
-                description: "The server encountered an unexpected problem.",
-              },
-            },
-          },
-        });
+        if (error instanceof RpcError) {
+          console.log("WE GOT A RPC ERRRO");
+          return sendError({
+            toMessage: message,
+            requestId: request.data.id,
+            code: error.code,
+            message: error.message,
+          });
+        } else {
+          sendError({
+            toMessage: message,
+            requestId: request.data.id,
+            code: errors.INTERNAL_SERVER_ERROR.code,
+            message: `Unexpected error encountered.`,
+          });
+        }
       }
     }
   };

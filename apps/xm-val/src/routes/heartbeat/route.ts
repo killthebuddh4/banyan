@@ -4,18 +4,12 @@ import { createRoute } from "@killthebuddha/xm-rpc/api/createRoute.js";
 
 export const route = createRoute({
   createContext,
-  method: "list",
+  method: "heartbeat",
   inputSchema: z.unknown(),
   outputSchema: z.object({
-    ok: z.literal(true),
-    result: z.object({
-      heartbeat: z.literal(true),
-    }),
+    heartbeat: z.literal(true),
   }),
   handler: async () => {
-    return {
-      ok: true,
-      result: { heartbeat: true },
-    } as const;
+    return { heartbeat: true } as const;
   },
 });

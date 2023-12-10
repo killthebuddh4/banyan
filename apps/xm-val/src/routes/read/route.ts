@@ -2,6 +2,8 @@ import { z } from "zod";
 import { createContext } from "../../lib/createContext.js";
 import { createRoute } from "@killthebuddha/xm-rpc/api/createRoute.js";
 import { db } from "../../lib/db.js";
+import { RpcError } from "@killthebuddha/xm-rpc/rpc/errors/RpcError.js";
+import { errors } from "@killthebuddha/xm-rpc/rpc/errors/errors.js";
 
 export const route = createRoute({
   createContext,
@@ -26,12 +28,7 @@ export const route = createRoute({
     });
 
     if (value === null) {
-      return {
-        ok: false,
-        result: {
-          value: undefined,
-        },
-      };
+      return { value: null };
     }
 
     const reader = { address: context.message.senderAddress };
@@ -45,19 +42,12 @@ export const route = createRoute({
     );
 
     if (!readerIsOwner && !readerIsReader) {
-      return {
-        ok: false,
-        result: {
-          value: undefined,
-        },
-      };
+      throw new RpcError(
+        `User ${reader.address} is not allowed to read key ${input.key}`,
+        errors.FORBIDDEN.code,
+      );
     }
 
-    return {
-      ok: true,
-      result: {
-        value: value.value,
-      },
-    };
+    return { key: input.key, value: value.value };
   },
 });
