@@ -50,8 +50,13 @@ export const create = ({ client }: { client: Client }) =>
             key: input.key,
             value: input.value,
             owner: {
-              connect: {
-                address: writer.address,
+              connectOrCreate: {
+                create: {
+                  address: writer.address,
+                },
+                where: {
+                  address: writer.address,
+                },
               },
             },
           },
@@ -79,12 +84,6 @@ export const create = ({ client }: { client: Client }) =>
         });
       }
 
-      return {
-        ok: true,
-        result: {
-          key: input.key,
-          value: input.value,
-        },
-      };
+      return { key: input.key, value: input.value };
     },
   });

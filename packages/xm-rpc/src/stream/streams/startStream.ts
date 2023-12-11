@@ -10,12 +10,12 @@ export const startStream = async ({
 }) => {
   const existingStream = store.get(client.address);
   if (existingStream !== undefined) {
-    return existingStream;
+    return existingStream.stream;
   }
 
   const stream = await client.conversations.streamAllMessages();
 
-  store.set(client.address, stream);
+  store.set(client.address, { startedAt: Date.now(), stream });
 
   return stream;
 };

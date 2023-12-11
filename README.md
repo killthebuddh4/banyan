@@ -70,6 +70,7 @@ encrypted APIs on top of XMTP.
 - [ ] Create an RPC router
 - [ ] Create an RPC route client
 - [ ] Create an RPC stream client
+- [ ] Middleware API
 
 ## down the road
 
@@ -79,8 +80,13 @@ encrypted APIs on top of XMTP.
 
 ## todo
 
+- [ ] The `createRpc` API is a bit awkward. You shouldn't have to create a fully-specified
+      route when you invoke `createRpc`.
 - [ ] More granular logging options
+- [ ] Rate limiting
 - [ ] Better options for error handling, retries, etc.
+- [ ] The old and self-sent message handling would be more naturally part of a
+      middleware API rather than options.
 
 # xm-val
 

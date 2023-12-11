@@ -5,9 +5,10 @@ import { rpcResponseSchema } from "../rpc/response/rpcResponseSchema.js";
 import { jsonStringSchema } from "xm-lib/util/jsonStringSchema.js";
 import { createStream } from "./createStream.js";
 import { sendRequest } from "../rpc/sendRequest.js";
-import { Client } from "@xmtp/xmtp-js";
+import { Client, DecodedMessage } from "@xmtp/xmtp-js";
 import { createRpcSelector } from "../rpc/createRpcSelector.js";
 import { rpcErrorSchema } from "../rpc/errors/rpcErrorSchema.js";
+import { Options } from "../stream/options/Options.js";
 
 export const createRpc = <I extends z.ZodTypeAny, O extends z.ZodTypeAny>({
   client,
@@ -30,7 +31,10 @@ export const createRpc = <I extends z.ZodTypeAny, O extends z.ZodTypeAny>({
       method: string;
       params: z.infer<I>;
     }) => void;
+    onSkippedMessage?: ({ message }: { message: DecodedMessage }) => void;
+    onSelectedMessage?: ({ message }: { message: DecodedMessage }) => void;
     timeout?: number;
+    streamOptions?: Options;
   };
 }) => {
   return async (input: z.infer<typeof forRoute.inputSchema>) => {
@@ -44,8 +48,6 @@ export const createRpc = <I extends z.ZodTypeAny, O extends z.ZodTypeAny>({
       });
     }
 
-    console.log("SENDING REQUEST");
-
     sendRequest({
       client,
       toAddress: server.address,
@@ -58,16 +60,23 @@ export const createRpc = <I extends z.ZodTypeAny, O extends z.ZodTypeAny>({
 
     const timeout = setTimeout(
       () => {
-        throw new Error("Request timed out");
+        throw new Error(`RPC for route ${forRoute.method} timed out`);
       },
       options?.timeout || 10000,
     );
 
-    const stream = await createStream({ client });
+    const stream = await createStream({
+      client,
+      options: options?.streamOptions,
+    });
 
     const selector = createRpcSelector({
       request: { id: requestId },
       server,
+      options: {
+        onSkippedMessage: options?.onSkippedMessage,
+        onSelectedMessage: options?.onSelectedMessage,
+      },
     });
 
     for await (const message of stream.select({ selector })) {
@@ -75,15 +84,14 @@ export const createRpc = <I extends z.ZodTypeAny, O extends z.ZodTypeAny>({
       const err = rpcErrorSchema.safeParse(json);
 
       if (err.success) {
-        return {
-          result: null,
-          error: err.data,
-        };
+        clearTimeout(timeout);
+        return err.data;
       }
 
       const response = rpcResponseSchema.safeParse(json);
 
       if (!response.success) {
+        clearTimeout(timeout);
         throw new Error(
           "We received a message with the correct id, but it was not a valid response",
         );
@@ -94,17 +102,16 @@ export const createRpc = <I extends z.ZodTypeAny, O extends z.ZodTypeAny>({
       );
 
       if (!validatedOutput.success) {
+        clearTimeout(timeout);
         throw new Error(
           "We received a response with the right requestId and a valid generic response format, but the result data type was wrong.",
         );
       }
 
       clearTimeout(timeout);
-      stream.stop();
-
       return {
+        ...response.data,
         result: validatedOutput.data,
-        error: null,
       };
     }
   };

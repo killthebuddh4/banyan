@@ -4,22 +4,27 @@ import { createRoute } from "@killthebuddha/xm-rpc/api/createRoute.js";
 import { createRpc } from "@killthebuddha/xm-rpc/api/createRpc.js";
 import { getTestServerAddress } from "./lib/getTestServerAddress.js";
 import { Wallet } from "@ethersproject/wallet";
+import { errors } from "@killthebuddha/xm-rpc/rpc/errors/errors.js";
+import crypto from "crypto";
 import { streamStore } from "@killthebuddha/xm-rpc/stream/streams/streamStore.js";
 import { stopStream } from "@killthebuddha/xm-rpc/stream/streams/stopStream.js";
-import crypto from "crypto";
 
-describe("delete route", () => {
-  it("should be able to delete a value", async function () {
+describe("publish route", () => {
+  it("should be able to publish a value", async function () {
     this.timeout(10000);
 
-    const client = await Client.create(Wallet.createRandom(), {
+    const owner = await Client.create(Wallet.createRandom(), {
+      env: "production",
+    });
+
+    const reader = await Client.create(Wallet.createRandom(), {
       env: "production",
     });
 
     try {
       const writeRpc = createRpc({
         server: { address: await getTestServerAddress() },
-        client,
+        client: owner,
         forRoute: createRoute({
           createContext: (i) => i,
           method: "write",
@@ -34,7 +39,7 @@ describe("delete route", () => {
 
       const readRpc = createRpc({
         server: { address: await getTestServerAddress() },
-        client,
+        client: reader,
         forRoute: createRoute({
           createContext: (i) => i,
           method: "read",
@@ -46,14 +51,17 @@ describe("delete route", () => {
         }),
       });
 
-      const deleteRpc = createRpc({
+      const publishRpc = createRpc({
         server: { address: await getTestServerAddress() },
-        client,
+        client: owner,
         forRoute: createRoute({
           createContext: (i) => i,
-          method: "delete",
+          method: "publish",
           inputSchema: z.object({
             key: z.string(),
+            reader: z.object({
+              address: z.string(),
+            }),
           }),
           outputSchema: z.any(),
           handler: async () => "hey",
@@ -67,21 +75,33 @@ describe("delete route", () => {
 
       await writeRpc(data);
 
-      const beforeDelete = await readRpc({ key: data.key });
+      const beforePublish = await readRpc({ key: data.key });
 
-      if (beforeDelete?.result.value !== data.value) {
-        throw new Error("Value was not written");
+      const isForbiddenSchema = z.object({
+        error: z.object({
+          code: z.literal(errors.FORBIDDEN.code),
+        }),
+      });
+
+      if (!isForbiddenSchema.safeParse(beforePublish).success) {
+        throw new Error("Server should have thrown a forbidden error.");
       }
 
-      await deleteRpc({ key: data.key });
+      await publishRpc({
+        key: data.key,
+        reader: {
+          address: reader.address,
+        },
+      });
 
-      const afterDelete = await readRpc({ key: data.key });
+      const afterPublish = await readRpc({ key: data.key });
 
-      if (afterDelete?.result.value !== null) {
-        throw new Error("Value was not deleted");
+      if (afterPublish?.result.value !== data.value) {
+        throw new Error("Could not read value after publish");
       }
     } finally {
-      await stopStream({ store: streamStore, clientAddress: client.address });
+      await stopStream({ store: streamStore, clientAddress: owner.address });
+      await stopStream({ store: streamStore, clientAddress: reader.address });
     }
   });
 });

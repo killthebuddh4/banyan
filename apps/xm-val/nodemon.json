@@ -1,0 +1,1 @@
+{ "watch": ["build/src", "../../packages/xm-rpc/build"], "delay": 1000 }

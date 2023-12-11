@@ -14,4 +14,5 @@ export type Options = {
   onMessageSent?: ({ message }: { message: DecodedMessage }) => void;
   onNotStarted?: () => void;
   onSelfSentMessage?: ({ message }: { message: DecodedMessage }) => void;
+  allowOldMessages?: boolean;
 };

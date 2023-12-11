@@ -158,26 +158,17 @@ export const createRouter = <I extends z.ZodTypeAny, O extends z.ZodTypeAny>({
           // see if the handler returned an AsyncGenerator?
           const gen = result as AsyncGenerator<O, unknown, unknown>;
           for await (const item of gen) {
-            if (withOptions?.onResponse === undefined) {
-              // do nothing
-            } else {
-              withOptions.onResponse({ message });
-            }
             sendResponse({
               toMessage: message,
-              result,
+              result: item,
+              options: withOptions,
             });
           }
         } else {
-          if (withOptions?.onResponse === undefined) {
-            // do nothing
-          } else {
-            withOptions.onResponse({ message });
-          }
-
           sendResponse({
             toMessage: message,
             result,
+            options: withOptions,
           });
         }
       }
@@ -195,10 +186,7 @@ export const createRouter = <I extends z.ZodTypeAny, O extends z.ZodTypeAny>({
       if (request.data.id === undefined) {
         // do nothing, request is a notification
       } else {
-        console.log("WE GOT A SERVER ERRRO");
-
         if (error instanceof RpcError) {
-          console.log("WE GOT A RPC ERRRO");
           return sendError({
             toMessage: message,
             requestId: request.data.id,

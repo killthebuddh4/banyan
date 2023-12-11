@@ -7,6 +7,7 @@
   "scripts": {
     "start": "prisma migrate deploy && node build/src/server.js",
     "dev": "concurrently 'prisma generate --watch' 'tsc --watch --preserveWatchOutput'",
+    "dev:serve": "XM_VAL_SQLITE_URL=file:./dev.db XM_VAL_CONFIG_PATH=~/.xrc.val.test.json nodemon",
     "test:serve": "XM_VAL_SQLITE_URL=file:./test.db XM_VAL_CONFIG_PATH=~/.xrc.val.test.json npm run start",
     "test:run": "mocha",
     "test": "concurrently npm:test:*",

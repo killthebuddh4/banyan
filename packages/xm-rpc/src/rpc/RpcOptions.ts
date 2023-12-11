@@ -9,5 +9,11 @@ export type RpcOptions = {
   onHandlerError?: ({ method }: { method: string }) => void;
   onServerError?: ({ error }: { error: unknown }) => void;
   useConversationId?: boolean;
-  onResponse?: ({ message }: { message: DecodedMessage }) => void;
+  onResponse?: ({
+    toMessage,
+    result,
+  }: {
+    toMessage: DecodedMessage;
+    result: unknown;
+  }) => void;
 };

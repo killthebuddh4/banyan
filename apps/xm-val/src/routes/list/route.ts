@@ -8,8 +8,8 @@ export const route = createRoute({
   method: "list",
   inputSchema: z.unknown(),
   outputSchema: z.unknown(),
-  handler: async ({ context, input }) => {
-    const keys = await db.value.findMany({
+  handler: async ({ context }) => {
+    return db.value.findMany({
       where: {
         OR: [
           {
@@ -32,10 +32,5 @@ export const route = createRoute({
         key: true,
       },
     });
-
-    return {
-      ok: true,
-      result: { keys },
-    };
   },
 });
