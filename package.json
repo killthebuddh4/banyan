@@ -1,6 +1,6 @@
 {
   "private": true,
-  "name": "@killthebuddha/xm",
+  "name": "@killthebuddha/banyan",
   "packageManager": "npm@9.5.0",
   "workspaces": [
     "packages/*",
