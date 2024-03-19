@@ -1,6 +1,6 @@
 # Banyan
 
-Banyan is a collection of apps and libraries for [xmtp](https://xmtp.org). Ultimately, we're building towards a world where applications are composed bottom-up by the self-sovereign user rather than pushed top-down by the rent seeker.
+Banyan is a collection of apps and libraries for [xmtp](https://xmtp.org). We're building towards a world where applications are composed bottom-up by the self-sovereign user rather than pushed top-down by the rent seeker.
 
 This TypeScript monorepo includes:
 
