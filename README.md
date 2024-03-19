@@ -1,62 +1,34 @@
 # Banyan
 
-Banyan is a programming language and toolkit for building, deploying, and
-publishing [distributed application servers](/). This monorepo includes the
-[interpreter](/), [CLI](/), [tuplespace](/) server, [rpc](/) library,
-[documentation](/), and [example applications](/).
+Banyan is a collection of apps and libraries for [xmtp](https://xmtp.org). Ultimately, we're building towards a world where applications are composed bottom-up by the self-sovereign user rather than pushed top-down by the rent seeker.
+
+This TypeScript monorepo includes:
+
 
 - [Banyan](#banyan)
-- [Distributed application server?](#distributed-application-server)
-- [Goals (and non-goals)](#goals-and-non-goals)
-- [Banyan](#banyan-1)
-- [CLI](#cli)
-- [`brpc`](#brpc)
-- [The distributed memory](#the-distributed-memory)
+- [brpc](#brpc)
+- [Canopy](#canopy)
+- [fig](#fig)
+- [Minnow](#minnow)
+- [Mission (goals and non-goals)](#mission-goals-and-non-goals)
 
-# Distributed application server?
+# brpc
 
-A Banyan program is an RPC server that (1) is deployed to the
-[XMTP](https://xmtp.org) network and (2) implements the Banyan RPC protocol.
-The Banyan language includes primitives that implement the Banyan RPC Protocol
-so that it becomes trivial to interface with other Banyan applications. The
-Banyan CLI includes commands to trivially deploy and publish applications.
-References in a Banyan application resolve to values in the Banyan [tuple
-space](/) which is a distributed shared memory powered by the XMTP network.
+[brpc](./packages/brpc/) is a library for building end-to-end typesafe and
+encrypted XMTP APIs (and clients).
 
-# Goals (and non-goals)
+# Canopy
 
-A Banyan application __is the simplest and fastest way to deploy small utilities
-to the internet__.
+[Canopy](./apps/canopy/) is a key-value server ETH addresses, powered by XMTP and Postgres.
 
-Banyan programs are extremely slow and network-intenstive relative to the same
-program implemented in another language. To some extent these drawbacks are
-intrinsic to Banyan's design. Banyan will probably never be a suitable choice
-for high-traffic, mission-critical applications.
+# fig
 
-That said, __Banyan is the best way to deploy ad-hoc, personal, or low-traffic
-applications to a small audience__. (Think Zapier rather than Twitter or
-Facebook).
+[fig](./packages/fig) is a React SDK for working with `brpc`, `Canopy`, and `xmtp`.
 
-# Banyan
+# Minnow
 
-Banyan is a programming language and interpeter. Some key details:
+[Minnow](./apps/minnow/) is the minimal viable decentralized social network, built on top of Canopy.
 
-- functional
-- expression-oriented
-- strongly, dynamically typed
-- network-transparent
+# Mission (goals and non-goals)
 
-# CLI
-
-`banyan` is a command-line interface for Banyan. You can use it to run, deploy,
-administer, publish, and revoke Banyan applications.
-
-# `brpc`
-
-`brpc` is a library for building end-to-end typesafe and
-encrypted Banyan APIs (and clients).
-
-# The distributed memory
-
-`banyantree` is an [tuplespace](https://en.wikipedia.org/wiki/Tuple_space)
-implementation for Banyan programs, powered by [XMTP](https://xmtp.org).
+__TODO__
