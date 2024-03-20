@@ -17,4 +17,4 @@ encrypted XMTP APIs (and clients).
 
 # Canopy
 
-[Canopy](./apps/canopy/) is the minimal viable decentralized social network, built with Banyan.
+[Canopy](./apps/canopy/) is the minimal viable decentralized social network, a proof of concept, built with Banyan.
