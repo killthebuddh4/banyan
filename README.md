@@ -18,3 +18,7 @@ encrypted XMTP APIs (and clients).
 # Canopy
 
 [Canopy](./apps/canopy/) is the minimal viable decentralized social network, a proof of concept, built with Banyan.
+
+# tulip
+
+[tulip](./apps/tulip/) is a minimal CLI and TUI for XMTP and Banyan. It's main purpose is for ad-hoc tests during development.

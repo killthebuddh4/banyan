@@ -1,5 +1,5 @@
 {
-  "name": "@killthebuddha/xm-tui",
+  "name": "@killthebuddha/tulip",
   "type": "module",
   "scripts": {
     "start": "node build/app.js",
