@@ -1,6 +1,6 @@
-# Overview
+# Banyan
 
-This monorepo is a collection of packages for building applications on top of [xmtp](https://xmtp.org).
+The Banyan monorepo is a collection of apps and libraries for [xmtp](https://xmtp.org).
 
 Ultimately, we're building towards a world where applications are composed bottom-up by the self-sovereign user rather than pushed top-down by the rent seeker.
 
