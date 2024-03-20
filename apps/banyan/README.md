@@ -32,7 +32,7 @@ Banyan provides the following functions:
 
 # Goals and Non-Goals
 
-_Right now, we're building Banyan according to the needs of [min](../min), the minimal decentralized social network._
+_Right now, we're building Banyan according to the needs of [Canopy](../canopy), the minimal decentralized social network._
 
 The primary goal is to explore the limits of what we can build with nothing but ETH addresses and encrypted messages as primitives. When we encounter tradeoffs between UX and this technophilosophical goal, we will sacrifice UX _unless there exists a cogent, written, and viable-with-current-technology plan to repay the "technical debt"_.
 
