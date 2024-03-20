@@ -1,28 +1,59 @@
-# Fig is React hooks for XMTP
+# Overview
 
-It's the fastest way to add [xmtp-js](https://github.com/xmtp/xmtp-js)
-to your [React](https://reactjs.org/) app.
+Fig is React hooks for [xmtp](https://xmtp.org), [brpc](../brpc/), [banyan](../../apps/banyan/), and [Canopy](../../apps/canopy/) Use it to compose applications from open data protocols.
 
-## Features
+## Hooks for...
 
-- 🦾 Ergonomic hooks for working with the XMTP API.
-- 🔥 Utilizes web workers, so crypto operations don't nuke your UI.
-- 💼 Built-in multi-client support, switch between accounts seamlessly.
-- 🌀 Auto-refresh data and message streaming
-- 🦄 TypeScript native!
+#### XMTP
 
-## Coming Soon
+__High-level hooks__
 
-- 🙈 component library -- headless, fully customizable UI components for painless integration
-- 🚀 useRpc -- makes requests to an XMTP-powered RPC server
-- 🤝 useGroupChat -- group chat for XMTP!
-- 🤖 useBot -- think #ChatGXMTP (streaming, cancellable, etc.)
-- 🔒 useVault -- an e2ee encrypted self-custodial kv store
-- and more!
+- useConversation
+- useConversationList
+
+__Low-level hooks__
+
+- useMessages
+- useMessageStream
+- useConversationStream
+- useSendMessage
+
+#### `brpc`
+
+- useBrpc
+
+`useBrpc` can access any live `brpc` backend but works best when paired with a published typesafe API. Learn more about how to build and publish `brpc` APIs [here](../brpc/).
+
+#### Banyan
+
+[Banyan](../../apps/banyan/) is a key-value server for XTMP. You can use `Banyan` to build open data application protocols.
+
+- useRead
+- useWrite
+- useSubscribe
+
+#### Canopy
+
+Canopy is a completely open social network powered by Banyan and XMTP. Add it to your react app with just a few lines of code:
+
+__bio__
+
+- useCreate
+- useEdit
+- useDelete
+
+__feed__
+
+- useCreate
+- useEdit
+- useDelete
+- usePublish
+- useFollow
+- useSuggest
 
 ## Documentation
 
-Check out the [live walkthrough](https://receiver.relay.network)!
+Check out the [live walkthrough](https://fig.banyan.sh)!
 
 Additional documentation, complete with a full API reference, coming soon!
 

@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "module": "nodenext",
+    "outDir": "./build",
+    "allowJs": true
+  },
+  "extends": "tsconfig/base.json",
+  "include": [
+    "src/**/*.ts",
+    "src/prisma/**/*.js",
+    "src/prisma/**/*.ts",
+    "test/**/*.ts"
+  ]
+}
