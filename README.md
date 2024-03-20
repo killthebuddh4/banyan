@@ -1,4 +1,4 @@
-# Banyan
+# Overview
 
 The Banyan monorepo is a collection of apps and libraries powered by [xmtp](https://xmtp.org). XMTP is an end-to-end encrypted messaging protocol that uses Ethereum addresses as identities. Decentralized identity with end-to-end encryption allow us to apply the Unix philosophy at the web application layer. We can build small, single-purpose, highly composable application protocols. Ultimately, we're building towards a world where applications are composed bottom-up by the self-sovereign user rather than pushed top-down by the rent seeker.
 
