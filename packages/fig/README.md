@@ -1,90 +1,76 @@
-# Overview
+_We used `fig` to build [canopy.banyan.sh](https://canopy.banyan.sh), our live frontend for the Canopy social network. Check it out!_
 
-Fig is React hooks for [xmtp](https://xmtp.org), [brpc](../brpc/), [banyan](../../apps/banyan/), and [Canopy](../../apps/canopy/) Use it to compose applications from open data protocols.
+## Overview
 
-## Hooks for...
+Fig is React hooks for [xmtp](https://xmtp.org), [brpc](../brpc/), [banyan](../../apps/banyan/), and [Canopy](../../apps/canopy/) With `fig` you can comopse applications using open data protocols.
 
-#### XMTP
+## Features
 
-__High-level hooks__
+`fig` is hooks for...
 
-- useConversation
-- useConversationList
+__XMTP__
 
-__Low-level hooks__
+The [xmtp-js](https://github.com/xmtp/xmtp-js) SDK allows you to send, receive, and subscribe to XMTP conversations. `fig` provides a set of ergonomic hooks for working directly with `xmtp-js`.
 
-- useMessages
-- useMessageStream
-- useConversationStream
-- useSendMessage
+__brpc__
 
-#### `brpc`
+`fig` provides hooks to access any live `brpc` backend but works best when paired with a published typesafe API. Learn more about how to build and publish `brpc` APIs [here](../brpc/).
 
-- useBrpc
+__Banyan__
 
-`useBrpc` can access any live `brpc` backend but works best when paired with a published typesafe API. Learn more about how to build and publish `brpc` APIs [here](../brpc/).
+[Banyan](../../apps/banyan/) is a key-value server for XMTP. You can use `Banyan` to build open data protocols. `fig` provides hooks for Banyan's entire API.
 
-#### Banyan
+__Canopy__
 
-[Banyan](../../apps/banyan/) is a key-value server for XTMP. You can use `Banyan` to build open data application protocols.
+[Canopy](../../apps/canopy/) is a completely open social network powered by Banyan and XMTP. With `fig` you can add social networking features to your app with just a few lines of code.
 
-- useRead
-- useWrite
-- useSubscribe
+We used `fig` to build [canopy.banyan.sh](https://canopy.banyan.sh), our live frontend for Canopy!
 
-#### Canopy
+## Contents
 
-Canopy is a completely open social network powered by Banyan and XMTP. Add it to your react app with just a few lines of code:
+- [Overview](#overview)
+- [Features](#features)
+- [Contents](#contents)
+- [Documentation](#documentation)
+    - [Quick Start](#quick-start)
+    - [Usage](#usage)
+    - [API Reference](#api-reference)
+- [Support](#support)
+- [Community](#community)
+- [Contributing](#contributing)
+- [Sponsors](#sponsors)
+- [Authors](#authors)
+- [License](#license)
 
-__bio__
-
-- useCreate
-- useEdit
-- useDelete
-
-__feed__
-
-- useCreate
-- useEdit
-- useDelete
-- usePublish
-- useFollow
-- useSuggest
 
 ## Documentation
 
-Check out the [live walkthrough](https://fig.banyan.sh)!
+#### Quick Start
 
-Additional documentation, complete with a full API reference, coming soon!
-
-## Installation
+__TODO__ More here.
 
 ```bash
 npm install @killthebuddh4/fig
 ```
 
-## Developer Quick Start
+#### Usage
 
-```bash
-./scripts.dev.sh
-```
+We've "inlined" basic working use cases with each public hook. You can see each use case live at `https://fig.banyan.sh/examples/name-of-hook`.
 
-## Examples
+__TODO__ List the API here.
 
-We've "inlined" working use cases along with their corresponding hooks (e.g., see
-[the useClient example](./src/use-client.example.tsx)). To see them in action,
-check out the [demo](https://receiver.relay.network).
+#### API Reference
+
+__TODO__ For each hook, it's signature and basic usage, notes, and gotchas.
 
 ## Support
 
-The best place to get real-time support is the `#developers` channel in
-[Discord](https://discord.com/invite/DTMKf63ZSf). You'll get extra special attention and
-tons of kudos 🎉 if you also [open an issue](https://github.com/relay-network/receiver/issues/new).
+The best place to get real-time support is the `#banyan` channel in [Discord](https://discord.gg/wG9rEmw8). You'll get extra special attention and tons of kudos 🎉 if you also [open an issue](https://github.com/killthebuddh4/issues/new).
 
 ## Community
 
-- Join us on [Discord](https://discord.com/invite/DTMKf63ZSf) 💬
-- Follow [Relay](https://twitter.com/relay_eth) on Twitter for project updates 🤝
+- Join us on [Discord](https://discord.gg/wG9rEmw8) 💬
+- Follow [Achilles](https://twitter.com/killthebuddh4) on Twitter for project updates 🤝
 
 ## Contributing
 
@@ -93,11 +79,11 @@ docs](/.github/CONTRIBUTING.md) **before submitting a pull request**.
 
 ## Sponsors
 
-- [Relay](https://relay.network)
+_You can be the first ❤️!_
 
 ## Authors
 
-- killthebuddha.eth ([@killthebuddha\_](https://twitter.com/killthebuddha_)) – [Relay](https://relay.network)
+- [Achilles Schmelzer](https://twitter.com/killthebuddha_)
 
 ## License
 
