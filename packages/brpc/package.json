@@ -1,5 +1,5 @@
 {
-  "name": "@killthebuddha/xm-rpc",
+  "name": "@killthebuddha/brpc",
   "type": "module",
   "exports": {
     "./*.js": "./build/*.js"
@@ -27,6 +27,6 @@
   "dependencies": {
     "@xmtp/xmtp-js": "^11.2.1",
     "commander": "^11.1.0",
-    "xm-lib": "*"
+    "@repo/lib": "*"
   }
 }

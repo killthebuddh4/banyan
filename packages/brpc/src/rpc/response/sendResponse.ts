@@ -1,6 +1,6 @@
 import { DecodedMessage } from "@xmtp/xmtp-js";
 import { withIdSchema } from "../withIdSchema.js";
-import { jsonStringSchema } from "xm-lib/util/jsonStringSchema.js";
+import { jsonStringSchema } from "@repo/lib/jsonStringSchema.js";
 
 export const sendResponse = async ({
   toMessage,

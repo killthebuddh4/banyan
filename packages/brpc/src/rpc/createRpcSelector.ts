@@ -1,5 +1,5 @@
 import { DecodedMessage } from "@xmtp/xmtp-js";
-import { jsonStringSchema } from "xm-lib/util/jsonStringSchema.js";
+import { jsonStringSchema } from "@repo/lib/jsonStringSchema.js";
 import { withIdSchema } from "./withIdSchema.js";
 
 export const createRpcSelector = ({

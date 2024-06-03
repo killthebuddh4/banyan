@@ -1,5 +1,5 @@
 {
-  "name": "xm-lib",
+  "name": "@repo/lib",
   "type": "module",
   "exports": {
     "./*.js": "./build/*.js"

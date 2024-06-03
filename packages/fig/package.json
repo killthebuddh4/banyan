@@ -1,7 +1,6 @@
 {
   "name": "@killthebuddha/fig",
   "version": "0.0.1",
-  "homepage": "https://github.com/banyan-cpu/banyan/packages/fig",
   "type": "module",
   "scripts": {
     "dev": "vite",

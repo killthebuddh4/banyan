@@ -24,8 +24,7 @@ export const errors = {
   },
   UNAUTHORIZED: {
     code: -32001,
-    description:
-      "This error occurs when the client is not authorized. This should never happend because we're using XMTP.",
+    description: "This error occurs when the client is not authorized.",
   },
   FORBIDDEN: {
     code: -32003,

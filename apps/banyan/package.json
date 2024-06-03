@@ -30,10 +30,10 @@
     "typescript": "^5.2.2"
   },
   "dependencies": {
-    "@killthebuddha/xm-rpc": "*",
+    "@killthebuddha/brpc": "*",
     "@prisma/client": "^5.6.0",
     "@xmtp/xmtp-js": "^11.2.1",
     "commander": "^11.1.0",
-    "xm-lib": "*"
+    "@repo/lib": "*"
   }
 }
