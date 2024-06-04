@@ -53,8 +53,18 @@ export type BrpcContext = {
   };
 };
 
+export type BrpcAcl =
+  | {
+      type: "public";
+    }
+  | {
+      type: "private";
+      allow: ({ context }: { context: BrpcContext }) => Promise<boolean>;
+    };
+
 export type BrpcApi<A extends BrpcSpec> = {
   [K in keyof A]: {
+    acl: BrpcAcl;
     inputSchema: A[K]["input"];
     handler: ({
       context,
@@ -82,7 +92,7 @@ export type BrpcSubscription<E> = ({
 
 /* ***********************************************************
  *
- * PROTOCOL
+ * RETURN VALUES
  *
  * ***********************************************************/
 
@@ -96,6 +106,7 @@ export const brpcErrorSchema = z.object({
     z.literal("OUTPUT_TYPE_MISMATCH"),
     z.literal("OUTPUT_SERIALIZATION_FAILED"),
     z.literal("INVALID_RESPONSE"),
+    z.literal("UNAUTHORIZED"),
     z.literal("REQUEST_TIMEOUT"),
     z.literal("SERVER_ERROR"),
   ]),

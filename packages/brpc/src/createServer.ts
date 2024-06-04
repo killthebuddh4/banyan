@@ -120,6 +120,28 @@ export const createServer = async <A extends Brpc.BrpcSpec>({
           },
         };
 
+        const isAllowed = await (async () => {
+          if (procedure.acl.type === "public") {
+            return true;
+          } else {
+            return await procedure.acl.allow({ context });
+          }
+        })();
+
+        if (!isAllowed) {
+          reply(
+            JSON.stringify({
+              id: request.data.id,
+              payload: {
+                ok: false,
+                code: "UNAUTHORIZED",
+              },
+            }),
+          );
+
+          continue;
+        }
+
         const input = procedure.inputSchema.safeParse(request.data.payload);
 
         if (!input.success) {
