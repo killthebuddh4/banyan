@@ -4,15 +4,15 @@ import * as Brpc from "./brpc.js";
 import { jsonStringSchema } from "@repo/lib/jsonStringSchema.js";
 import { v4 as uuidv4 } from "uuid";
 
-export const createClient = async <A extends Brpc.BrpcApi>({
+export const createClient = async <A extends Brpc.BrpcSpec>({
   xmtp,
   address,
-  api,
+  spec,
   options,
 }: {
   xmtp: Client;
   address: string;
-  api: A;
+  spec: A;
   options?: {
     timeoutMs?: number;
     onSelfSentMessage?: ({ message }: { message: DecodedMessage }) => void;
@@ -23,7 +23,7 @@ export const createClient = async <A extends Brpc.BrpcApi>({
     onHandlerError?: () => void;
     onSendFailed?: () => void;
   };
-}): Promise<Brpc.BrpcClient<typeof api>> => {
+}) => {
   const stream = await (async () => {
     try {
       return await xmtp.conversations.streamAllMessages();
@@ -135,12 +135,12 @@ export const createClient = async <A extends Brpc.BrpcApi>({
     }
   })();
 
-  const brpcClient: Brpc.BrpcClient<typeof api> = {} as Brpc.BrpcClient<
-    typeof api
+  const brpcClient: Brpc.BrpcClient<typeof spec> = {} as Brpc.BrpcClient<
+    typeof spec
   >;
 
-  for (const [key, value] of Object.entries(api)) {
-    brpcClient[key as keyof typeof api] = async ({
+  for (const [key, value] of Object.entries(spec)) {
+    brpcClient[key as keyof typeof spec] = async ({
       input,
     }: {
       input: z.infer<typeof value.input>;
@@ -269,5 +269,10 @@ export const createClient = async <A extends Brpc.BrpcApi>({
     };
   }
 
-  return brpcClient;
+  return {
+    client: brpcClient,
+    close: async () => {
+      return await stream.return(null);
+    },
+  };
 };

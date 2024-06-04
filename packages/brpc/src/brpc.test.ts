@@ -1,19 +1,27 @@
 import { z } from "zod";
 import { Wallet } from "@ethersproject/wallet";
-import { createApi } from "./createApi.js";
+import { createSpec } from "./createSpec.js";
 import { createClient } from "./createClient.js";
 import { createServer } from "./createServer.js";
-import { createRouter } from "./createRouter.js";
+import { createApi } from "./createApi.js";
 import { Client } from "@xmtp/xmtp-js";
 
 const clientWallet = Wallet.createRandom();
 const serverWallet = Wallet.createRandom();
 
+const CLEANUP: Array<() => void> = [];
+
 describe("Brpc", () => {
+  afterEach(() => {
+    for (const cleanup of CLEANUP) {
+      cleanup();
+    }
+  });
+
   it("should work", async function () {
     this.timeout(15000);
 
-    const api = createApi({
+    const spec = createSpec({
       add: {
         input: z.object({
           a: z.number(),
@@ -30,17 +38,17 @@ describe("Brpc", () => {
       },
     });
 
-    const router = createRouter({
-      api,
-      router: {
+    const api = createApi({
+      spec,
+      api: {
         add: {
-          inputSchema: api.add.input,
+          inputSchema: spec.add.input,
           handler: async ({ context, input }) => {
             return input.a + input.b;
           },
         },
         concat: {
-          inputSchema: api.concat.input,
+          inputSchema: spec.concat.input,
           handler: async ({ context, input }) => {
             return input.a + input.b;
           },
@@ -48,16 +56,19 @@ describe("Brpc", () => {
       },
     });
 
-    await createServer({
+    const server = await createServer({
       xmtp: await Client.create(serverWallet),
-      router,
-    });
-
-    const client = await createClient({
-      xmtp: await Client.create(clientWallet),
-      address: serverWallet.address,
       api,
     });
+
+    const { client, close } = await createClient({
+      xmtp: await Client.create(clientWallet),
+      address: serverWallet.address,
+      spec,
+    });
+
+    CLEANUP.push(close);
+    CLEANUP.push(server.close);
 
     const addResult = await client.add({ input: { a: 1, b: 2 } });
 
@@ -90,7 +101,7 @@ describe("Brpc", () => {
   it("should not allow unknown procedures", async function () {
     this.timeout(15000);
 
-    const api = createApi({
+    const spec = createSpec({
       proc: {
         input: z.object({
           a: z.string(),
@@ -100,11 +111,11 @@ describe("Brpc", () => {
       },
     });
 
-    const router = createRouter({
-      api,
-      router: {
+    const api = createApi({
+      spec,
+      api: {
         notProc: {
-          inputSchema: api.proc.input,
+          inputSchema: spec.proc.input,
           handler: async ({ context, input }: any) => {
             return input.a + input.b;
           },
@@ -112,16 +123,19 @@ describe("Brpc", () => {
       },
     } as any);
 
-    await createServer({
+    const server = await createServer({
       xmtp: await Client.create(serverWallet),
-      router,
-    });
-
-    const client = await createClient({
-      xmtp: await Client.create(clientWallet),
-      address: serverWallet.address,
       api,
     });
+
+    const { client, close } = await createClient({
+      xmtp: await Client.create(clientWallet),
+      address: serverWallet.address,
+      spec,
+    });
+
+    CLEANUP.push(close);
+    CLEANUP.push(server.close);
 
     const result = await client.proc({ input: { a: "hey", b: "there" } });
 
@@ -136,5 +150,8 @@ describe("Brpc", () => {
     }
 
     console.log("RESULT IS", result);
+
+    await close();
+    await server.close();
   });
 });

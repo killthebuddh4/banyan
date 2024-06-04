@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { DecodedMessage } from "@xmtp/xmtp-js";
-import { createRouter } from "./createRouter.js";
+import { createApi } from "./createApi.js";
 import { createClient } from "./createClient.js";
 
 /* ***********************************************************
@@ -26,18 +26,18 @@ export type BrpcResponse = z.infer<typeof brpcResponseSchema>;
 
 /* ***********************************************************
  *
- * API, CLIENT, ROUTER
+ * SPEC, CLIENT, API
  *
  * ***********************************************************/
 
-export type BrpcApi = {
+export type BrpcSpec = {
   [key: string]: {
     input: z.ZodTypeAny;
     output: z.ZodTypeAny;
   };
 };
 
-export type BrpcClient<A extends BrpcApi> = {
+export type BrpcClient<A extends BrpcSpec> = {
   [K in keyof A]: ({
     input,
   }: {
@@ -53,9 +53,8 @@ export type BrpcContext = {
   };
 };
 
-export type BrpcRouter<A extends BrpcApi> = {
+export type BrpcApi<A extends BrpcSpec> = {
   [K in keyof A]: {
-    name: K;
     inputSchema: A[K]["input"];
     handler: ({
       context,

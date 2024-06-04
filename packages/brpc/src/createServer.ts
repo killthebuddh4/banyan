@@ -2,13 +2,13 @@ import { Client, DecodedMessage } from "@xmtp/xmtp-js";
 import * as Brpc from "./brpc.js";
 import { jsonStringSchema } from "@repo/lib/jsonStringSchema.js";
 
-export const createServer = async <A extends Brpc.BrpcApi>({
+export const createServer = async <A extends Brpc.BrpcSpec>({
   xmtp,
-  router,
+  api,
   options,
 }: {
   xmtp: Client;
-  router: Brpc.BrpcRouter<A>;
+  api: Brpc.BrpcApi<A>;
   options?: {
     onSelfSentMessage?: ({ message }: { message: DecodedMessage }) => void;
     onSkipMessage?: ({ message }: { message: DecodedMessage }) => void;
@@ -69,7 +69,7 @@ export const createServer = async <A extends Brpc.BrpcApi>({
         continue;
       }
 
-      const procedure = router[request.data.name];
+      const procedure = api[request.data.name];
 
       if (procedure === undefined) {
         (async () => {
@@ -192,4 +192,10 @@ export const createServer = async <A extends Brpc.BrpcApi>({
       }
     }
   })();
+
+  return {
+    close: async () => {
+      await stream.return(null);
+    },
+  };
 };
