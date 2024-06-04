@@ -4,7 +4,8 @@
   "packageManager": "npm@9.5.0",
   "workspaces": [
     "packages/*",
-    "apps/*"
+    "apps/*",
+    "examples/*"
   ],
   "devDependencies": {
     "turbo": "^1.10.16",
