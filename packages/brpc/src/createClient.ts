@@ -210,7 +210,12 @@ export const createClient = async <A extends Brpc.BrpcApi>({
           const error = Brpc.brpcErrorSchema.safeParse(response.data.payload);
 
           if (error.success) {
-            resolve(error.data);
+            resolve({
+              ok: false,
+              code: error.data.code,
+              request,
+              response: response.data,
+            });
           }
 
           const success = Brpc.brpcSuccessSchema.safeParse(
@@ -233,6 +238,8 @@ export const createClient = async <A extends Brpc.BrpcApi>({
               ok: true,
               code: "SUCCESS",
               data: output.data,
+              request,
+              response: response.data,
             });
           }
 

@@ -34,14 +34,12 @@ describe("Brpc", () => {
       api,
       router: {
         add: {
-          name: "add",
           inputSchema: api.add.input,
           handler: async ({ context, input }) => {
             return input.a + input.b;
           },
         },
         concat: {
-          name: "concat",
           inputSchema: api.concat.input,
           handler: async ({ context, input }) => {
             return input.a + input.b;
@@ -87,5 +85,56 @@ describe("Brpc", () => {
 
     console.log("ADD RESULT IS", addResult.data);
     console.log("CONCAT RESULT IS", concatResult.data);
+  });
+
+  it("should not allow unknown procedures", async function () {
+    this.timeout(15000);
+
+    const api = createApi({
+      proc: {
+        input: z.object({
+          a: z.string(),
+          b: z.string(),
+        }),
+        output: z.string(),
+      },
+    });
+
+    const router = createRouter({
+      api,
+      router: {
+        notProc: {
+          inputSchema: api.proc.input,
+          handler: async ({ context, input }: any) => {
+            return input.a + input.b;
+          },
+        },
+      },
+    } as any);
+
+    await createServer({
+      xmtp: await Client.create(serverWallet),
+      router,
+    });
+
+    const client = await createClient({
+      xmtp: await Client.create(clientWallet),
+      address: serverWallet.address,
+      api,
+    });
+
+    const result = await client.proc({ input: { a: "hey", b: "there" } });
+
+    if (result.ok) {
+      console.log("RESULT IS", result);
+      throw new Error("proc should have failed");
+    }
+
+    if (result.code !== "UNKNOWN_PROCEDURE") {
+      console.log("RESULT IS", result);
+      throw new Error("proc should have failed with UNKNOWN_PROCEDURE");
+    }
+
+    console.log("RESULT IS", result);
   });
 });

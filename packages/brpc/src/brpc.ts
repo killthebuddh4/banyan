@@ -100,8 +100,6 @@ export const brpcErrorSchema = z.object({
     z.literal("REQUEST_TIMEOUT"),
     z.literal("SERVER_ERROR"),
   ]),
-  request: brpcRequestSchema,
-  response: brpcResponseSchema.or(z.null()),
 });
 
 export type BrpcError = z.infer<typeof brpcErrorSchema>;
@@ -112,10 +110,14 @@ export const brpcSuccessSchema = z.object({
   data: z.unknown(),
 });
 
-export type BrpcResult<D> =
+export type BrpcResult<D> = (
   | BrpcError
   | {
       ok: true;
       code: "SUCCESS";
       data: D;
-    };
+    }
+) & {
+  request: BrpcRequest;
+  response: BrpcResponse | null;
+};
