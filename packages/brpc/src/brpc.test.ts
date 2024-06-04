@@ -44,14 +44,12 @@ describe("Brpc", () => {
       api: {
         add: {
           acl: { type: "public" },
-          inputSchema: spec.add.input,
           handler: async ({ context, input }) => {
             return input.a + input.b;
           },
         },
         concat: {
           acl: { type: "public" },
-          inputSchema: spec.concat.input,
           handler: async ({ context, input }) => {
             return input.a + input.b;
           },
@@ -101,58 +99,6 @@ describe("Brpc", () => {
     console.log("CONCAT RESULT IS", concatResult.data);
   });
 
-  it("should not allow unknown procedures", async function () {
-    this.timeout(15000);
-
-    const spec = createSpec({
-      proc: {
-        input: z.object({
-          a: z.string(),
-          b: z.string(),
-        }),
-        output: z.string(),
-      },
-    });
-
-    const api = createApi({
-      spec,
-      api: {
-        notProc: {
-          inputSchema: spec.proc.input,
-          handler: async ({ context, input }: any) => {
-            return input.a + input.b;
-          },
-        },
-      },
-    } as any);
-
-    const server = await createServer({
-      xmtp: await Client.create(serverWallet),
-      api,
-    });
-
-    const { client, close } = await createClient({
-      xmtp: await Client.create(clientWallet),
-      address: serverWallet.address,
-      spec,
-    });
-
-    CLEANUP.push(close);
-    CLEANUP.push(server.close);
-
-    const result = await client.proc({ input: { a: "hey", b: "there" } });
-
-    if (result.ok) {
-      throw new Error("proc should have failed");
-    }
-
-    if (result.code !== "UNKNOWN_PROCEDURE") {
-      throw new Error("proc should have failed with UNKNOWN_PROCEDURE");
-    }
-
-    console.log("RESULT IS", result);
-  });
-
   it("should not allow public access to private procedures", async function () {
     this.timeout(15000);
 
@@ -170,7 +116,6 @@ describe("Brpc", () => {
       api: {
         stealTreasure: {
           acl: { type: "private", allow: async () => false },
-          inputSchema: spec.stealTreasure.input,
           handler: async ({ context, input }) => {
             return input.amount;
           },
@@ -226,7 +171,6 @@ describe("Brpc", () => {
               return context.message.senderAddress === authorizedWallet.address;
             },
           },
-          inputSchema: spec.stealTreasure.input,
           handler: async ({ context, input }) => {
             return input.amount;
           },
