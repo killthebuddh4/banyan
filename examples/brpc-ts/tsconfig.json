@@ -1,8 +1,7 @@
 {
   "compilerOptions": {
     "module": "nodenext",
-    "outDir": "./build",
-    "resolveJsonModule": true
+    "outDir": "./build"
   },
   "extends": "tsconfig/base.json",
   "include": ["**/*.ts"]

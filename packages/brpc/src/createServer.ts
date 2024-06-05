@@ -156,13 +156,14 @@ export const createServer = async <A extends Brpc.BrpcApi>({
               },
             };
 
-            const isAllowed = await (async () => {
-              if (procedure.acl.type === "public") {
-                return true;
-              } else {
-                return await procedure.acl.allow({ context });
-              }
-            })();
+            let isAllowed = false;
+            try {
+              isAllowed = await procedure.auth({
+                context,
+              });
+            } catch (error) {
+              isAllowed = false;
+            }
 
             if (!isAllowed) {
               reply(
@@ -196,10 +197,7 @@ export const createServer = async <A extends Brpc.BrpcApi>({
 
             let output;
             try {
-              output = await procedure.handler({
-                context,
-                input: input.data,
-              });
+              output = await procedure.handler(input.data, context);
             } catch (error) {
               reply(
                 JSON.stringify({

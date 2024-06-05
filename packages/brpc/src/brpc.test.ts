@@ -8,15 +8,21 @@ const authorizedWallet = Wallet.createRandom();
 
 const CLEANUP: Array<() => void> = [];
 
+export const priv = createProcedure({
+  auth: async () => false,
+  handler: async () => {
+    return "You should not see this!";
+  },
+});
+
 const add = createProcedure({
   input: z.object({
     a: z.number(),
     b: z.number(),
   }),
-  output: z.number(),
-  acl: { type: "public" },
-  handler: async ({ context, input }) => {
-    return input.a + input.b;
+  auth: async () => true,
+  handler: async ({ a, b }) => {
+    return a + b;
   },
 });
 
@@ -26,9 +32,9 @@ const concat = createProcedure({
     b: z.string(),
   }),
   output: z.string(),
-  acl: { type: "public" },
-  handler: async ({ context, input }) => {
-    return input.a + input.b;
+  auth: async () => true,
+  handler: async ({ a, b }) => {
+    return `${a}${b}`;
   },
 });
 
@@ -36,10 +42,10 @@ const stealTreasure = createProcedure({
   input: z.object({
     amount: z.number(),
   }),
-  output: z.number(),
-  acl: { type: "private", allow: async () => false },
-  handler: async ({ context, input }) => {
-    return input.amount;
+  output: z.string(),
+  auth: async () => false,
+  handler: async ({ amount }, ctx) => {
+    return `${amount} stolen by ${ctx.message.senderAddress}`;
   },
 });
 
@@ -59,15 +65,15 @@ describe("Brpc", () => {
 
     await server.start();
 
-    const { client, close } = await createClient({
+    const { api, close } = await createClient({
       address: server.address,
-      api: { add, concat },
+      api: { add, concat, priv },
     });
 
     CLEANUP.push(close);
     CLEANUP.push(server.close);
 
-    const addResult = await client.add({ input: { a: 1, b: 2 } });
+    const addResult = await api.add({ a: 1, b: 2 });
 
     if (!addResult.ok) {
       console.error(addResult);
@@ -79,9 +85,7 @@ describe("Brpc", () => {
       throw new Error("add returned wrong result");
     }
 
-    const concatResult = await client.concat({
-      input: { a: "hello", b: "world" },
-    });
+    const concatResult = await api.concat({ a: "hello", b: "world" });
 
     if (!concatResult.ok) {
       throw new Error("concat failed");
@@ -104,7 +108,7 @@ describe("Brpc", () => {
 
     await server.start();
 
-    const { client, close } = await createClient({
+    const { api: client, close } = await createClient({
       address: server.address,
       api: { stealTreasure },
     });
@@ -112,7 +116,7 @@ describe("Brpc", () => {
     CLEANUP.push(close);
     CLEANUP.push(server.close);
 
-    const result = await client.stealTreasure({ input: { amount: 100 } });
+    const result = await client.stealTreasure({ amount: 100 });
 
     if (result.ok) {
       throw new Error("stealTreasure should have failed");
@@ -131,15 +135,11 @@ describe("Brpc", () => {
     this.timeout(15000);
 
     const auth = createProcedure({
-      input: z.undefined(),
       output: z.literal("you are authorized"),
-      acl: {
-        type: "private",
-        allow: async ({ context }) => {
-          return context.message.senderAddress === authorizedWallet.address;
-        },
+      auth: async ({ context }) => {
+        return context.message.senderAddress === authorizedWallet.address;
       },
-      handler: async ({ input }) => {
+      handler: async () => {
         return "you are authorized" as const;
       },
     });
@@ -167,17 +167,15 @@ describe("Brpc", () => {
     CLEANUP.push(unauthorizedClient.close);
     CLEANUP.push(server.close);
 
-    const unauthorizedResult = await unauthorizedClient.client.auth({
-      input: undefined,
-    });
+    const x = auth.handler;
+
+    const unauthorizedResult = await unauthorizedClient.api.auth();
 
     if (unauthorizedResult.ok) {
       throw new Error("auth should have failed for unauthorized client");
     }
 
-    const authorizedResult = await authorizedClient.client.auth({
-      input: undefined,
-    });
+    const authorizedResult = await authorizedClient.api.auth();
 
     if (!authorizedResult.ok) {
       throw new Error("auth should have succeeded for authorized client");

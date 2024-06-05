@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { DecodedMessage } from "@xmtp/xmtp-js";
 
 /* ***********************************************************
  *
@@ -34,14 +33,8 @@ export type BrpcProcedure<
 > = {
   input: I;
   output: O;
-  acl: BrpcAcl;
-  handler: ({
-    context,
-    input,
-  }: {
-    context: BrpcContext;
-    input: z.infer<I>;
-  }) => Promise<z.infer<O>>;
+  auth: BrpcAuth;
+  handler: (i: z.infer<I>, context: BrpcContext) => Promise<z.infer<O>>;
 };
 
 export type BrpcApi = {
@@ -49,11 +42,9 @@ export type BrpcApi = {
 };
 
 export type BrpcClient<A extends BrpcApi> = {
-  [K in keyof A]: ({
-    input,
-  }: {
-    input: z.infer<A[K]["input"]>;
-  }) => Promise<BrpcResult<z.infer<A[K]["output"]>>>;
+  [K in keyof A]: WrapInBrpcResult<
+    RemoveSingleUndefinedArgument<RemoveLastArgument<A[K]["handler"]>>
+  >;
 };
 
 export type BrpcContext = {
@@ -64,14 +55,11 @@ export type BrpcContext = {
   };
 };
 
-export type BrpcAcl =
-  | {
-      type: "public";
-    }
-  | {
-      type: "private";
-      allow: ({ context }: { context: BrpcContext }) => Promise<boolean>;
-    };
+export type BrpcAuth = ({
+  context,
+}: {
+  context: BrpcContext;
+}) => Promise<boolean>;
 
 /* ***********************************************************
  *
@@ -114,3 +102,30 @@ export type BrpcResult<D> = (
   request: BrpcRequest;
   response: BrpcResponse | null;
 };
+
+/* ***********************************************************
+ *
+ * HELPERS
+ *
+ * ***********************************************************/
+
+type PopLast<T extends any[]> = T extends [...infer Rest, any] ? Rest : never;
+
+type RemoveLastArgument<F> = F extends (...args: infer Args) => infer R
+  ? (...args: PopLast<Args>) => R
+  : never;
+
+type RemoveSingleUndefinedArgument<F> = F extends (
+  arg: infer First,
+  ...args: infer Rest
+) => infer R
+  ? First extends undefined
+    ? Rest extends []
+      ? (...args: Rest) => R
+      : F
+    : F
+  : never;
+
+type WrapInBrpcResult<F> = F extends (...args: infer Args) => infer R
+  ? (...args: Args) => Promise<BrpcResult<Awaited<R>>>
+  : never;

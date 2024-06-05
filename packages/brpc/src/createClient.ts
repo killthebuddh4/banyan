@@ -173,11 +173,9 @@ export const createClient = async <A extends Brpc.BrpcApi>({
   >;
 
   for (const [key, value] of Object.entries(api)) {
-    brpcClient[key as keyof typeof api] = async ({
-      input,
-    }: {
-      input: z.infer<typeof value.input>;
-    }) => {
+    (brpcClient as any)[key as keyof typeof api] = async (
+      input: z.infer<typeof value.input>,
+    ) => {
       const request = {
         id: uuidv4(),
         name: key,
@@ -300,7 +298,7 @@ export const createClient = async <A extends Brpc.BrpcApi>({
   }
 
   return {
-    client: brpcClient,
+    api: brpcClient,
     close: async () => {
       return await stream.return(null);
     },
