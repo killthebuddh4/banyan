@@ -3,9 +3,7 @@ import { Wallet } from "@ethersproject/wallet";
 import { createClient } from "./createClient.js";
 import { createServer } from "./createServer.js";
 import { createProcedure } from "./createProcedure.js";
-import { Client } from "@xmtp/xmtp-js";
 
-const clientWallet = Wallet.createRandom();
 const authorizedWallet = Wallet.createRandom();
 
 const CLEANUP: Array<() => void> = [];
@@ -62,7 +60,6 @@ describe("Brpc", () => {
     await server.start();
 
     const { client, close } = await createClient({
-      xmtp: await Client.create(clientWallet),
       address: server.address,
       api: { add, concat },
     });
@@ -108,7 +105,6 @@ describe("Brpc", () => {
     await server.start();
 
     const { client, close } = await createClient({
-      xmtp: await Client.create(clientWallet),
       address: server.address,
       api: { stealTreasure },
     });
@@ -155,15 +151,16 @@ describe("Brpc", () => {
     await server.start();
 
     const unauthorizedClient = await createClient({
-      xmtp: await Client.create(clientWallet),
       address: server.address,
       api: { auth },
     });
 
     const authorizedClient = await createClient({
-      xmtp: await Client.create(authorizedWallet),
       address: server.address,
       api: { auth },
+      options: {
+        wallet: authorizedWallet,
+      },
     });
 
     CLEANUP.push(authorizedClient.close);

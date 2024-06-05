@@ -1,3 +1,4 @@
+import { Wallet } from "@ethersproject/wallet";
 import { z } from "zod";
 import { Client, DecodedMessage } from "@xmtp/xmtp-js";
 import * as Brpc from "./brpc.js";
@@ -5,18 +6,19 @@ import { jsonStringSchema } from "@repo/lib/jsonStringSchema.js";
 import { v4 as uuidv4 } from "uuid";
 
 export const createClient = async <A extends Brpc.BrpcApi>({
-  xmtp,
-  address,
   api,
+  address,
   options,
 }: {
-  xmtp: Client;
-  address: string;
   api: A;
+  address: string;
   options?: {
+    wallet?: Wallet;
+    xmtpEnv?: "dev" | "production";
     timeoutMs?: number;
     onSelfSentMessage?: ({ message }: { message: DecodedMessage }) => void;
     onSkipMessage?: ({ message }: { message: DecodedMessage }) => void;
+    onCreateXmtpError?: () => void;
     onCreateStreamError?: () => void;
     onCreateStreamSuccess?: () => void;
     onCreateConversationError?: () => void;
@@ -24,6 +26,37 @@ export const createClient = async <A extends Brpc.BrpcApi>({
     onSendFailed?: () => void;
   };
 }) => {
+  const wallet = (() => {
+    if (options?.wallet) {
+      return options.wallet;
+    }
+
+    return Wallet.createRandom();
+  })();
+
+  const xmtpEnv = (() => {
+    if (options?.xmtpEnv) {
+      return options.xmtpEnv;
+    }
+
+    return "dev";
+  })();
+
+  let xmtp;
+  try {
+    xmtp = await Client.create(wallet, { env: xmtpEnv });
+  } catch (error) {
+    if (options?.onCreateXmtpError) {
+      try {
+        options.onCreateXmtpError();
+      } catch (error) {
+        console.warn("onCreateXmtpError threw an error", error);
+      }
+    }
+
+    throw error;
+  }
+
   const stream = await (async () => {
     try {
       return await xmtp.conversations.streamAllMessages();
