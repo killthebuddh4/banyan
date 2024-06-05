@@ -7,7 +7,6 @@ import { Client } from "@xmtp/xmtp-js";
 
 const clientWallet = Wallet.createRandom();
 const authorizedWallet = Wallet.createRandom();
-const serverWallet = Wallet.createRandom();
 
 const CLEANUP: Array<() => void> = [];
 
@@ -57,13 +56,14 @@ describe("Brpc", () => {
     this.timeout(15000);
 
     const server = await createServer({
-      xmtp: await Client.create(serverWallet),
       api: { add, concat },
     });
 
+    await server.start();
+
     const { client, close } = await createClient({
       xmtp: await Client.create(clientWallet),
-      address: serverWallet.address,
+      address: server.address,
       api: { add, concat },
     });
 
@@ -102,13 +102,14 @@ describe("Brpc", () => {
     this.timeout(15000);
 
     const server = await createServer({
-      xmtp: await Client.create(serverWallet),
       api: { stealTreasure },
     });
 
+    await server.start();
+
     const { client, close } = await createClient({
       xmtp: await Client.create(clientWallet),
-      address: serverWallet.address,
+      address: server.address,
       api: { stealTreasure },
     });
 
@@ -122,7 +123,9 @@ describe("Brpc", () => {
     }
 
     if (result.code !== "UNAUTHORIZED") {
-      throw new Error("stealTreasure should have failed with UNAUTHORIZED");
+      throw new Error(
+        "stealTreasure should have failed with UNAUTHORIZED code",
+      );
     }
 
     console.log("RESULT IS", result);
@@ -146,19 +149,20 @@ describe("Brpc", () => {
     });
 
     const server = await createServer({
-      xmtp: await Client.create(serverWallet),
       api: { auth },
     });
 
+    await server.start();
+
     const unauthorizedClient = await createClient({
       xmtp: await Client.create(clientWallet),
-      address: serverWallet.address,
+      address: server.address,
       api: { auth },
     });
 
     const authorizedClient = await createClient({
       xmtp: await Client.create(authorizedWallet),
-      address: serverWallet.address,
+      address: server.address,
       api: { auth },
     });
 
