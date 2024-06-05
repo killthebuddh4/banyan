@@ -4,6 +4,16 @@
 
 ⚡️ Use `brpc` to safely deploy any JavaScript function to the internet in __approximately 0 seconds__.
 
+# Table of Contents
+
+- [Overview](#overview)
+- [Table of Contents](#table-of-contents)
+- [Quickstart](#quickstart)
+- [Adding in Auth](#adding-in-auth)
+- [Examples](#examples)
+- [How does it work?](#how-does-it-work)
+- [Roadmap](#roadmap)
+
 # Quickstart
 
 First, take any function and wrap it in a `BrpcProcedure`.
@@ -28,14 +38,19 @@ Then, serve it.
 
 import { createServer } from "@killthebuddha/brpc/createServer.js";
 import { myPublicFunction } from "./api.js";
+import { writeFile } from "fs/promises";
 
 const server = await createServer({ api: { myPublicFunction } });
+
+// Save your server's address somewhere. In production, the address
+// would be known ahead of time.
+await writeFile("/tmp/.brpc", server.address);
 
 await server.start();
 ```
 
 
-Creating a client for you function is just as easy:
+Creating a client for your function is just as easy:
 
 ```TypeScript
 // client.ts
@@ -45,6 +60,8 @@ import { myPublicFunction } from "./api.js";
 
 const client = await createClient({
   api,
+  // You wrote this file when you created the server. In production, you'd
+  // know your server's address ahead of time.
   address: await readFile("/tmp/.brpc", "utf8"),
 });
 
@@ -53,7 +70,7 @@ const message = await client.api.myPublicFunction();
 console.log(message.ok && message.data) // "Hello, world!"
 ```
 
-And that's all there is to it! You just published a service to the internet in 
+And that's all there is to it! You just published a service to the internet in a few lines of code! 🎉
 
 # Adding in Auth
 
