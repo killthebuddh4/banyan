@@ -1,7 +1,5 @@
 import { z } from "zod";
 import { DecodedMessage } from "@xmtp/xmtp-js";
-import { createApi } from "./createApi.js";
-import { createClient } from "./createClient.js";
 
 /* ***********************************************************
  *
@@ -26,18 +24,31 @@ export type BrpcResponse = z.infer<typeof brpcResponseSchema>;
 
 /* ***********************************************************
  *
- * SPEC, CLIENT, API
+ * PROCEDURE, CLIENT, API
  *
  * ***********************************************************/
 
-export type BrpcSpec = {
-  [key: string]: {
-    input: z.ZodTypeAny;
-    output: z.ZodTypeAny;
-  };
+export type BrpcProcedure<
+  I extends z.ZodTypeAny = any,
+  O extends z.ZodTypeAny = any,
+> = {
+  input: I;
+  output: O;
+  acl: BrpcAcl;
+  handler: ({
+    context,
+    input,
+  }: {
+    context: BrpcContext;
+    input: z.infer<I>;
+  }) => Promise<z.infer<O>>;
 };
 
-export type BrpcClient<A extends BrpcSpec> = {
+export type BrpcApi = {
+  [key: string]: BrpcProcedure;
+};
+
+export type BrpcClient<A extends BrpcApi> = {
   [K in keyof A]: ({
     input,
   }: {
@@ -61,34 +72,6 @@ export type BrpcAcl =
       type: "private";
       allow: ({ context }: { context: BrpcContext }) => Promise<boolean>;
     };
-
-export type BrpcApi<A extends BrpcSpec> = {
-  [K in keyof A]: {
-    acl: BrpcAcl;
-    inputSchema: A[K]["input"];
-    handler: ({
-      context,
-      input,
-    }: {
-      context: {
-        id: string;
-        message: {
-          id: string;
-          senderAddress: string;
-        };
-      };
-      input: z.infer<A[K]["input"]>;
-    }) => Promise<z.infer<A[K]["output"]>>;
-  };
-};
-
-export type BrpcSubscription<E> = ({
-  context,
-  message,
-}: {
-  context: BrpcContext;
-  message: DecodedMessage;
-}) => Promise<AsyncGenerator<E, void, unknown>>;
 
 /* ***********************************************************
  *

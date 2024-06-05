@@ -4,15 +4,15 @@ import * as Brpc from "./brpc.js";
 import { jsonStringSchema } from "@repo/lib/jsonStringSchema.js";
 import { v4 as uuidv4 } from "uuid";
 
-export const createClient = async <A extends Brpc.BrpcSpec>({
+export const createClient = async <A extends Brpc.BrpcApi>({
   xmtp,
   address,
-  spec,
+  api,
   options,
 }: {
   xmtp: Client;
   address: string;
-  spec: A;
+  api: A;
   options?: {
     timeoutMs?: number;
     onSelfSentMessage?: ({ message }: { message: DecodedMessage }) => void;
@@ -135,12 +135,12 @@ export const createClient = async <A extends Brpc.BrpcSpec>({
     }
   })();
 
-  const brpcClient: Brpc.BrpcClient<typeof spec> = {} as Brpc.BrpcClient<
-    typeof spec
+  const brpcClient: Brpc.BrpcClient<typeof api> = {} as Brpc.BrpcClient<
+    typeof api
   >;
 
-  for (const [key, value] of Object.entries(spec)) {
-    brpcClient[key as keyof typeof spec] = async ({
+  for (const [key, value] of Object.entries(api)) {
+    brpcClient[key as keyof typeof api] = async ({
       input,
     }: {
       input: z.infer<typeof value.input>;
@@ -166,17 +166,14 @@ export const createClient = async <A extends Brpc.BrpcSpec>({
       const promise = new Promise<
         Brpc.BrpcResult<z.infer<typeof value.output>>
       >((resolve) => {
-        const timeout = setTimeout(
-          () => {
-            resolve({
-              ok: false,
-              code: "REQUEST_TIMEOUT",
-              request,
-              response: null,
-            });
-          },
-          options?.timeoutMs ?? 10000,
-        );
+        const timeout = setTimeout(() => {
+          resolve({
+            ok: false,
+            code: "REQUEST_TIMEOUT",
+            request,
+            response: null,
+          });
+        }, options?.timeoutMs ?? 10000);
 
         const subscription = ({
           ctx,

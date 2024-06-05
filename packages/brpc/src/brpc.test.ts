@@ -1,9 +1,8 @@
 import { z } from "zod";
 import { Wallet } from "@ethersproject/wallet";
-import { createSpec } from "./createSpec.js";
 import { createClient } from "./createClient.js";
 import { createServer } from "./createServer.js";
-import { createApi } from "./createApi.js";
+import { createProcedure } from "./createProcedure.js";
 import { Client } from "@xmtp/xmtp-js";
 
 const clientWallet = Wallet.createRandom();
@@ -11,6 +10,41 @@ const authorizedWallet = Wallet.createRandom();
 const serverWallet = Wallet.createRandom();
 
 const CLEANUP: Array<() => void> = [];
+
+const add = createProcedure({
+  input: z.object({
+    a: z.number(),
+    b: z.number(),
+  }),
+  output: z.number(),
+  acl: { type: "public" },
+  handler: async ({ context, input }) => {
+    return input.a + input.b;
+  },
+});
+
+const concat = createProcedure({
+  input: z.object({
+    a: z.string(),
+    b: z.string(),
+  }),
+  output: z.string(),
+  acl: { type: "public" },
+  handler: async ({ context, input }) => {
+    return input.a + input.b;
+  },
+});
+
+const stealTreasure = createProcedure({
+  input: z.object({
+    amount: z.number(),
+  }),
+  output: z.number(),
+  acl: { type: "private", allow: async () => false },
+  handler: async ({ context, input }) => {
+    return input.amount;
+  },
+});
 
 describe("Brpc", () => {
   afterEach(() => {
@@ -22,50 +56,15 @@ describe("Brpc", () => {
   it("should work", async function () {
     this.timeout(15000);
 
-    const spec = createSpec({
-      add: {
-        input: z.object({
-          a: z.number(),
-          b: z.number(),
-        }),
-        output: z.number(),
-      },
-      concat: {
-        input: z.object({
-          a: z.string(),
-          b: z.string(),
-        }),
-        output: z.string(),
-      },
-    });
-
-    const api = createApi({
-      spec,
-      api: {
-        add: {
-          acl: { type: "public" },
-          handler: async ({ context, input }) => {
-            return input.a + input.b;
-          },
-        },
-        concat: {
-          acl: { type: "public" },
-          handler: async ({ context, input }) => {
-            return input.a + input.b;
-          },
-        },
-      },
-    });
-
     const server = await createServer({
       xmtp: await Client.create(serverWallet),
-      api,
+      api: { add, concat },
     });
 
     const { client, close } = await createClient({
       xmtp: await Client.create(clientWallet),
       address: serverWallet.address,
-      spec,
+      api: { add, concat },
     });
 
     CLEANUP.push(close);
@@ -102,36 +101,15 @@ describe("Brpc", () => {
   it("should not allow public access to private procedures", async function () {
     this.timeout(15000);
 
-    const spec = createSpec({
-      stealTreasure: {
-        input: z.object({
-          amount: z.number(),
-        }),
-        output: z.number(),
-      },
-    });
-
-    const api = createApi({
-      spec,
-      api: {
-        stealTreasure: {
-          acl: { type: "private", allow: async () => false },
-          handler: async ({ context, input }) => {
-            return input.amount;
-          },
-        },
-      },
-    });
-
     const server = await createServer({
       xmtp: await Client.create(serverWallet),
-      api,
+      api: { stealTreasure },
     });
 
     const { client, close } = await createClient({
       xmtp: await Client.create(clientWallet),
       address: serverWallet.address,
-      spec,
+      api: { stealTreasure },
     });
 
     CLEANUP.push(close);
@@ -149,78 +127,63 @@ describe("Brpc", () => {
 
     console.log("RESULT IS", result);
   });
+
   it("should allow authorized access to private procedures", async function () {
     this.timeout(15000);
 
-    const spec = createSpec({
-      stealTreasure: {
-        input: z.object({
-          amount: z.number(),
-        }),
-        output: z.number(),
-      },
-    });
-
-    const api = createApi({
-      spec,
-      api: {
-        stealTreasure: {
-          acl: {
-            type: "private",
-            allow: async ({ context }) => {
-              return context.message.senderAddress === authorizedWallet.address;
-            },
-          },
-          handler: async ({ context, input }) => {
-            return input.amount;
-          },
+    const auth = createProcedure({
+      input: z.undefined(),
+      output: z.literal("you are authorized"),
+      acl: {
+        type: "private",
+        allow: async ({ context }) => {
+          return context.message.senderAddress === authorizedWallet.address;
         },
+      },
+      handler: async ({ input }) => {
+        return "you are authorized" as const;
       },
     });
 
     const server = await createServer({
       xmtp: await Client.create(serverWallet),
-      api,
+      api: { auth },
     });
 
     const unauthorizedClient = await createClient({
       xmtp: await Client.create(clientWallet),
       address: serverWallet.address,
-      spec,
+      api: { auth },
     });
 
     const authorizedClient = await createClient({
       xmtp: await Client.create(authorizedWallet),
       address: serverWallet.address,
-      spec,
+      api: { auth },
     });
 
     CLEANUP.push(authorizedClient.close);
     CLEANUP.push(unauthorizedClient.close);
     CLEANUP.push(server.close);
 
-    const unauthorizedResult = await unauthorizedClient.client.stealTreasure({
-      input: { amount: 100 },
+    const unauthorizedResult = await unauthorizedClient.client.auth({
+      input: undefined,
     });
 
     if (unauthorizedResult.ok) {
-      throw new Error(
-        "stealTreasure should have failed for unauthorized client",
-      );
+      throw new Error("auth should have failed for unauthorized client");
     }
 
-    const authorizedResult = await authorizedClient.client.stealTreasure({
-      input: { amount: 100 },
+    const authorizedResult = await authorizedClient.client.auth({
+      input: undefined,
     });
 
     if (!authorizedResult.ok) {
-      throw new Error(
-        "stealTreasure should have succeeded for authorized client",
-      );
+      throw new Error("auth should have succeeded for authorized client");
     }
 
-    if (authorizedResult.data !== 100) {
-      throw new Error("stealTreasure returned wrong result");
+    if (authorizedResult.data !== "you are authorized") {
+      throw new Error("auth returned wrong result");
     }
 
     console.log("AUTHORIZED RESULT IS", authorizedResult);
