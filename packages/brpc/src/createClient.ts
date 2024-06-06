@@ -17,7 +17,13 @@ export const createClient = async <A extends Brpc.BrpcApi>({
     xmtpEnv?: "dev" | "production";
     timeoutMs?: number;
     onSelfSentMessage?: ({ message }: { message: DecodedMessage }) => void;
-    onSkipMessage?: ({ message }: { message: DecodedMessage }) => void;
+    onReceivedInvalidJson?: ({ message }: { message: DecodedMessage }) => void;
+    onReceivedInvalidResponse?: ({
+      message,
+    }: {
+      message: DecodedMessage;
+    }) => void;
+    onNoSubscription?: ({ message }: { message: DecodedMessage }) => void;
     onCreateXmtpError?: () => void;
     onCreateStreamError?: () => void;
     onCreateStreamSuccess?: () => void;
@@ -42,20 +48,21 @@ export const createClient = async <A extends Brpc.BrpcApi>({
     return "dev";
   })();
 
-  let xmtp;
-  try {
-    xmtp = await Client.create(wallet, { env: xmtpEnv });
-  } catch (error) {
-    if (options?.onCreateXmtpError) {
-      try {
-        options.onCreateXmtpError();
-      } catch (error) {
-        console.warn("onCreateXmtpError threw an error", error);
+  const xmtp = await (async () => {
+    try {
+      return await Client.create(wallet, { env: xmtpEnv });
+    } catch (error) {
+      if (options?.onCreateXmtpError) {
+        try {
+          options.onCreateXmtpError();
+        } catch (error) {
+          console.warn("onCreateXmtpError threw an error", error);
+        }
       }
-    }
 
-    throw error;
-  }
+      throw error;
+    }
+  })();
 
   const stream = await (async () => {
     try {
@@ -95,10 +102,10 @@ export const createClient = async <A extends Brpc.BrpcApi>({
     string,
     ({
       ctx,
-      message,
+      response,
     }: {
       ctx: { unsubscribe: () => void };
-      message: DecodedMessage;
+      response: Brpc.BrpcResponse;
     }) => void
   > = new Map();
 
@@ -121,11 +128,11 @@ export const createClient = async <A extends Brpc.BrpcApi>({
       const json = jsonStringSchema.safeParse(message.content);
 
       if (!json.success) {
-        if (options?.onSkipMessage) {
+        if (options?.onReceivedInvalidJson) {
           try {
-            options.onSkipMessage({ message });
+            options.onReceivedInvalidJson({ message });
           } catch (error) {
-            console.warn("onSkipMessage threw an error", error);
+            console.warn("onReceivedInvalidJson threw an error", error);
           }
         }
         continue;
@@ -134,11 +141,11 @@ export const createClient = async <A extends Brpc.BrpcApi>({
       const response = Brpc.brpcResponseSchema.safeParse(json.data);
 
       if (!response.success) {
-        if (options?.onSkipMessage) {
+        if (options?.onReceivedInvalidResponse) {
           try {
-            options.onSkipMessage({ message });
+            options.onReceivedInvalidResponse({ message });
           } catch (error) {
-            console.warn("onSkipMessage threw an error", error);
+            console.warn("onReceivedInvalidResponse threw an error", error);
           }
         }
         continue;
@@ -147,11 +154,11 @@ export const createClient = async <A extends Brpc.BrpcApi>({
       const subscription = subscriptions.get(response.data.id);
 
       if (subscription === undefined) {
-        if (options?.onSkipMessage) {
+        if (options?.onNoSubscription) {
           try {
-            options.onSkipMessage({ message });
+            options.onNoSubscription({ message });
           } catch (error) {
-            console.warn("onSkipMessage threw an error", error);
+            console.warn("onNoSubscription threw an error", error);
           }
         }
         continue;
@@ -163,7 +170,7 @@ export const createClient = async <A extends Brpc.BrpcApi>({
             unsubscribe({ id: response.data.id });
           },
         },
-        message,
+        response: response.data,
       });
     }
   })();
@@ -208,47 +215,26 @@ export const createClient = async <A extends Brpc.BrpcApi>({
 
         const subscription = ({
           ctx,
-          message,
+          response,
         }: {
           ctx: { unsubscribe: () => void };
-          message: DecodedMessage;
+          response: Brpc.BrpcResponse;
         }) => {
-          const json = jsonStringSchema.safeParse(message.content);
-
-          if (!json.success) {
-            // TODO
-            return;
-          }
-
-          const response = Brpc.brpcResponseSchema.safeParse(json.data);
-
-          if (!response.success) {
-            // TODO
-            return;
-          }
-
-          if (response.data.id !== request.id) {
-            // TODO
-            return;
-          }
-
           clearTimeout(timeout);
           ctx.unsubscribe();
 
-          const error = Brpc.brpcErrorSchema.safeParse(response.data.payload);
+          const error = Brpc.brpcErrorSchema.safeParse(response.payload);
 
           if (error.success) {
             resolve({
               ok: false,
               code: error.data.code,
               request,
-              response: response.data,
+              response,
             });
           }
 
-          const success = Brpc.brpcSuccessSchema.safeParse(
-            response.data.payload,
-          );
+          const success = Brpc.brpcSuccessSchema.safeParse(response.payload);
 
           if (success.success) {
             const output = value.output.safeParse(success.data.data);
@@ -258,7 +244,7 @@ export const createClient = async <A extends Brpc.BrpcApi>({
                 ok: false,
                 code: "OUTPUT_TYPE_MISMATCH",
                 request,
-                response: response.data,
+                response,
               });
             }
 
@@ -267,7 +253,7 @@ export const createClient = async <A extends Brpc.BrpcApi>({
               code: "SUCCESS",
               data: output.data,
               request,
-              response: response.data,
+              response,
             });
           }
 
@@ -275,7 +261,7 @@ export const createClient = async <A extends Brpc.BrpcApi>({
             ok: false,
             code: "INVALID_RESPONSE",
             request,
-            response: response.data,
+            response,
           });
         };
 
