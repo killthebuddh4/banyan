@@ -11,12 +11,25 @@ export const createServer = async <A extends Brpc.BrpcApi>({
   options?: {
     wallet?: Wallet;
     xmtpEnv?: "dev" | "production";
+    onMessage?: ({ message }: { message: DecodedMessage }) => void;
     onSelfSentMessage?: ({ message }: { message: DecodedMessage }) => void;
-    onSkipMessage?: ({ message }: { message: DecodedMessage }) => void;
+    onReceivedInvalidJson?: ({ message }: { message: DecodedMessage }) => void;
+    onReceivedInvalidRequest?: ({
+      message,
+    }: {
+      message: DecodedMessage;
+    }) => void;
     onCreateXmtpError?: () => void;
     onCreateStreamError?: () => void;
     onCreateStreamSuccess?: () => void;
     onHandlerError?: () => void;
+    onUnknownProcedure?: () => void;
+    onAuthError?: () => void;
+    onUnauthorized?: () => void;
+    onInputTypeMismatch?: () => void;
+    onSerializationError?: () => void;
+    onHandlingMessage?: () => void;
+    onResponseSent?: () => void;
     onSendFailed?: () => void;
   };
 }) => {
@@ -36,20 +49,21 @@ export const createServer = async <A extends Brpc.BrpcApi>({
     return "dev";
   })();
 
-  let xmtp;
-  try {
-    xmtp = await Client.create(wallet, { env: xmtpEnv });
-  } catch (error) {
-    if (options?.onCreateXmtpError) {
-      try {
-        options.onCreateXmtpError();
-      } catch (error) {
-        console.warn("onCreateXmtpError threw an error", error);
+  const xmtp = await (async () => {
+    try {
+      return await Client.create(wallet, { env: xmtpEnv });
+    } catch (error) {
+      if (options?.onCreateXmtpError) {
+        try {
+          options.onCreateXmtpError();
+        } catch (error) {
+          console.warn("onCreateXmtpError threw an error", error);
+        }
       }
-    }
 
-    throw error;
-  }
+      throw error;
+    }
+  })();
 
   let stream: AsyncGenerator<DecodedMessage, void, unknown> | null = null;
 
@@ -75,18 +89,34 @@ export const createServer = async <A extends Brpc.BrpcApi>({
 
       (async () => {
         for await (const message of stream) {
+          if (options?.onMessage) {
+            try {
+              options.onMessage({ message });
+            } catch (error) {
+              console.warn("onMessage threw an error", error);
+            }
+          }
+
           if (message.senderAddress === xmtp.address) {
+            if (options?.onSelfSentMessage) {
+              try {
+                options.onSelfSentMessage({ message });
+              } catch (error) {
+                console.warn("onSelfSentMessage threw an error", error);
+              }
+            }
+
             continue;
           }
 
           const json = jsonStringSchema.safeParse(message.content);
 
           if (!json.success) {
-            if (options?.onSkipMessage) {
+            if (options?.onReceivedInvalidJson) {
               try {
-                options.onSkipMessage({ message });
+                options.onReceivedInvalidJson({ message });
               } catch (error) {
-                console.warn("onSkipMessage threw an error", error);
+                console.warn("onReceivedInvalidJson threw an error", error);
               }
             }
             continue;
@@ -95,59 +125,55 @@ export const createServer = async <A extends Brpc.BrpcApi>({
           const request = Brpc.brpcRequestSchema.safeParse(json.data);
 
           if (!request.success) {
-            if (options?.onSkipMessage) {
+            if (options?.onReceivedInvalidRequest) {
               try {
-                options.onSkipMessage({ message });
+                options.onReceivedInvalidRequest({ message });
               } catch (error) {
-                console.warn("onSkipMessage threw an error", error);
+                console.warn("onReceivedInvalidRequest threw an error", error);
               }
             }
             continue;
           }
 
+          const reply = async (str: string) => {
+            try {
+              return await message.conversation.send(str);
+            } catch (error) {
+              if (options?.onSendFailed) {
+                try {
+                  options.onSendFailed();
+                } catch (error) {
+                  console.warn("onSendFailed threw an error", error);
+                }
+              }
+            }
+          };
+
           const procedure = api[request.data.name];
 
           if (procedure === undefined) {
-            (async () => {
+            if (options?.onUnknownProcedure) {
               try {
-                await message.conversation.send(
-                  JSON.stringify({
-                    id: request.data.id,
-                    payload: {
-                      ok: false,
-                      code: "UNKNOWN_PROCEDURE",
-                    },
-                  }),
-                );
+                options.onUnknownProcedure();
               } catch (error) {
-                if (options?.onSendFailed) {
-                  try {
-                    options.onSendFailed();
-                  } catch (error) {
-                    console.warn("onSendFailed threw an error", error);
-                  }
-                }
+                console.warn("onUnknownProcedure threw an error", error);
               }
-            })();
+            }
+
+            reply(
+              JSON.stringify({
+                id: request.data.id,
+                payload: {
+                  ok: false,
+                  code: "UNKNOWN_PROCEDURE",
+                },
+              }),
+            );
 
             continue;
           }
 
           try {
-            const reply = async (str: string) => {
-              try {
-                return await message.conversation.send(str);
-              } catch (error) {
-                if (options?.onSendFailed) {
-                  try {
-                    options.onSendFailed();
-                  } catch (error) {
-                    console.warn("onSendFailed threw an error", error);
-                  }
-                }
-              }
-            };
-
             const context = {
               id: request.data.id,
               message: {
@@ -156,16 +182,31 @@ export const createServer = async <A extends Brpc.BrpcApi>({
               },
             };
 
-            let isAllowed = false;
+            let isAuthorized = false;
             try {
-              isAllowed = await procedure.auth({
+              isAuthorized = await procedure.auth({
                 context,
               });
             } catch (error) {
-              isAllowed = false;
+              if (options?.onAuthError) {
+                try {
+                  options.onAuthError();
+                } catch (error) {
+                  console.warn("onAuthError threw an error", error);
+                }
+              }
+              isAuthorized = false;
             }
 
-            if (!isAllowed) {
+            if (!isAuthorized) {
+              if (options?.onUnauthorized) {
+                try {
+                  options.onUnauthorized();
+                } catch (error) {
+                  console.warn("onUnauthorized threw an error", error);
+                }
+              }
+
               reply(
                 JSON.stringify({
                   id: request.data.id,
@@ -182,6 +223,14 @@ export const createServer = async <A extends Brpc.BrpcApi>({
             const input = procedure.input.safeParse(request.data.payload);
 
             if (!input.success) {
+              if (options?.onInputTypeMismatch) {
+                try {
+                  options.onInputTypeMismatch();
+                } catch (error) {
+                  console.warn("onInputTypeMismatch threw an error", error);
+                }
+              }
+
               reply(
                 JSON.stringify({
                   id: request.data.id,
@@ -197,8 +246,24 @@ export const createServer = async <A extends Brpc.BrpcApi>({
 
             let output;
             try {
+              if (options?.onHandlingMessage) {
+                try {
+                  options.onHandlingMessage();
+                } catch (error) {
+                  console.warn("onHandlingMessage threw an error", error);
+                }
+              }
+
               output = await procedure.handler(input.data, context);
             } catch (error) {
+              if (options?.onHandlerError) {
+                try {
+                  options.onHandlerError();
+                } catch (error) {
+                  console.warn("onHandlerError threw an error", error);
+                }
+              }
+
               reply(
                 JSON.stringify({
                   id: request.data.id,
@@ -223,6 +288,14 @@ export const createServer = async <A extends Brpc.BrpcApi>({
                 },
               });
             } catch (error) {
+              if (options?.onSerializationError) {
+                try {
+                  options.onSerializationError();
+                } catch (error) {
+                  console.warn("onSerializationError threw an error", error);
+                }
+              }
+
               reply(
                 JSON.stringify({
                   id: request.data.id,
