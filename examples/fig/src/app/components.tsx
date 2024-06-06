@@ -1,46 +1,50 @@
-import "./polyfills";
 import "@rainbow-me/rainbowkit/styles.css";
-import { RainbowKitProvider, getDefaultWallets } from "@rainbow-me/rainbowkit";
-import { configureChains, createConfig, WagmiConfig } from "wagmi";
-import { mainnet, polygon, optimism, arbitrum, zora } from "wagmi/chains";
-import { publicProvider } from "wagmi/providers/public";
 import { ConnectButton as BaseConnectButton } from "@rainbow-me/rainbowkit";
 import React, { useEffect, useState } from "react";
-import ReactDOM from "react-dom/client";
 import { Wallet } from "@ethersproject/wallet";
-import * as Lib from "./example.lib";
-import { Signer, AsyncState } from "./lib";
-import { useClient } from "./use-client";
-import { useMessageStream } from "./use-message-stream";
-import { useConversationStream } from "./use-conversation-stream";
-import { useConversationsStream } from "./use-conversations-stream";
-import { useFetchConversations } from "./use-fetch-conversations";
-import { useFetchMessages } from "./use-fetch-messages";
-import { useSendMessage } from "./use-send-message";
-import { useFetchPeerOnNetwork } from "./use-fetch-peer-on-network";
-import { useConversation } from "./use-conversation";
+import * as Lib from "./lib";
+import {
+  AsyncState,
+  Signer,
+  useClient,
+  useMessageStream,
+  useConversationStream,
+  useConversationsStream,
+  useFetchConversations,
+  useFetchMessages,
+  useSendMessage,
+  useFetchPeerOnNetwork,
+  useConversation,
+} from "@killthebuddha/fig";
 
-/* ****************************************************************************
- *
- * WALLET CONNECT CONFIG
- *
- * ****************************************************************************/
+export const WALLETS = [
+  (() => {
+    try {
+      return Wallet.createRandom();
+    } catch (e) {
+      console.error("Wallet.createRandom() failed");
+      throw e;
+    }
+  })(),
 
-const { chains, publicClient } = configureChains(
-  [mainnet, polygon, optimism, arbitrum, zora],
-  [publicProvider()]
-);
+  (() => {
+    try {
+      return Wallet.createRandom();
+    } catch (e) {
+      console.error("Wallet.createRandom() failed");
+      throw e;
+    }
+  })(),
 
-const { connectors } = getDefaultWallets({
-  appName: "Relay Reciever Tutorial",
-  projectId: "18f0509314edaa4e93ceb0a4e9d534dd",
-  chains,
-});
-
-const wagmiConfig = createConfig({
-  connectors,
-  publicClient,
-});
+  (() => {
+    try {
+      return Wallet.createRandom();
+    } catch (e) {
+      console.error("Wallet.createRandom() failed");
+      throw e;
+    }
+  })(),
+];
 
 /* ****************************************************************************
  *
@@ -48,26 +52,23 @@ const wagmiConfig = createConfig({
  *
  * ****************************************************************************/
 
-const Walkthrough = () => {
+export const Walkthrough = () => {
   return (
-    <div className="flex flex-col w-[65ch]">
+    <div className="flex flex-col w-[60ch]">
       <Lib.Section>
         <Lib.SectionHeader>Introduction 👋</Lib.SectionHeader>
         <Lib.SectionDescription>
-          Relay Receiver is a React library for adding{" "}
-          <Lib.SectionLink href="https://xmpt.org">XMTP </Lib.SectionLink>
-          messaging to your application, powered by the excellent{" "}
-          <Lib.SectionLink href="https://github.com/xmtp/xmtp-js">
-            @xmtp/xmtp-js
-          </Lib.SectionLink>{" "}
-          SDK, built with ❤️ by{" "}
-          <Lib.SectionLink href="https://relay.network">Relay</Lib.SectionLink>.
+          Fig is a React library for adding{" "}
+          <Lib.SectionLink href="https://xmtp.org">XMTP </Lib.SectionLink>
+          superpowers to your app, built with ❤️ by{" "}
+          <Lib.SectionLink href="https://banyan.sh">Banyan</Lib.SectionLink>.
         </Lib.SectionDescription>
-        <Lib.SubSectionHeader>Basic Hooks</Lib.SubSectionHeader>
+        <Lib.SectionHeader>Features</Lib.SectionHeader>
+        <Lib.SubSectionHeader>Basic Hooks for XMTP</Lib.SubSectionHeader>
         <Lib.SectionDescription>
           These hooks are the most broadly useful hooks and provide
           functionality that will be needed by almost any React app that wants
-          to integrate XMTP.
+          to integrate XMTP messaging.
         </Lib.SectionDescription>
         <ol className="text-lg mb-2">
           <li>
@@ -82,7 +83,7 @@ const Walkthrough = () => {
             <Lib.SectionRef id="useContacts">useContacts</Lib.SectionRef>
           </li>
         </ol>
-        <Lib.SubSectionHeader>Bespoke Hooks</Lib.SubSectionHeader>
+        <Lib.SubSectionHeader>Banyan Hooks</Lib.SubSectionHeader>
         <Lib.SectionDescription>
           These hooks provide functionality that may or may not be useful to
           most applications. For example, the useVault hook is a great way to
@@ -107,9 +108,9 @@ const Walkthrough = () => {
         </ol>
         <Lib.SubSectionHeader>Advanced Hooks</Lib.SubSectionHeader>
         <Lib.SectionDescription>
-          Receiver provides a set of wrapper hooks that allow you to work with
-          the XMTP SDK more-or-less directly. The Receiver library uses these
-          hooks to build higher-level feature hooks (e.g.{" "}
+          Fig provides a set of wrapper hooks that allow you to work with the
+          XMTP SDK more-or-less directly. The Fig library uses these hooks to
+          build higher-level feature hooks (e.g.{" "}
           <Lib.SectionRef id="">useConversation</Lib.SectionRef>). The low-level
           wrapper hooks are published as escape hatches, and knowing how they
           work will help keep the witch doctor away, but we recommend using the
@@ -157,10 +158,8 @@ const Walkthrough = () => {
       <UseAuth />
       <UseConversation />
       <UseContacts />
+      <UseBrpc />
       <UseVault />
-      <UseGroupChat />
-      <UseBot />
-      <UseRpc />
       <UseClient />
       <UseMessageStream />
       <UseConversationsStream />
@@ -179,11 +178,11 @@ const Walkthrough = () => {
  *
  * ****************************************************************************/
 
-const UseAuth = () => {
+export const UseAuth = () => {
   return (
     <Lib.Section id="useAuth">
       <Lib.SectionHeader className="mb-0">useAuth</Lib.SectionHeader>
-      <Lib.SectionLink href="https://github.com/relay-network/receiver/src/use-auth.ts">
+      <Lib.SectionLink href="https://github.com/killthebuddh4/banyan/tree/master/packages/fig/src/use-auth.ts">
         source
       </Lib.SectionLink>
       <Lib.SectionDescription>
@@ -208,7 +207,7 @@ const UseAuth = () => {
 
 const ucWallet = Wallet.createRandom();
 
-const UseConversation = () => {
+export const UseConversation = () => {
   const wallet = ucWallet;
 
   const conversation = useConversation({
@@ -225,7 +224,7 @@ const UseConversation = () => {
   return (
     <Lib.Section id="useConversation">
       <Lib.SectionHeader className="mb-0">useConversation</Lib.SectionHeader>
-      <Lib.SectionLink href="https://github.com/relay-network/receiver/src/use-conversation.ts">
+      <Lib.SectionLink href="https://github.com/killthebuddh4/banyan/tree/master/packages/fig/src/use-conversation.ts">
         source
       </Lib.SectionLink>
       <Lib.SectionDescription>
@@ -304,11 +303,11 @@ const UseConversation = () => {
   );
 };
 
-const UseContacts = () => {
+export const UseContacts = () => {
   return (
     <Lib.Section id="useContacts">
       <Lib.SectionHeader className="mb-0">useContacts</Lib.SectionHeader>
-      <Lib.SectionLink href="https://github.com/relay-network/receiver/src/use-contacts.ts">
+      <Lib.SectionLink href="https://github.com/killthebuddh4/banyan/tree/master/packages/fig/src/use-contacts.ts">
         source
       </Lib.SectionLink>
       <Lib.SectionDescription>
@@ -324,11 +323,11 @@ const UseContacts = () => {
   );
 };
 
-const UseVault = () => {
+export const UseVault = () => {
   return (
     <Lib.Section id="useVault">
       <Lib.SectionHeader className="mb-0">useVault</Lib.SectionHeader>
-      <Lib.SectionLink href="https://github.com/relay-network/receiver/src/use-vault.ts">
+      <Lib.SectionLink href="https://github.com/killthebuddh4/banyan/tree/master/packages/fig/src/use-vault.ts">
         source
       </Lib.SectionLink>
       <Lib.SectionDescription>
@@ -343,65 +342,21 @@ const UseVault = () => {
   );
 };
 
-const UseGroupChat = () => {
+export const UseBrpc = () => {
   return (
-    <Lib.Section id="useGroupChat">
-      <Lib.SectionHeader className="mb-0">useGroupChat</Lib.SectionHeader>
-      <Lib.SectionLink href="https://github.com/relay-network/receiver/src/use-group-chat.ts">
+    <Lib.Section id="useBrpc">
+      <Lib.SectionHeader className="mb-0">useBrpc</Lib.SectionHeader>
+      <Lib.SectionLink href="https://github.com/killthebuddh4/banyan/tree/master/packages/fig/src/use-brpc.ts">
         source
       </Lib.SectionLink>
       <Lib.SectionDescription>
-        The <em>useGroupChat</em> hook is a special hook that integrates with a{" "}
-        <Lib.SectionLink href="https://githubc.com/relay-network/bridge">
-          Relay Bridge
+        The <em>useBrpc</em> hook gives you access to{" "}
+        <Lib.SectionLink href="https://github.com/killthebuddh4/banyan/tree/master/packages/brpc">
+          brpc
         </Lib.SectionLink>{" "}
-        groupchat server. You can think of Bridge as an
-        encryption-by-XMTP-federation-by-Relay XMTP client server ("client
-        server" because it runs an XMTP client on a server).
-      </Lib.SectionDescription>
-      <Lib.SectionDescription>
-        <em>Example coming soon!</em>
-      </Lib.SectionDescription>
-    </Lib.Section>
-  );
-};
-
-const UseBot = () => {
-  return (
-    <Lib.Section id="useBot">
-      <Lib.SectionHeader className="mb-0">useBot</Lib.SectionHeader>
-      <Lib.SectionLink href="https://github.com/relay-network/receiver/src/use-bot.ts">
-        source
-      </Lib.SectionLink>
-      <Lib.SectionDescription>
-        The <em>useBot</em> hook is a special hook that integrates with a{" "}
-        <Lib.SectionLink href="https://githubc.com/relay-network/robot">
-          Relay Robot
-        </Lib.SectionLink>{" "}
-        server. Relay Robot is an AI agent server for web3.
-      </Lib.SectionDescription>
-    </Lib.Section>
-  );
-};
-
-const UseRpc = () => {
-  return (
-    <Lib.Section id="useRpc">
-      <Lib.SectionHeader className="mb-0">useRpc</Lib.SectionHeader>
-      <Lib.SectionLink href="https://github.com/relay-network/receiver/src/use-rpc.ts">
-        source
-      </Lib.SectionLink>
-      <Lib.SectionDescription>
-        The <em>useRpc</em> hook implements a{" "}
-        <Lib.SectionLink href="https://www.jsonrpc.org/specification">
-          JSON-RPC 2.0
-        </Lib.SectionLink>{" "}
-        client that uses XMTP as a transport layer. It will work with any XMTP
-        server that implements JSON-RPC 2.0, but we ❤️{" "}
-        <Lib.SectionLink href="https://githubc.com/relay-network/bridge">
-          Relay Bridge
-        </Lib.SectionLink>{" "}
-        (for obvious reasons 🤗).
+        , an RPC library powered by XMTP. One thing that's super cool about this
+        hook (and brpc) is that <em>it's not just a client</em>, you can
+        actually <em>run a brpc server inside your React application!</em>
       </Lib.SectionDescription>
       <Lib.SectionDescription>
         <em>Example coming soon!</em>
@@ -416,13 +371,13 @@ const UseRpc = () => {
  *
  * ****************************************************************************/
 
-const UseClient = () => {
+export const UseClient = () => {
   const wallet = Lib.useSigner();
 
   return (
     <Lib.Section id="useClient">
       <Lib.SectionHeader className="mb-0">useClient</Lib.SectionHeader>
-      <Lib.SectionLink href="https://github.com/relay-network/receiver/src/use-client.ts">
+      <Lib.SectionLink href="https://github.com/killthebuddh4/banyan/tree/master/packages/fig/src/use-client.ts">
         source
       </Lib.SectionLink>
       <Lib.SectionDescription>
@@ -437,7 +392,7 @@ const UseClient = () => {
   );
 };
 
-const ConnectWalletButton = ({
+export const ConnectWalletButton = ({
   className,
   override,
 }: {
@@ -483,7 +438,7 @@ const ConnectWalletButton = ({
   );
 };
 
-const StartXmtpButton = ({ wallet }: { wallet?: Signer }) => {
+export const StartXmtpButton = ({ wallet }: { wallet?: Signer }) => {
   const client = useClient({ wallet });
 
   return (
@@ -512,7 +467,7 @@ const StartXmtpButton = ({ wallet }: { wallet?: Signer }) => {
   );
 };
 
-const StopXmtpButton = ({ wallet }: { wallet?: Signer }) => {
+export const StopXmtpButton = ({ wallet }: { wallet?: Signer }) => {
   const client = useClient({ wallet });
 
   return (
@@ -546,13 +501,13 @@ const StopXmtpButton = ({ wallet }: { wallet?: Signer }) => {
 
 const umsWallet = Wallet.createRandom();
 
-const UseMessageStream = () => {
+export const UseMessageStream = () => {
   const wallet = umsWallet;
 
   return (
     <Lib.Section id="useMessageStream">
       <Lib.SectionHeader className="mb-0">useMessageStream</Lib.SectionHeader>
-      <Lib.SectionLink href="https://github.com/relay-network/receiver/src/use-message-stream.ts">
+      <Lib.SectionLink href="https://github.com/killthebuddh4/banyan/tree/master/packages/fig/src/use-message-stream.ts">
         source
       </Lib.SectionLink>
       <Lib.SectionDescription>
@@ -582,7 +537,7 @@ const UseMessageStream = () => {
   );
 };
 
-const StartMessageStreamButton = ({ wallet }: { wallet?: Signer }) => {
+export const StartMessageStreamButton = ({ wallet }: { wallet?: Signer }) => {
   const stream = useMessageStream({ wallet });
 
   return (
@@ -711,7 +666,7 @@ const UseConversationsStream = () => {
       <Lib.SectionHeader className="mb-0">
         useConversationsStream
       </Lib.SectionHeader>
-      <Lib.SectionLink href="https://github.com/relay-network/receiver/src/use-conversations-stream.ts">
+      <Lib.SectionLink href="https://github.com/killthebuddh4/banyan/tree/master/packages/fig/src/use-conversations-stream.ts">
         source
       </Lib.SectionLink>
       <Lib.SectionDescription>
@@ -842,7 +797,7 @@ const UseConversationStream = () => {
       <Lib.SectionHeader className="mb-0">
         useConversationStream
       </Lib.SectionHeader>
-      <Lib.SectionLink href="https://github.com/relay-network/receiver/src/use-conversation-stream.ts">
+      <Lib.SectionLink href="https://github.com/killthebuddh4/banyan/tree/master/packages/fig/src/use-conversation-stream.ts">
         source
       </Lib.SectionLink>
       <Lib.SectionDescription>
@@ -918,7 +873,7 @@ const StartConversationStreamButton = ({
           throw new Error("Stream is null even though it's idle");
         }
         const result = await stream.start();
-        console.log("Relay Receiver Tutorial, Stream Started", result);
+        console.log("Fig Tutorial, Stream Started", result);
       }}
       status={(() => {
         if (stream === null) return "inactive";
@@ -1016,7 +971,7 @@ const UseFetchConversations = () => {
       <Lib.SectionHeader className="mb-0">
         useFetchConversations
       </Lib.SectionHeader>
-      <Lib.SectionLink href="https://github.com/relay-network/receiver/src/use-fetch-conversations.ts">
+      <Lib.SectionLink href="https://github.com/killthebuddh4/banyan/tree/master/packages/fig/src/use-fetch-conversations.ts">
         source
       </Lib.SectionLink>
       <Lib.SectionDescription>
@@ -1142,7 +1097,7 @@ const UseFetchMessages = () => {
   return (
     <Lib.Section id="useFetchMessages">
       <Lib.SectionHeader className="mb-0">useFetchMessages</Lib.SectionHeader>
-      <Lib.SectionLink href="https://github.com/relay-network/receiver/src/use-fetch-messages.ts">
+      <Lib.SectionLink href="https://github.com/killthebuddh4/banyan/tree/master/packages/fig/src/use-fetch-messages.ts">
         source
       </Lib.SectionLink>
       <Lib.SectionDescription>
@@ -1189,7 +1144,7 @@ const UseFetchMessages = () => {
 
 const usmWallet = Wallet.createRandom();
 
-const UseSendMessage = () => {
+export const UseSendMessage = () => {
   const wallet = usmWallet;
   const client = useClient({ wallet });
   const stream0 = useMessageStream({ wallet: WALLETS[0] });
@@ -1228,7 +1183,7 @@ const UseSendMessage = () => {
   return (
     <Lib.Section id="useSendMessage">
       <Lib.SectionHeader className="mb-0">useSendMessage</Lib.SectionHeader>
-      <Lib.SectionLink href="https://github.com/relay-network/receiver/src/use-send-message.ts">
+      <Lib.SectionLink href="https://github.com/killthebuddh4/banyan/tree/master/packages/fig/src/use-send-message.ts">
         source
       </Lib.SectionLink>
       <Lib.SectionDescription className="mb-6">
@@ -1261,7 +1216,7 @@ const UseSendMessage = () => {
 
 const ufponWallet = Wallet.createRandom();
 
-const UseFetchPeerOnNetwork = () => {
+export const UseFetchPeerOnNetwork = () => {
   const wallet = ufponWallet;
 
   return (
@@ -1277,7 +1232,7 @@ const UseFetchPeerOnNetwork = () => {
         <em>useFetchPeerOnNetwork</em>
         exposes this functionality as a React hook.
       </Lib.SectionDescription>
-      <Lib.SectionLink href="https://github.com/relay-network/receiver/src/use-fetch-peer-on-network.ts">
+      <Lib.SectionLink href="https://github.com/killthebuddh4/banyan/tree/master/packages/fig/src/use-fetch-peer-on-network.ts">
         source
       </Lib.SectionLink>
       <Lib.SectionDescription>
@@ -1316,7 +1271,7 @@ const UseFetchPeerOnNetwork = () => {
   );
 };
 
-const FetchPeerOnNetworkButton = ({
+export const FetchPeerOnNetworkButton = ({
   peerAddress,
 }: {
   peerAddress?: string;
@@ -1353,94 +1308,3 @@ const FetchPeerOnNetworkButton = ({
     />
   );
 };
-
-/* ****************************************************************************
- *
- * HELPERS
- *
- * ****************************************************************************/
-
-const WALLETS = [
-  (() => {
-    try {
-      return Wallet.createRandom();
-    } catch (e) {
-      console.error("Wallet.createRandom() failed");
-      throw e;
-    }
-  })(),
-
-  (() => {
-    try {
-      return Wallet.createRandom();
-    } catch (e) {
-      console.error("Wallet.createRandom() failed");
-      throw e;
-    }
-  })(),
-
-  (() => {
-    try {
-      return Wallet.createRandom();
-    } catch (e) {
-      console.error("Wallet.createRandom() failed");
-      throw e;
-    }
-  })(),
-];
-
-/* ****************************************************************************
- *
- * APP
- *
- * ****************************************************************************/
-
-const App = () => {
-  const client0 = useClient({ wallet: WALLETS[0] });
-  const client1 = useClient({ wallet: WALLETS[1] });
-  const client2 = useClient({ wallet: WALLETS[2] });
-
-  useEffect(() => {
-    if (client0 !== null) {
-      client0.start();
-    }
-  }, [client0 === null]);
-
-  useEffect(() => {
-    if (client1 !== null) {
-      client1.start();
-    }
-  }, [client1]);
-
-  useEffect(() => {
-    if (client2 !== null) {
-      client2.start();
-    }
-  }, [client2]);
-
-  return (
-    <WagmiConfig config={wagmiConfig}>
-      <RainbowKitProvider chains={chains}>
-        <main className="h-screen w-screen flex flex-row p-8">
-          <Walkthrough />
-        </main>
-      </RainbowKitProvider>
-    </WagmiConfig>
-  );
-};
-
-const app = () => {
-  const exampleAppRoot = document.getElementById("receiver-example-root");
-
-  if (exampleAppRoot === null) {
-    throw new Error("Root element not found");
-  }
-
-  ReactDOM.createRoot(exampleAppRoot).render(
-    <React.StrictMode>
-      <App />
-    </React.StrictMode>
-  );
-};
-
-app();

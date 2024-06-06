@@ -2,7 +2,7 @@ import { Wallet } from "@ethersproject/wallet";
 import { useClient } from "./use-client";
 import { useEffect } from "react";
 
-const BURNER_KEY = "relay-network-burner-key";
+const BURNER_KEY = "fig-burner-key";
 
 export const useBurner = () => {
   const key = localStorage.getItem(BURNER_KEY);

@@ -511,10 +511,3 @@ export type AsyncState<T> =
 export const uid = () => {
   return `${Math.random()}${Math.random()}${Math.random()}${Math.random()}`;
 };
-
-export const cn = (names: Record<string, boolean>) => {
-  return Object.entries(names)
-    .filter(([, condition]) => condition)
-    .map(([name]) => name)
-    .join(" ");
-};

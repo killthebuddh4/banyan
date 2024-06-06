@@ -5,14 +5,20 @@
     "declaration": false,
     "declarationMap": false,
     "incremental": true,
-    "jsx": "preserver",
+    "isolatedModules": true,
+    "jsx": "preserve",
     "lib": ["dom", "dom.iterable", "esnext"],
     "module": "esnext",
     "noEmit": true,
+    "moduleResolution": "bundler",
+    "skipLibCheck": true,
+    "allowJs": true,
+    "esModuleInterop": true,
     "resolveJsonModule": true,
     "strict": true,
-    "target": "es5"
-  },
-  "include": ["src", "next-env.d.ts"],
-  "exclude": ["node_modules"]
+    "target": "es5",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  }
 }

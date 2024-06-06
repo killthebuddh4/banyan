@@ -1,6 +1,12 @@
 import { ReactNode } from "react";
-import { cn } from "./lib";
 import { useAccount, useWalletClient } from "wagmi";
+
+export const cn = (names: Record<string, boolean>) => {
+  return Object.entries(names)
+    .filter(([, condition]) => condition)
+    .map(([name]) => name)
+    .join(" ");
+};
 
 export const Section = ({
   id,

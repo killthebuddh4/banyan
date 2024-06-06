@@ -1,4 +1,4 @@
-import "./polyfills";
+import "../../../examples/fig/src/app/polyfills";
 import * as Comlink from "comlink";
 import * as Lib from "./lib";
 import * as Sdk from "@xmtp/xmtp-js";

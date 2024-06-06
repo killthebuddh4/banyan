@@ -6,13 +6,13 @@ export default defineConfig(async () => {
   return {
     build: {
       lib: {
-        entry: "index.ts",
+        entry: "src/index.ts",
         name: "Fig",
       },
       rollupOptions: {
         external: ["react", "react-dom"],
       },
-      outDir: "build",
+      outDir: "dist",
     },
     plugins: [react(), dts({ outputDir: "dist/types" })],
   };
