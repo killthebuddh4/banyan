@@ -1,4 +1,4 @@
-import "../../../examples/fig/src/app/polyfills";
+import "./polyfills";
 import * as Comlink from "comlink";
 import * as Lib from "./lib";
 import * as Sdk from "@xmtp/xmtp-js";
@@ -9,6 +9,8 @@ import { create } from "zustand";
  * CLIENT
  *
  * *************************************************************************/
+
+console.log("CREATED A WORKER");
 
 type ClientStore = {
   client: Lib.AsyncState<Sdk.Client>;

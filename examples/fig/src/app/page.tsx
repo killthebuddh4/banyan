@@ -1,12 +1,11 @@
 "use client";
 
-import "./polyfills";
 import { useEffect } from "react";
 import { RainbowKitProvider, getDefaultWallets } from "@rainbow-me/rainbowkit";
-import { configureChains, createConfig, WagmiConfig } from "wagmi";
-import { mainnet, polygon, optimism, arbitrum, zora } from "wagmi/chains";
-import { publicProvider } from "wagmi/providers/public";
+import { http, createConfig, WagmiProvider } from "wagmi";
+import { mainnet, sepolia } from "wagmi/chains";
 import { WALLETS, Walkthrough } from "./components";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useClient } from "@killthebuddha/fig";
 
 /* ****************************************************************************
@@ -15,21 +14,15 @@ import { useClient } from "@killthebuddha/fig";
  *
  * ****************************************************************************/
 
-const { chains, publicClient } = configureChains(
-  [mainnet, polygon, optimism, arbitrum, zora],
-  [publicProvider()],
-);
-
-const { connectors } = getDefaultWallets({
-  appName: "Fig",
-  projectId: "18f0509314edaa4e93ceb0a4e9d534dd",
-  chains,
-});
-
 const wagmiConfig = createConfig({
-  connectors,
-  publicClient,
+  chains: [mainnet, sepolia],
+  transports: {
+    [mainnet.id]: http(),
+    [sepolia.id]: http(),
+  },
 });
+
+const queryClient = new QueryClient();
 
 /* ****************************************************************************
  *
@@ -61,12 +54,14 @@ export default function App() {
   }, [client2]);
 
   return (
-    <WagmiConfig config={wagmiConfig}>
-      <RainbowKitProvider chains={chains}>
-        <main className="h-screen w-screen flex flex-row p-8">
-          <Walkthrough />
-        </main>
-      </RainbowKitProvider>
-    </WagmiConfig>
+    <WagmiProvider config={wagmiConfig}>
+      <QueryClientProvider client={queryClient}>
+        <RainbowKitProvider>
+          <main className="h-screen w-screen flex flex-row p-8">
+            <Walkthrough />
+          </main>
+        </RainbowKitProvider>
+      </QueryClientProvider>
+    </WagmiProvider>
   );
 }

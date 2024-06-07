@@ -4,6 +4,9 @@ import dts from "vite-plugin-dts";
 
 export default defineConfig(async () => {
   return {
+    define: {
+      "process.env": process.env,
+    },
     build: {
       lib: {
         entry: "src/index.ts",

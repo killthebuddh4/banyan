@@ -1,6 +1,7 @@
 import * as Comlink from "comlink";
 import * as Lib from "./lib";
 import Actions from "./use-xmtp.worker.js?worker&inline";
+import { useState, useEffect, useMemo } from "react";
 
 const WORKERS: Record<string, Comlink.Remote<Lib.Actions>> = {};
 
@@ -15,6 +16,7 @@ export const useXmtp = ({
     if (WORKERS[wallet.address + "production"]) {
       return WORKERS[wallet.address + "production"];
     } else {
+      console.log(`Creating new worker for ${wallet.address}`);
       WORKERS[wallet.address + "production"] = Comlink.wrap(new Actions());
       return WORKERS[wallet.address + "production"];
     }

@@ -1,3 +1,5 @@
+"use client";
+
 import "@rainbow-me/rainbowkit/styles.css";
 import { ConnectButton as BaseConnectButton } from "@rainbow-me/rainbowkit";
 import React, { useEffect, useState } from "react";
@@ -160,7 +162,7 @@ export const Walkthrough = () => {
       <UseContacts />
       <UseBrpc />
       <UseVault />
-      <UseClient />
+      {/* <UseClient /> */}
       <UseMessageStream />
       <UseConversationsStream />
       <UseConversationStream />
