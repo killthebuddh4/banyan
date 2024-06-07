@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import { useState, useEffect, ReactNode } from "react";
 import { useAccount, useWalletClient } from "wagmi";
 
 export const cn = (names: Record<string, boolean>) => {
@@ -223,8 +223,18 @@ export const StatusIndicator = ({
 };
 
 export const useSigner = () => {
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
   const { address } = useAccount();
   const { data: walletClient } = useWalletClient();
+
+  if (!isClient) {
+    return undefined;
+  }
 
   /* This feels really stupid, there has to be an easier way. Ultimately the
    * problem is that we're using Wagmi -> Viem whereas XMTP expects an Ethers ->

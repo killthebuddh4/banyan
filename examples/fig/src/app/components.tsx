@@ -5,6 +5,7 @@ import { ConnectButton as BaseConnectButton } from "@rainbow-me/rainbowkit";
 import React, { useEffect, useState } from "react";
 import { Wallet } from "@ethersproject/wallet";
 import * as Lib from "./lib";
+import { useAccount, useSignMessage } from "wagmi";
 import {
   AsyncState,
   Signer,
@@ -162,7 +163,7 @@ export const Walkthrough = () => {
       <UseContacts />
       <UseBrpc />
       <UseVault />
-      {/* <UseClient /> */}
+      <UseClient />
       <UseMessageStream />
       <UseConversationsStream />
       <UseConversationStream />
@@ -374,7 +375,26 @@ export const UseBrpc = () => {
  * ****************************************************************************/
 
 export const UseClient = () => {
-  const wallet = Lib.useSigner();
+  const account = useAccount();
+  const { signMessageAsync } = useSignMessage();
+  const address = account.address;
+
+  /* This feels really stupid, there has to be an easier way. Ultimately the
+   * problem is that we're using Wagmi -> Viem whereas XMTP expects an Ethers ->
+   * Signer. */
+  const wallet = (() => {
+    if (typeof address !== "string") {
+      return undefined;
+    } else {
+      return {
+        address,
+        getAddress: async () => address,
+        signMessage: async (message: string) => {
+          return signMessageAsync({ message });
+        },
+      };
+    }
+  })();
 
   return (
     <Lib.Section id="useClient">
