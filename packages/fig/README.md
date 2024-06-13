@@ -41,6 +41,7 @@ We used `fig` to build [canopy.banyan.sh](https://canopy.banyan.sh), our live fr
 - [Sponsors](#sponsors)
 - [Authors](#authors)
 - [License](#license)
+- [Roadmap (\& Notes)](#roadmap--notes)
 
 
 ## Documentation
@@ -88,3 +89,20 @@ _You can be the first ❤️!_
 ## License
 
 [MIT](/LICENSE) License
+
+## Roadmap (& Notes)
+
+- stateful worker hooks
+- action worker hooks
+- unifying hooks
+  - useLogin
+  - useConversation
+  - useMessages
+  - useInbox (TODO)
+- helper hooks
+  - useCreateConversation
+  - useSendMessage
+  - ...
+- brpc hooks
+- banyan hooks
+- ...
