@@ -222,41 +222,4 @@ export const StatusIndicator = ({
   );
 };
 
-export const useSigner = () => {
-  const [isClient, setIsClient] = useState(false);
-
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
-
-  const { address } = useAccount();
-  const { data: walletClient } = useWalletClient();
-
-  if (!isClient) {
-    return undefined;
-  }
-
-  /* This feels really stupid, there has to be an easier way. Ultimately the
-   * problem is that we're using Wagmi -> Viem whereas XMTP expects an Ethers ->
-   * Signer. */
-  return (() => {
-    if (
-      walletClient === undefined ||
-      walletClient === null ||
-      typeof address !== "string"
-    ) {
-      return undefined;
-    } else {
-      return {
-        address,
-        getAddress: async () => address,
-        signMessage: async (message: string) => {
-          return walletClient.signMessage({
-            account: address,
-            message,
-          });
-        },
-      };
-    }
-  })();
-};
+export const useSigner = () => {};
