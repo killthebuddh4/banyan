@@ -1,35 +1,35 @@
 type AsyncInactive = {
-  id: "inactive";
+  code: "inactive";
   data?: undefined;
   error?: undefined;
 };
 
 type AsyncIdle = {
-  id: "idle";
+  code: "idle";
   data?: undefined;
   error?: undefined;
 };
 
 type AsyncPending = {
-  id: "pending";
+  code: "pending";
   data?: undefined;
   error?: undefined;
 };
 
 type AsyncSuccess<T> = {
-  id: "success";
+  code: "success";
   data: T;
   error?: undefined;
 };
 
 type AsyncFetching<T> = {
-  id: "fetching";
+  code: "fetching";
   data: T;
   error?: undefined;
 };
 
 type AsyncError = {
-  id: "error";
+  code: "error";
   error: string;
   data?: undefined;
 };

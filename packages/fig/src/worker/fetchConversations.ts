@@ -3,7 +3,7 @@ import { clientStore } from "./clientStore";
 export const fetchConversations = async () => {
   const client = clientStore.client();
 
-  if (client.id !== "success") {
+  if (client.code !== "success") {
     return {
       ok: false,
       code: "NOT_READY",

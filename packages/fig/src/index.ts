@@ -1,5 +1,5 @@
 export * from "./hooks/useBurnerWallet";
-export * from "./hooks/useWorkerGlobalMessageStreamStore";
-export * from "./hooks/useWorkerClientStore";
+export * from "./hooks/useGlobalMessageStream";
+export * from "./hooks/useClient";
 export * from "./worker/Signer";
 export * from "./worker/AsyncState";

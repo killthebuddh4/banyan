@@ -9,16 +9,16 @@ const store = create<{
   stream: AsyncState<MessageStream>;
   setStream: (stream: AsyncState<MessageStream>) => void;
 }>((set) => ({
-  stream: { id: "idle" },
+  stream: { code: "idle" },
   setStream: (stream) => set({ stream }),
 }));
 
 clientStore.subscribe(() => {
   const stream = store.getState().stream;
-  if (stream.id === "success") {
+  if (stream.code === "success") {
     stream.data.stop();
   }
-  store.setState({ stream: { id: "idle" } });
+  store.setState({ stream: { code: "idle" } });
 });
 
 const createMessageStream = (gen: AsyncGenerator<DecodedMessage>) => {
@@ -53,27 +53,27 @@ const createMessageStream = (gen: AsyncGenerator<DecodedMessage>) => {
 const startMessageStream = async () => {
   const messageStream = store.getState().stream;
 
-  if (messageStream.id !== "idle") {
+  if (messageStream.code !== "idle") {
     return;
   }
 
   const client = clientStore.client();
 
-  if (client.id !== "success") {
+  if (client.code !== "success") {
     return;
   }
 
-  store.setState({ stream: { id: "pending" } });
+  store.setState({ stream: { code: "pending" } });
 
   try {
     const gen = await client.data.conversations.streamAllMessages();
     const stream = createMessageStream(gen);
-    store.setState({ stream: { id: "success", data: stream } });
+    store.setState({ stream: { code: "success", data: stream } });
     return;
   } catch {
     store.setState({
       stream: {
-        id: "error",
+        code: "error",
         error: "client.data.conversations.streamAllMessages failed",
       },
     });
@@ -84,18 +84,18 @@ const startMessageStream = async () => {
 const stopMessageStream = async () => {
   const messageStream = store.getState().stream;
 
-  if (messageStream.id !== "success") {
+  if (messageStream.code !== "success") {
     return;
   }
 
   messageStream.data.stop();
-  store.setState({ stream: { id: "idle" } });
+  store.setState({ stream: { code: "idle" } });
 };
 
 const listenToMessageStream = (handler: (m: DecodedMessage) => void) => {
   const messageStream = store.getState().stream;
 
-  if (messageStream.id !== "success") {
+  if (messageStream.code !== "success") {
     return null;
   }
 

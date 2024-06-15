@@ -7,7 +7,7 @@ const store = create<{
   client: AsyncState<Client>;
   setClient: (client: AsyncState<Client>) => void;
 }>((set) => ({
-  client: { id: "idle" },
+  client: { code: "idle" },
   setClient: (client) => set({ client }),
 }));
 
@@ -17,11 +17,11 @@ const startClient = async (
 ) => {
   const state = store.getState();
 
-  if (state.client.id !== "idle") {
+  if (state.client.code !== "idle") {
     return;
   }
 
-  store.setState({ client: { id: "pending" } });
+  store.setState({ client: { code: "pending" } });
 
   const env = opts?.env ?? "production";
 
@@ -31,7 +31,7 @@ const startClient = async (
     if (xmtpKey === undefined) {
       // Not sure whether to set the state to error, because the store isn't really
       // in an error state, the startClient function just failed.
-      store.setState({ client: { id: "idle" } });
+      store.setState({ client: { code: "idle" } });
       return;
     } else {
       try {
@@ -42,7 +42,7 @@ const startClient = async (
       } catch {
         store.setState({
           client: {
-            id: "error",
+            code: "error",
             error:
               "Client.getKeys failed with given wallet and privateKeyOverride",
           },
@@ -56,7 +56,7 @@ const startClient = async (
     } catch {
       store.setState({
         client: {
-          id: "error",
+          code: "error",
           error: "Client.getKeys failed with given wallet",
         },
       });
@@ -72,20 +72,20 @@ const startClient = async (
 
     store.setState({
       client: {
-        id: "success",
+        code: "success",
         data: client,
       },
     });
   } catch {
     store.setState({
-      client: { id: "error", error: "Client.create failed" },
+      client: { code: "error", error: "Client.create failed" },
     });
     return;
   }
 };
 
 const stopClient = async () => {
-  store.setState({ client: { id: "idle" } });
+  store.setState({ client: { code: "idle" } });
 };
 
 export const clientStore = {

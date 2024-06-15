@@ -13,7 +13,7 @@ const store = create<{
 }>((set, get) => ({
   streams: {},
   getStream: (key) => {
-    return get().streams[key] || { id: "idle" };
+    return get().streams[key] || { code: "idle" };
   },
   setStream: (key, stream) => {
     set((state) => {
@@ -31,13 +31,13 @@ clientStore.subscribe(() => {
   const streams = store.getState().streams;
 
   for (const stream of Object.values(streams)) {
-    if (stream.id === "success") {
+    if (stream.code === "success") {
       stream.data.stop();
     }
   }
 
   const reset = Object.keys(streams).reduce((acc, key) => {
-    acc[key] = { id: "idle" };
+    acc[key] = { code: "idle" };
     return acc;
   }, {} as Record<string, AsyncState<MessageStream>>);
 
@@ -76,7 +76,7 @@ const createMessageStream = (gen: Stream<DecodedMessage>) => {
 const startMessageStream = async (conversation: Conversation) => {
   const client = clientStore.client();
 
-  if (client.id !== "success") {
+  if (client.code !== "success") {
     return;
   }
 
@@ -84,11 +84,11 @@ const startMessageStream = async (conversation: Conversation) => {
 
   const messageStream = store.getState().getStream(key);
 
-  if (messageStream.id !== "idle") {
+  if (messageStream.code !== "idle") {
     return;
   }
 
-  store.getState().setStream(key, { id: "pending" });
+  store.getState().setStream(key, { code: "pending" });
 
   try {
     const xmtpConversation = await client.data.conversations.newConversation(
@@ -98,11 +98,11 @@ const startMessageStream = async (conversation: Conversation) => {
     const xmtpStream = await xmtpConversation.streamMessages();
     const stream = createMessageStream(xmtpStream);
 
-    store.getState().setStream(key, { id: "success", data: stream });
+    store.getState().setStream(key, { code: "success", data: stream });
     return;
   } catch {
     store.getState().setStream(key, {
-      id: "error",
+      code: "error",
       error: "conversation.streamMessages() failed",
     });
     return;
@@ -113,13 +113,13 @@ const stopMessageStream = async (conversation: Conversation) => {
   const key = buildUniqueConversationKey(conversation);
   const messageStream = store.getState().getStream(key);
 
-  if (messageStream.id !== "success") {
+  if (messageStream.code !== "success") {
     return;
   }
 
   messageStream.data.stop();
 
-  store.getState().setStream(key, { id: "idle" });
+  store.getState().setStream(key, { code: "idle" });
 };
 
 const listenToMessageStream = (
@@ -134,7 +134,7 @@ const listenToMessageStream = (
   const key = buildUniqueConversationKey(conversation);
   const messsageStream = store.getState().getStream(key);
 
-  if (messsageStream.id !== "success") {
+  if (messsageStream.code !== "success") {
     return null;
   }
 

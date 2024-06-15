@@ -2,40 +2,11 @@
 
 import "@rainbow-me/rainbowkit/styles.css";
 import { ConnectButton as BaseConnectButton } from "@rainbow-me/rainbowkit";
-import React, { useEffect, useState } from "react";
-import { Wallet } from "@ethersproject/wallet";
-import * as Lib from "./lib";
-import { useAccount, useSignMessage } from "wagmi";
-import { Signer, AsyncState, useWorkerClientStore } from "@killthebuddha/fig";
-
-export const WALLETS = [
-  (() => {
-    try {
-      return Wallet.createRandom();
-    } catch (e) {
-      console.error("Wallet.createRandom() failed");
-      throw e;
-    }
-  })(),
-
-  (() => {
-    try {
-      return Wallet.createRandom();
-    } catch (e) {
-      console.error("Wallet.createRandom() failed");
-      throw e;
-    }
-  })(),
-
-  (() => {
-    try {
-      return Wallet.createRandom();
-    } catch (e) {
-      console.error("Wallet.createRandom() failed");
-      throw e;
-    }
-  })(),
-];
+import * as Lib from "../lib/lib";
+import { Signer, useClient } from "@killthebuddha/fig";
+import { AsyncButton } from "@/ui/AsyncButton";
+import { SyncButton } from "@/ui/SyncButton";
+import { useSigner } from "@/hooks/useSigner";
 
 /* ****************************************************************************
  *
@@ -151,7 +122,7 @@ export const Walkthrough = () => {
       <UseContacts /> */}
       {/* <UseBrpc />
       <UseVault /> */}
-      <UseWorkerClientStore />
+      <UseClient />
       {/* <UseMessageStream />
       <UseConversationsStream />
       <UseConversationStream />
@@ -362,27 +333,8 @@ export const Walkthrough = () => {
 //  *
 //  * ****************************************************************************/
 
-export const UseWorkerClientStore = () => {
-  const account = useAccount();
-  const { signMessageAsync } = useSignMessage();
-  const address = account.address;
-
-  /* This feels really stupid, there has to be an easier way. Ultimately the
-   * problem is that we're using Wagmi -> Viem whereas XMTP expects an Ethers ->
-   * Signer. */
-  const wallet = (() => {
-    if (typeof address !== "string") {
-      return undefined;
-    } else {
-      return {
-        address,
-        getAddress: async () => address,
-        signMessage: async (message: string) => {
-          return signMessageAsync({ message });
-        },
-      };
-    }
-  })();
+export const UseClient = () => {
+  const wallet = useSigner();
 
   return (
     <Lib.Section id="useClient">
@@ -411,7 +363,7 @@ export const ConnectWalletButton = ({
 }) => {
   if (typeof override !== "undefined") {
     return (
-      <Lib.PrimaryButton
+      <AsyncButton
         inactiveText="N/A"
         idleText="N/A"
         errorText="N/A"
@@ -429,7 +381,7 @@ export const ConnectWalletButton = ({
       {({ account, chain, openConnectModal, mounted }) => {
         const connected = mounted && account && chain;
         return (
-          <Lib.PrimaryButton
+          <AsyncButton
             inactiveText="N/A"
             idleText="CONNECT WALLET"
             errorText="CONNECT WALLET ERROR"
@@ -449,16 +401,22 @@ export const ConnectWalletButton = ({
 };
 
 export const StartXmtpButton = ({ wallet }: { wallet?: Signer }) => {
-  const workerClientStore = useWorkerClientStore({ wallet });
+  const client = useClient({ wallet });
 
   return (
-    <Lib.PrimaryButton
+    <AsyncButton
       onClickIdle={() => {
-        if (workerClientStore === null) {
-          throw new Error("Client is null even though it's idle");
-        } else {
-          workerClientStore.start();
+        if (client === null) {
+          console.error("client is null");
+          throw new Error("client is null");
         }
+
+        if (client.start === null) {
+          console.error("client.start is null");
+          throw new Error("client.start is null");
+        }
+
+        client.start();
       }}
       inactiveText="DISABLED (connect wallet first)"
       idleText="START XMTP"
@@ -466,38 +424,39 @@ export const StartXmtpButton = ({ wallet }: { wallet?: Signer }) => {
       pendingText="STARTING XMTP"
       successText="STARTED XMTP"
       status={(() => {
-        if (workerClientStore === null) return "inactive";
-        if (workerClientStore.clientStore.id === "error") return "error";
-        if (workerClientStore.clientStore.id === "success") return "success";
-        if (workerClientStore.clientStore.id === "idle") return "idle";
-        if (workerClientStore.clientStore.id === "pending") return "pending";
-        throw new Error("Unhandled client state");
+        if (client === null) return "inactive";
+        console.log("StartXmtpButton client.code", client.code);
+        return client.code;
       })()}
     />
   );
 };
 
 export const StopXmtpButton = ({ wallet }: { wallet?: Signer }) => {
-  const workerClientStore = useWorkerClientStore({ wallet });
+  const client = useClient({ wallet });
 
   return (
-    <Lib.PrimaryButton
-      onClickIdle={async () => {
-        if (workerClientStore === null) {
-          throw new Error("Client is null even though it's idle");
-        } else {
-          await workerClientStore.stop();
+    <SyncButton
+      onClick={async () => {
+        if (client === null) {
+          console.error("client is null");
+          throw new Error("client is null");
         }
+
+        if (client.stop === null) {
+          console.error("client.stop is null");
+          throw new Error("client.stop is null");
+        }
+
+        client.stop();
       }}
       inactiveText="DISABLED (start client first)"
-      idleText="STOP XMTP"
-      errorText="STOP XMTP ERROR"
-      pendingText="STOPPING XMTP"
-      successText="STOPPED XMTP"
+      activeText="STOP XMTP"
+      errorText="FAILED TO STOP XMTP"
       status={(() => {
-        if (workerClientStore === null) return "inactive";
-        if (workerClientStore.clientStore.id === "success") return "idle";
-        return "inactive";
+        if (client === null || client.stop === null) return "inactive";
+        if (client.isError) return "error";
+        return "active";
       })()}
     />
   );
