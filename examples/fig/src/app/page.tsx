@@ -3,8 +3,8 @@
 import { http, createConfig, WagmiProvider } from "wagmi";
 import { mainnet, sepolia } from "wagmi/chains";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Main } from "@/ui/Main";
-import { Header } from "@/ui/Header";
+import { Main } from "@/components/Main";
+import { Header } from "@/components/Header";
 import { Splash } from "@/components/Splash";
 
 /* ****************************************************************************
