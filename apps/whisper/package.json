@@ -12,7 +12,8 @@
     "@xmtp/xmtp-js": "^11.6.3",
     "next": "14.1.4",
     "react": "^18",
-    "react-dom": "^18"
+    "react-dom": "^18",
+    "@killthebuddha/fig": "*"
   },
   "devDependencies": {
     "@types/node": "^20",
