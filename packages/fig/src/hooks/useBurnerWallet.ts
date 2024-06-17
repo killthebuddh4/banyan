@@ -1,31 +1,118 @@
 import { Wallet } from "@ethersproject/wallet";
+import { useMemo } from "react";
 
 const BURNER_KEY = "fig-burner-key";
 
 export const useBurnerWallet = ({
   opts,
 }: {
-  opts?: { fallbackOnSavedKeyError?: boolean };
+  opts?: {
+    name?: string;
+    saveKey?: boolean;
+    useSavedKey?: boolean;
+    fallbackOnSavedKeyError?: boolean;
+  };
 }) => {
-  const key = localStorage.getItem(BURNER_KEY);
+  const create = ({
+    opts,
+  }: {
+    opts?: {
+      name?: string;
+      saveKey?: boolean;
+      useSavedKey?: boolean;
+      fallbackOnSavedKeyError?: boolean;
+    };
+  }) => {
+    const wallet = (() => {
+      const useSavedKey = (() => {
+        if (opts?.useSavedKey === undefined) {
+          return false;
+        }
 
-  const burner = (() => {
-    try {
-      if (key === null) {
+        return opts.useSavedKey;
+      })();
+
+      if (!useSavedKey) {
         return Wallet.createRandom();
-      } else {
-        return new Wallet(key);
       }
-    } catch (e) {
-      if (opts?.fallbackOnSavedKeyError !== false) {
-        return Wallet.createRandom();
-      } else {
-        throw e;
+
+      try {
+        const localStorageKey = (() => {
+          if (opts?.name !== undefined) {
+            return `${BURNER_KEY}-${opts.name}`;
+          }
+
+          return BURNER_KEY;
+        })();
+
+        const privateKey = localStorage.getItem(localStorageKey);
+
+        if (privateKey === null) {
+          return Wallet.createRandom();
+        } else {
+          return new Wallet(privateKey);
+        }
+      } catch (e) {
+        const fallbackOnSavedKeyError = (() => {
+          if (opts?.fallbackOnSavedKeyError === undefined) {
+            return true;
+          }
+
+          return opts.fallbackOnSavedKeyError;
+        })();
+
+        if (fallbackOnSavedKeyError) {
+          return Wallet.createRandom();
+        } else {
+          throw e;
+        }
       }
+    })();
+
+    const saveKey = (() => {
+      if (opts?.saveKey === undefined) {
+        return false;
+      }
+
+      return opts.saveKey;
+    })();
+
+    if (saveKey) {
+      const localStorageKey = (() => {
+        if (opts?.name !== undefined) {
+          return `${BURNER_KEY}-${opts.name}`;
+        }
+
+        return BURNER_KEY;
+      })();
+
+      localStorage.setItem(localStorageKey, wallet.privateKey);
     }
-  })();
+  };
 
-  localStorage.setItem(BURNER_KEY, burner.privateKey);
+  const get = ({
+    opts,
+  }: {
+    opts?: {
+      name?: string;
+    };
+  }) => {
+    const localStorageKey = (() => {
+      if (opts?.name !== undefined) {
+        return `${BURNER_KEY}-${opts.name}`;
+      }
 
-  return burner;
+      return BURNER_KEY;
+    })();
+
+    const privateKey = localStorage.getItem(localStorageKey);
+
+    if (privateKey === null) {
+      return null;
+    }
+
+    return new Wallet(privateKey);
+  };
+
+  return { create, get };
 };

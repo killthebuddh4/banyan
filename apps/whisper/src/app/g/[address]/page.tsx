@@ -1,8 +1,11 @@
 "use client";
 
+const X =
+  "Nobody has joined yet. You'll be able to send messages here once someone joins.";
+
 export default function Groupchat() {
   return (
-    <div className="app gc">
+    <div className="gc">
       <div className="instructions">
         <p className="">
           You have created a private, secure, and ephemeral groupchat.
@@ -35,8 +38,13 @@ export default function Groupchat() {
           </p>
         </div>
         <div className="input">
-          Nobody has joined yet. You'll be able to send messages here once
-          someone joins.
+          <textarea
+            placeholder=""
+            value={X}
+            onKeyDown={() => {
+              console.log("ON KEY DOWN");
+            }}
+          />
         </div>
       </div>
     </div>

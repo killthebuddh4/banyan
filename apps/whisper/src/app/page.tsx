@@ -1,6 +1,10 @@
 "use client";
 
+import { useBurnerWallet } from "@killthebuddha/fig";
+
 export default function Home() {
+  const { create, get } = useBurnerWallet({});
+
   return (
     <div className="app">
       <div className="instructions">
