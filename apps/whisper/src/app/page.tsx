@@ -1,9 +1,12 @@
 "use client";
 
 import { useBurnerWallet } from "@killthebuddha/fig";
+import { v4 as uuidv4 } from "uuid";
+import { useRouter } from "next/navigation.js";
 
 export default function Home() {
   const { create, get } = useBurnerWallet({});
+  const router = useRouter();
 
   return (
     <div className="app">
@@ -26,7 +29,21 @@ export default function Home() {
         </p>
       </div>
 
-      <button onClick={() => console.log("COOL")} className="create">
+      <button
+        onClick={() => {
+          // TODO DONT FORGET TO PULL THE BURNER OUT OF LOCAL STORAGE, WE DON'T WANT TO EVER WRITE THE KEY
+          create({ opts: { saveKey: true } });
+
+          const wallet = get({});
+
+          if (wallet === null) {
+            throw new Error("Failed to create wallet");
+          }
+
+          router.push(`/g/${wallet.address}`);
+        }}
+        className="create"
+      >
         Create Groupchat
       </button>
     </div>

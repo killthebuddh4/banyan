@@ -1,52 +1,27 @@
 "use client";
 
-const X =
-  "Nobody has joined yet. You'll be able to send messages here once someone joins.";
+import { useBurnerWallet } from "@killthebuddha/fig";
+import { useParams } from "next/navigation.js";
+import { Owner } from "./Owner";
+import { Member } from "./Member";
 
 export default function Groupchat() {
-  return (
-    <div className="gc">
-      <div className="instructions">
-        <p className="">
-          You have created a private, secure, and ephemeral groupchat.
-        </p>
+  const { get } = useBurnerWallet({});
+  const wallet = get({});
+  const params = useParams();
+  const address = params.address;
 
-        <p className="">
-          Share the URL in the URL bar with whoever you want to talk to.
-        </p>
+  if (address === undefined) {
+    return null;
+  }
 
-        <p className="">
-          You are the group owner. When you're done, close the tab or refresh
-          the page, and the conversation will be gone forever.
-        </p>
+  if (wallet === null) {
+    return <Member />;
+  }
 
-        <p>
-          The other members of the group will be able to see the messages until
-          they do the same, but they won't be able to send any more messages.
-        </p>
+  if (wallet.address !== address) {
+    return <Member />;
+  }
 
-        <p className="">
-          <em>IMPORTANT:</em> We cannot prevent the other members of the chat
-          from recording the conversation.
-        </p>
-      </div>
-
-      <div className="groupchat">
-        <div className="messages">
-          <p>
-            Nobody has joined yet. Messages will appear here after others join.
-          </p>
-        </div>
-        <div className="input">
-          <textarea
-            placeholder=""
-            value={X}
-            onKeyDown={() => {
-              console.log("ON KEY DOWN");
-            }}
-          />
-        </div>
-      </div>
-    </div>
-  );
+  return <Owner />;
 }
