@@ -1,22 +1,32 @@
 import { useMemo, useEffect, useState } from "react";
 import * as Comlink from "comlink";
-import { createWorker } from "../worker/createWorker.js";
-import { AsyncState } from "../worker/AsyncState.js";
-import { Signer } from "../worker/Signer.js";
+import { createRemote } from "../remote/createRemote";
+import { AsyncState } from "../remote/AsyncState";
+import { Signer } from "../remote/Signer";
 
-export const useClient = ({ wallet }: { wallet?: Signer }) => {
-  const worker = createWorker({ wallet });
+export const useClient = ({
+  wallet,
+  opts,
+}: {
+  wallet?: Signer;
+  opts?: { autoStart?: boolean };
+}) => {
+  const worker = createRemote({ wallet });
 
-  const [clientStore, setClientStore] = useState<AsyncState<undefined> | null>(
-    null
-  );
+  const [client, setClient] = useState<AsyncState<undefined> | null>(null);
 
   useEffect(() => {
     (async () => {
       if (worker === null) {
-        setClientStore(null);
+        setClient(null);
       } else {
-        setClientStore(await worker.getClient());
+        const state = await worker.fetchClient();
+
+        if (!state.ok) {
+          // TODO;
+        } else {
+          setClient(state.data);
+        }
       }
     })();
   }, [worker]);
@@ -28,7 +38,7 @@ export const useClient = ({ wallet }: { wallet?: Signer }) => {
       worker.subscribeToClientStore(
         Comlink.proxy({
           onChange: (client) => {
-            setClientStore(client);
+            setClient(client);
           },
         })
       );
@@ -44,38 +54,58 @@ export const useClient = ({ wallet }: { wallet?: Signer }) => {
       return null;
     }
 
-    if (clientStore === null) {
+    if (client === null) {
       return null;
     }
 
-    if (clientStore.code !== "idle" && clientStore.code !== "error") {
+    if (client.code !== "idle" && client.code !== "error") {
       return null;
     }
 
     return () => worker.startClient(Comlink.proxy(wallet));
-  }, [worker, wallet, clientStore]);
+  }, [worker, wallet, client]);
 
-  const stop = useMemo<(() => Promise<void>) | null>(() => {
+  const autoStart = useMemo(() => {
+    if (opts?.autoStart === false) {
+      return false;
+    }
+
+    return true;
+  }, [opts?.autoStart]);
+
+  useEffect(() => {
+    if (!autoStart) {
+      return;
+    }
+
+    if (start === null) {
+      return;
+    }
+
+    start();
+  }, [autoStart, start]);
+
+  const stop = useMemo(() => {
     if (worker === null) {
       return null;
     }
 
-    if (clientStore === null) {
+    if (client === null) {
       return null;
     }
 
-    if (clientStore.code !== "success") {
+    if (client.code !== "success") {
       return null;
     }
 
     return worker.stopClient;
-  }, [worker, clientStore]);
+  }, [worker, client]);
 
   if (worker === null) {
     return null;
   }
 
-  if (clientStore === null) {
+  if (client === null) {
     return null;
   }
 
@@ -83,18 +113,11 @@ export const useClient = ({ wallet }: { wallet?: Signer }) => {
     return null;
   }
 
-  console.log("USE CLIENT :: clientStore.code", clientStore.code);
+  console.log("USE CLIENT :: client.code", client.code);
 
   return {
     start,
     stop,
-    code: clientStore.code,
-    isInactive: clientStore.code === "inactive",
-    isIdle: clientStore.code === "idle",
-    isPending: clientStore.code === "pending",
-    isFetching: clientStore.code === "fetching",
-    isSuccess: clientStore.code === "success",
-    isError: clientStore.code === "error",
-    client: clientStore.data,
+    client,
   };
 };

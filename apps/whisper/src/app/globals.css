@@ -123,3 +123,8 @@
 .groupchat {
   width: 400px;
 }
+
+.sentByYou {
+  align-self: flex-end;
+  background-color: lightblue;
+}

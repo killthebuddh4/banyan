@@ -1,25 +1,31 @@
 import { useMemo, useEffect, useState } from "react";
-import { createWorker } from "../worker/createWorker.js";
-import { AsyncState } from "../worker/AsyncState.js";
+import { createRemote } from "../remote/createRemote";
+import { AsyncState } from "../remote/AsyncState";
 import * as Comlink from "comlink";
-import { Message } from "../worker/Message.js";
+import { Message } from "../remote/Message";
 
 export const useGlobalMessageStream = ({
   wallet,
 }: {
   wallet?: { address: string };
 }) => {
-  const worker = createWorker({ wallet });
+  const worker = createRemote({ wallet });
 
-  const [globalMessageStreamStore, setGlobalMessageStreamStore] =
+  const [globalMessageStream, setGlobalMessageStream] =
     useState<AsyncState<undefined> | null>(null);
 
   useEffect(() => {
     (async () => {
       if (worker === null) {
-        setGlobalMessageStreamStore(null);
+        setGlobalMessageStream(null);
       } else {
-        setGlobalMessageStreamStore(await worker.getGlobalMessageStream());
+        const state = await worker.fetchGlobalMessageStream();
+
+        if (!state.ok) {
+          // TODO;
+        } else {
+          setGlobalMessageStream(state.data);
+        }
       }
     })();
   }, [worker]);
@@ -31,7 +37,7 @@ export const useGlobalMessageStream = ({
       worker.subscribeToGlobalMessageStreamStore(
         Comlink.proxy({
           onChange: (stream) => {
-            setGlobalMessageStreamStore(stream);
+            setGlobalMessageStream(stream);
           },
         })
       );
@@ -43,42 +49,42 @@ export const useGlobalMessageStream = ({
       return null;
     }
 
-    if (globalMessageStreamStore === null) {
+    if (globalMessageStream === null) {
       return null;
     }
 
     if (
-      globalMessageStreamStore.code !== "idle" &&
-      globalMessageStreamStore.code !== "error"
+      globalMessageStream.code !== "idle" &&
+      globalMessageStream.code !== "error"
     ) {
       return null;
     }
 
-    return () => worker.startGlobalMessageStream;
-  }, [worker, globalMessageStreamStore]);
+    return () => worker.startGlobalMessageStream();
+  }, [worker, globalMessageStream]);
 
   const listen = useMemo(() => {
     if (worker === null) {
       return null;
     }
 
-    if (globalMessageStreamStore === null) {
+    if (globalMessageStream === null) {
       return null;
     }
 
-    if (globalMessageStreamStore.code !== "success") {
+    if (globalMessageStream.code !== "success") {
       return null;
     }
 
     return (handler: (m: Message) => void) =>
-      worker.listenToGlobalMessagesStream(Comlink.proxy(handler));
-  }, [worker, globalMessageStreamStore]);
+      worker.listenToGlobalMessageStream(Comlink.proxy(handler));
+  }, [worker, globalMessageStream]);
 
   if (worker === null) {
     return null;
   }
 
-  if (globalMessageStreamStore === null) {
+  if (globalMessageStream === null) {
     return null;
   }
 
@@ -89,12 +95,6 @@ export const useGlobalMessageStream = ({
   return {
     start,
     listen,
-    isInactive: globalMessageStreamStore.code === "inactive",
-    isIdle: globalMessageStreamStore.code === "idle",
-    isPending: globalMessageStreamStore.code === "pending",
-    isFetching: globalMessageStreamStore.code === "fetching",
-    isSuccess: globalMessageStreamStore.code === "success",
-    isError: globalMessageStreamStore.code === "error",
-    stream: globalMessageStreamStore.data,
+    globalMessageStream,
   };
 };

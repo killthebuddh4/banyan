@@ -1,6 +1,6 @@
 "use client";
 
-import { useBurnerWallet, useClient } from "@killthebuddha/fig";
+import { useBurnerWallet, useClient, useMessages } from "@killthebuddha/fig";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation.js";
 
@@ -28,23 +28,27 @@ export const Owner = () => {
 
   const client = useClient({ wallet });
 
-  useEffect(() => {
-    if (client === null) {
-      return;
-    }
-
-    if (client.start === null) {
-      return;
-    }
-
-    client.start();
-  }, [client]);
+  const { messages, send } = useMessages({ wallet });
 
   const [messageInput, setMessageInput] = useState("");
 
   if (address === undefined) {
     return null;
   }
+
+  const members = (() => {
+    const members = new Set<string>();
+
+    for (const message of messages) {
+      if (message.senderAddress === wallet.address) {
+        continue;
+      }
+
+      members.add(message.senderAddress);
+    }
+
+    return Array.from(members);
+  })();
 
   return (
     <div className="gc">
@@ -76,16 +80,53 @@ export const Owner = () => {
 
       <div className="groupchat">
         <div className="messages">
-          <p>
-            Nobody has joined yet. Messages will appear here after others join.
-          </p>
+          {messages.map((message) => {
+            if (message.senderAddress === wallet.address) {
+              return (
+                <p
+                  key={message.id}
+                  className="sentByYou"
+                >{`${message.content}`}</p>
+              );
+            } else {
+              return <p key={message.id}>{`$${message.content}`}</p>;
+            }
+          })}
         </div>
         <div className="input">
           <textarea
             placeholder=""
-            value={messageInput === "" ? X : messageInput}
+            value={messageInput}
             onChange={(event) => {
               setMessageInput(event.target.value);
+            }}
+            onKeyDown={async (event) => {
+              if (event.key !== "Enter") {
+                return;
+              }
+              if (event.shiftKey) {
+                return;
+              }
+
+              if (send === null) {
+                return;
+              }
+
+              console.log(`OWNER :: SENDING TO ${members.length} MEMBERS`);
+
+              await Promise.all(
+                members.map((member) =>
+                  send({
+                    conversation: { peerAddress: member },
+                    content: messageInput,
+                  }),
+                ),
+              );
+
+              console.log("OWNER :: SENT ALL");
+
+              event.preventDefault();
+              setMessageInput("");
             }}
           />
         </div>

@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { Stream, Conversation, DecodedMessage } from "@xmtp/xmtp-js";
-import { AsyncState } from "./AsyncState";
+import { AsyncState } from "../AsyncState";
 import { clientStore } from "./clientStore";
 import { v4 as uuidv4 } from "uuid";
 
@@ -61,7 +61,7 @@ const startConversationStream = async () => {
     return;
   }
 
-  const client = clientStore.client();
+  const client = clientStore.getState().client;
 
   if (client.code !== "success") {
     return;

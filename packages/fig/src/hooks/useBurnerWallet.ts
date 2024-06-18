@@ -1,5 +1,4 @@
 import { Wallet } from "@ethersproject/wallet";
-import { useMemo } from "react";
 
 const BURNER_KEY = "fig-burner-key";
 

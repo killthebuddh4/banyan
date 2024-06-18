@@ -1,5 +1,5 @@
 import { SortDirection, Conversation } from "@xmtp/xmtp-js";
-import { clientStore } from "./clientStore";
+import { clientStore } from "../stores/clientStore";
 
 export const fetchMessages = async (
   conversation: {
@@ -14,7 +14,9 @@ export const fetchMessages = async (
     direction?: "ascending" | "descending";
   }
 ) => {
-  const client = clientStore.client();
+  console.log("ACTION :: fetchMessages :: CALLED");
+
+  const client = clientStore.getState().client;
 
   if (client.code !== "success") {
     return {
