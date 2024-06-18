@@ -1,7 +1,5 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { usePathname } from "next/navigation.js";
 import { useParams } from "next/navigation.js";
 import { useBurnerWallet, useClient, useMessages } from "@killthebuddha/fig";
 
@@ -34,18 +32,6 @@ export const Member = () => {
   })();
 
   const client = useClient({ wallet });
-
-  useEffect(() => {
-    if (client === null) {
-      return;
-    }
-
-    if (client.start === null) {
-      return;
-    }
-
-    client.start();
-  }, [client]);
 
   const { send } = useMessages({ wallet });
 

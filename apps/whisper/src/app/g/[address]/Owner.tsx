@@ -1,7 +1,7 @@
 "use client";
 
 import { useBurnerWallet, useClient, useMessages } from "@killthebuddha/fig";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useParams } from "next/navigation.js";
 
 const X =
@@ -53,7 +53,6 @@ export const Owner = () => {
   return (
     <div className="gc">
       <div className="instructions">
-        <p>{wallet.address}</p>
         <p className="">
           You have created a private, secure, and ephemeral groupchat.
         </p>

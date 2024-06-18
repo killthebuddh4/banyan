@@ -20,3 +20,11 @@ NEXT
 
 Add `send` to the `useMessages` hook, get `useMessages` working, push a
 super minimal PoC of the chat working.
+
+JUST
+
+got useMessages working
+
+NEXT
+
+implement useBrpcClient and useBrpcServer (GONNA BE SO SICK)
