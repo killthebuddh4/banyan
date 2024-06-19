@@ -1,8 +1,8 @@
 import { useMemo, useEffect, useState } from "react";
 import * as Comlink from "comlink";
-import { createRemote } from "../remote/createRemote";
-import { AsyncState } from "../remote/AsyncState";
-import { Signer } from "../remote/Signer";
+import { createRemote } from "../remote/createRemote.js";
+import { AsyncState } from "../remote/AsyncState.js";
+import { Signer } from "../remote/Signer.js";
 
 export const useClient = ({
   wallet,

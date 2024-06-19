@@ -1,6 +1,6 @@
-import { ActionResult } from "../ActionResult";
-import { AsyncState } from "../AsyncState";
-import { clientStore } from "../stores/clientStore";
+import { ActionResult } from "../ActionResult.js";
+import { AsyncState } from "../AsyncState.js";
+import { clientStore } from "../stores/clientStore.js";
 
 export const fetchClient = async (): Promise<
   ActionResult<AsyncState<undefined>>

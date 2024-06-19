@@ -1,6 +1,6 @@
-import { ActionResult } from "../ActionResult";
-import { globalMessageStreamStore } from "../stores/globalMessageStreamStore";
-import { Message } from "../Message";
+import { ActionResult } from "../ActionResult.js";
+import { globalMessageStreamStore } from "../stores/globalMessageStreamStore.js";
+import { Message } from "../Message.js";
 
 export const listenToGlobalMessageStream = async (
   handler: (m: Message) => void

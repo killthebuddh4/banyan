@@ -1,7 +1,7 @@
-import { clientStore } from "../stores/clientStore";
-import { globalMessageStreamStore } from "../stores/globalMessageStreamStore";
-import { createMessageStream } from "../createMesssageStream";
-import { ActionResult } from "../ActionResult";
+import { clientStore } from "../stores/clientStore.js";
+import { globalMessageStreamStore } from "../stores/globalMessageStreamStore.js";
+import { createMessageStream } from "../createMesssageStream.js";
+import { ActionResult } from "../ActionResult.js";
 
 export const startGlobalMessageStream = async (): Promise<
   ActionResult<undefined>

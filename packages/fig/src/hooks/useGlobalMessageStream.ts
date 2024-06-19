@@ -1,8 +1,8 @@
 import { useMemo, useEffect, useState } from "react";
-import { createRemote } from "../remote/createRemote";
-import { AsyncState } from "../remote/AsyncState";
 import * as Comlink from "comlink";
-import { Message } from "../remote/Message";
+import { createRemote } from "../remote/createRemote.js";
+import { AsyncState } from "../remote/AsyncState.js";
+import { Message } from "../remote/Message.js";
 
 export const useGlobalMessageStream = ({
   wallet,

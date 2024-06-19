@@ -1,6 +1,6 @@
-import { ActionResult } from "../ActionResult";
-import { AsyncState } from "../AsyncState";
-import { globalMessageStreamStore } from "../stores/globalMessageStreamStore";
+import { ActionResult } from "../ActionResult.js";
+import { AsyncState } from "../AsyncState.js";
+import { globalMessageStreamStore } from "../stores/globalMessageStreamStore.js";
 
 export const fetchGlobalMessageStream = async (): Promise<
   ActionResult<AsyncState<undefined>>

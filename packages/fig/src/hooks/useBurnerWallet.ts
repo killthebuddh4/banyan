@@ -1,5 +1,5 @@
 import { Wallet } from "@ethersproject/wallet";
-import { Signer } from "../remote/Signer";
+import { Signer } from "../remote/Signer.js";
 
 const BURNER_KEY = "fig-burner-key";
 

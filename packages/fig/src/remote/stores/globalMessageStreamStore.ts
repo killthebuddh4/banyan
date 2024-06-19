@@ -1,7 +1,7 @@
 import { create } from "zustand";
-import { AsyncState } from "../AsyncState";
-import { clientStore } from "./clientStore";
-import { MessageStream } from "../MessageStream";
+import { AsyncState } from "../AsyncState.js";
+import { clientStore } from "./clientStore.js";
+import { MessageStream } from "../MessageStream.js";
 
 export const globalMessageStreamStore = create<{
   stream: AsyncState<MessageStream>;

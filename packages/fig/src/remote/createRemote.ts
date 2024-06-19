@@ -1,6 +1,6 @@
 import * as Comlink from "comlink";
 import XmtpRemote from "./remote.js?worker&inline";
-import { Actions } from "./Actions";
+import { Actions } from "./Actions.js";
 
 const REMOTES: Record<string, Actions> = {};
 

@@ -1,6 +1,6 @@
-import { AsyncHandler } from "../AsyncHandler";
-import { ActionResult } from "../ActionResult";
-import { clientStore } from "../stores/clientStore";
+import { AsyncHandler } from "../AsyncHandler.js";
+import { ActionResult } from "../ActionResult.js";
+import { clientStore } from "../stores/clientStore.js";
 
 export const subscribeToClientStore = async (args: {
   onChange: AsyncHandler<undefined>;

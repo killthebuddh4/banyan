@@ -1,7 +1,7 @@
 import { create } from "zustand";
-import { Stream, Conversation, DecodedMessage } from "@xmtp/xmtp-js";
-import { AsyncState } from "../AsyncState";
-import { clientStore } from "./clientStore";
+import { Stream, Conversation } from "@xmtp/xmtp-js";
+import { AsyncState } from "../AsyncState.js";
+import { clientStore } from "./clientStore.js";
 import { v4 as uuidv4 } from "uuid";
 
 type ConversationStream = {

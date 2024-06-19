@@ -1,6 +1,6 @@
-import { AsyncHandler } from "../AsyncHandler";
-import { ActionResult } from "../ActionResult";
-import { globalMessageStreamStore } from "../stores/globalMessageStreamStore";
+import { AsyncHandler } from "../AsyncHandler.js";
+import { ActionResult } from "../ActionResult.js";
+import { globalMessageStreamStore } from "../stores/globalMessageStreamStore.js";
 
 export const subscribeToGlobalMessageStreamStore = async (args: {
   onChange: AsyncHandler<undefined>;

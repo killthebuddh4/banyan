@@ -1,5 +1,5 @@
-import { globalMessageStreamStore } from "../stores/globalMessageStreamStore";
-import { ActionResult } from "../ActionResult";
+import { globalMessageStreamStore } from "../stores/globalMessageStreamStore.js";
+import { ActionResult } from "../ActionResult.js";
 
 export const stopGlobalMessageStream = async (): Promise<
   ActionResult<undefined>

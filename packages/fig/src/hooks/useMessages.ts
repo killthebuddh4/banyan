@@ -1,10 +1,10 @@
 import { useEffect, useMemo } from "react";
-import { useGlobalMessageStream } from "./useGlobalMessageStream";
-import { useSendMessage } from "./useSendMessage";
+import { useGlobalMessageStream } from "./useGlobalMessageStream.js";
+import { useSendMessage } from "./useSendMessage.js";
 import { create } from "zustand";
-import { Message } from "../remote/Message";
-import { uniqueMessages } from "../lib/uniqueMessages";
-import { Signer } from "../remote/Signer";
+import { Message } from "../remote/Message.js";
+import { uniqueMessages } from "../lib/uniqueMessages.js";
+import { Signer } from "../remote/Signer.js";
 
 const useMessageStore = create<{
   messages: Record<string, Message[]>;

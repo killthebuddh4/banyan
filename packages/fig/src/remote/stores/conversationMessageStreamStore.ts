@@ -1,10 +1,10 @@
 import { create } from "zustand";
 import { DecodedMessage, Conversation, Stream } from "@xmtp/xmtp-js";
-import { AsyncState } from "../AsyncState";
-import { clientStore } from "./clientStore";
+import { AsyncState } from "../AsyncState.js";
+import { clientStore } from "./clientStore.js";
 import { v4 as uuidv4 } from "uuid";
-import { MessageStream } from "../MessageStream";
-import { buildUniqueConversationKey } from "../buildUniqueConversationKey";
+import { MessageStream } from "../MessageStream.js";
+import { buildUniqueConversationKey } from "../buildUniqueConversationKey.js";
 
 const store = create<{
   streams: Record<string, AsyncState<MessageStream>>;
