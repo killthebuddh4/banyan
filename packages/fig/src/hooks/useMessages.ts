@@ -66,13 +66,13 @@ export const useMessages = ({ wallet }: { wallet?: Signer }) => {
     });
   }, [globalMessageStream?.listen]);
 
-  if (wallet === undefined) {
-    return { messages: [], send: null };
-  }
-
   const messages = useMemo(() => {
+    if (wallet === undefined) {
+      return [];
+    }
+
     return messageStore.messages[wallet.address] || [];
-  }, [messageStore.messages, wallet.address]);
+  }, [messageStore.messages, wallet?.address]);
 
   return { messages, send: sendMessage };
 };

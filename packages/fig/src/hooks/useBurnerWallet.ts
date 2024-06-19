@@ -1,17 +1,9 @@
 import { Wallet } from "@ethersproject/wallet";
+import { Signer } from "../remote/Signer";
 
 const BURNER_KEY = "fig-burner-key";
 
-export const useBurnerWallet = ({
-  opts,
-}: {
-  opts?: {
-    name?: string;
-    saveKey?: boolean;
-    useSavedKey?: boolean;
-    fallbackOnSavedKeyError?: boolean;
-  };
-}) => {
+export const useBurnerWallet = () => {
   const create = ({
     opts,
   }: {
@@ -87,6 +79,9 @@ export const useBurnerWallet = ({
 
       localStorage.setItem(localStorageKey, wallet.privateKey);
     }
+
+    // TODO: Write a function that obviates this type assertion
+    return wallet as Signer;
   };
 
   const get = ({
@@ -110,7 +105,8 @@ export const useBurnerWallet = ({
       return null;
     }
 
-    return new Wallet(privateKey);
+    // TODO: Write a function that obviates this type assertion
+    return new Wallet(privateKey) as Signer;
   };
 
   return { create, get };

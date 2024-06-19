@@ -11,6 +11,7 @@ export const createServer = async <A extends Brpc.BrpcApi>({
   options?: {
     wallet?: Wallet;
     xmtpEnv?: "dev" | "production";
+    conversationIdPrefix?: string;
     onMessage?: ({ message }: { message: DecodedMessage }) => void;
     onSelfSentMessage?: ({ message }: { message: DecodedMessage }) => void;
     onReceivedInvalidJson?: ({ message }: { message: DecodedMessage }) => void;
@@ -89,6 +90,22 @@ export const createServer = async <A extends Brpc.BrpcApi>({
 
       (async () => {
         for await (const message of stream) {
+          if (message.conversation.context === undefined) {
+            continue;
+          }
+
+          const prefix = (() => {
+            if (options?.conversationIdPrefix) {
+              return options.conversationIdPrefix;
+            }
+
+            return "banyan.sh/brpc";
+          })();
+
+          if (!message.conversation.context.conversationId.startsWith(prefix)) {
+            continue;
+          }
+
           if (options?.onMessage) {
             try {
               options.onMessage({ message });

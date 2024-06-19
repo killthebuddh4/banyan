@@ -16,6 +16,7 @@ export const createClient = async <A extends Brpc.BrpcApi>({
     wallet?: Wallet;
     xmtpEnv?: "dev" | "production";
     timeoutMs?: number;
+    conversationIdPrefix?: string;
     onSelfSentMessage?: ({ message }: { message: DecodedMessage }) => void;
     onReceivedInvalidJson?: ({ message }: { message: DecodedMessage }) => void;
     onReceivedInvalidResponse?: ({
@@ -64,20 +65,20 @@ export const createClient = async <A extends Brpc.BrpcApi>({
     }
   })();
 
-  const stream = await (async () => {
-    try {
-      return await xmtp.conversations.streamAllMessages();
-    } catch (error) {
-      if (options?.onCreateStreamError) {
-        options.onCreateStreamError();
-      }
-      throw error;
+  const prefix = (() => {
+    if (options?.conversationIdPrefix) {
+      return options.conversationIdPrefix;
     }
+
+    return "banyan.sh/brpc";
   })();
 
   const conversation = await (async () => {
     try {
-      return await xmtp.conversations.newConversation(address);
+      return await xmtp.conversations.newConversation(address, {
+        conversationId: prefix,
+        metadata: {},
+      });
     } catch (error) {
       if (options?.onCreateConversationError) {
         try {
@@ -85,6 +86,17 @@ export const createClient = async <A extends Brpc.BrpcApi>({
         } catch (error) {
           console.warn("onCreateConversationError threw an error", error);
         }
+      }
+      throw error;
+    }
+  })();
+
+  const stream = await (async () => {
+    try {
+      return await conversation.streamMessages();
+    } catch (error) {
+      if (options?.onCreateStreamError) {
+        options.onCreateStreamError();
       }
       throw error;
     }
@@ -286,7 +298,7 @@ export const createClient = async <A extends Brpc.BrpcApi>({
   return {
     api: brpcClient,
     close: async () => {
-      return await stream.return(null);
+      return await stream.return();
     },
   };
 };

@@ -10,40 +10,16 @@
 
 :root {
   --header-height: 3rem;
+  --input-height: 3rem;
 }
 
 .root {
   width: 100vw;
   height: 100vh;
-  display: flex;
-  flex-direction: column;
   padding: 1rem;
   padding-top: var(--header-height);
-}
-
-.app {
   display: flex;
   flex-direction: column;
-  background-color: lightblue;
-}
-
-.create {
-  background: none;
-  margin: auto auto 0 auto;
-  width: 100%;
-  height: 2rem;
-  border: 2px solid black;
-  cursor: pointer;
-  transition: transform 0.1s;
-}
-
-.create:hover {
-  background-color: black;
-  color: white;
-}
-
-.create:active {
-  transform: scale(1.05);
 }
 
 .header {
@@ -59,72 +35,126 @@
   height: var(--header-height);
 }
 
-.instructions {
-  position: relative;
+.app {
   display: flex;
   flex-direction: column;
-  width: 40ch;
-}
-
-.instructions > p {
-  margin-bottom: 1.5rem;
-}
-
-.gc {
-  position: relative;
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
   flex-grow: 1;
-  gap: 3rem;
+  border: 2px solid black;
+  height: calc(100vh - var(--header-height) - 1rem);
 }
 
-.gc .instructions {
-  width: 30ch;
-  position: absolute;
-  left: 0;
-  top: 0;
-}
-
-.groupchat {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  position: relative;
-  padding-bottom: 4rem;
-}
 .messages {
   display: flex;
   flex-direction: column;
-  background-color: #e5e5e5;
   flex-grow: 1;
+  overflow-y: scroll;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
-.groupchat .input {
-  background-color: red;
-  margin-top: auto;
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  min-height: 3rem;
-  background-color: #e5e5e5;
+.messages::-webkit-scrollbar {
+  display: none;
 }
 
-.input textarea {
-  resize: none;
-  width: 100%;
+.message {
+  display: flex;
+  flex-direction: column;
+  padding: 0.25rem;
+}
+
+.message.outbound {
+  align-items: flex-end;
+  background-color: lightgray;
+}
+
+.input {
+  display: flex;
+  flex-basis: var(--input-height);
+  flex-shrink: 0;
+  border-top: 2px solid black;
+}
+
+.input input {
+  display: flex;
+  flex-grow: 1;
+  padding: 1rem;
+}
+
+input:focus {
+  outline: none;
+}
+
+.input button {
+  display: flex;
+  flex-basis: 8rem;
+  flex-shrink: 0;
+  justify-content: center;
+  align-items: center;
+  border-left: 2px solid black;
+}
+
+.input button:disabled button:hover {
+  background-color: lightgray;
+}
+
+.input button:hover {
+  background-color: lightgreen;
+  cursor: pointer;
+}
+
+.create {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  justify-content: center;
+  align-items: center;
+}
+
+.createInner {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  border: 2px solid black;
+  padding: 3rem;
+}
+
+.createInstructions {
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.createActions {
+  display: flex;
+  gap: 3rem;
+}
+
+.learnMore {
+  display: flex;
+  width: 8rem;
   height: 3rem;
-  font-size: 1rem;
-  font-weight: normal;
-  font-family: inherit;
+  justify-content: center;
+  align-items: center;
 }
 
-.groupchat {
-  width: 400px;
+.create button {
+  display: flex;
+  width: 8rem;
+  height: 3rem;
+  justify-content: center;
+  align-items: center;
+  border: 2px solid black;
 }
 
-.sentByYou {
-  align-self: flex-end;
-  background-color: lightblue;
+.create button:hover {
+  /* background-color: lightgreen; */
+  border: 4px solid black;
+  cursor: pointer;
+}
+
+.created {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem;
 }
