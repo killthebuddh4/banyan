@@ -11,8 +11,17 @@ const store = create<{
   clients: {},
 }));
 
-export const useClientStore = ({ wallet }: { wallet?: Signer }) => {
+export const useClientStore = (props: { wallet?: Signer }) => {
+  const wallet = useMemo(() => props.wallet, [props.wallet?.address]);
   const clients = store((state) => state.clients);
+
+  useMemo(() => {
+    console.log("FIG :: useClientStore :: clients memo running");
+  }, [clients]);
+
+  useMemo(() => {
+    console.log("FIG :: useClientStore :: wallet memo running");
+  }, [wallet]);
 
   const remote = useRemote({ wallet });
 
@@ -28,6 +37,7 @@ export const useClientStore = ({ wallet }: { wallet?: Signer }) => {
     remote.subscribeToClientStore(
       Comlink.proxy({
         onChange: (client) => {
+          console.log("FIG :: useClientStore :: got remote change");
           gotChange = true;
 
           store.setState((state) => {

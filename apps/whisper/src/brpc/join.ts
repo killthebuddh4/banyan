@@ -9,6 +9,7 @@ export const join = createProcedure({
   output: z.object({ added: z.boolean() }),
   auth: async () => true,
   handler: async (input) => {
+    console.log("WHISPTER :: brpc.join :: CALLED");
     if (useGroupStore.getState().members.length >= MAX_GROUP_SIZE) {
       return { added: false };
     }

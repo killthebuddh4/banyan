@@ -6,13 +6,17 @@ import { useSendMessage } from "./useSendMessage.js";
 import { Message } from "../remote/Message.js";
 import { Signer } from "../remote/Signer.js";
 import { useListenToGlobalMessageStream } from "./useListenToGlobalMessageStream.js";
+import { useState, useEffect, useMemo } from "react";
 
-export const useBrpcClient = <A extends Brpc.BrpcApi>({
-  api,
-  address,
-  wallet,
-  options,
+type Sub = ({
+  ctx,
+  response,
 }: {
+  ctx: { unsubscribe: () => void };
+  response: Brpc.BrpcResponse;
+}) => void;
+
+export const useBrpcClient = <A extends Brpc.BrpcApi>(props: {
   api: A;
   address: string;
   wallet?: Signer;
@@ -31,227 +35,228 @@ export const useBrpcClient = <A extends Brpc.BrpcApi>({
     onSendFailed?: () => void;
   };
 }) => {
+  const wallet = useMemo(() => props.wallet, [props.wallet?.address]);
   const listen = useListenToGlobalMessageStream({ wallet });
   const send = useSendMessage({ wallet });
 
-  if (listen === null) {
-    return null;
-  }
-
-  if (send === null) {
-    return null;
-  }
-
-  if (wallet === undefined) {
-    return null;
-  }
-
   const prefix = (() => {
-    if (options?.conversationIdPrefix) {
-      return options.conversationIdPrefix;
+    if (props.options?.conversationIdPrefix) {
+      return props.options.conversationIdPrefix;
     }
 
     return "banyan.sh/brpc";
   })();
 
-  const subscriptions: Map<
-    string,
-    ({
-      ctx,
-      response,
-    }: {
-      ctx: { unsubscribe: () => void };
-      response: Brpc.BrpcResponse;
-    }) => void
-  > = new Map();
+  const [subscriptions, setSubscriptions] = useState<
+    Record<string, Sub | undefined>
+  >({});
 
   const unsubscribe = ({ id }: { id: string }) => {
-    const subscription = subscriptions.get(id);
+    const subscription = subscriptions[id];
 
     if (subscription === undefined) {
       return;
     }
 
-    subscriptions.delete(id);
+    setSubscriptions((state) => {
+      return {
+        ...state,
+        [id]: undefined,
+      };
+    });
   };
 
-  listen((message: Message) => {
-    if (message.senderAddress !== address) {
+  useEffect(() => {
+    if (listen === null) {
       return;
     }
 
-    if (message.conversation.context === undefined) {
-      return;
-    }
-
-    if (!message.conversation.context.conversationId.startsWith(prefix)) {
-      return;
-    }
-
-    const json = jsonStringSchema.safeParse(message.content);
-
-    if (!json.success) {
-      if (options?.onReceivedInvalidJson) {
-        try {
-          options.onReceivedInvalidJson({ message });
-        } catch (error) {
-          console.warn("onReceivedInvalidJson threw an error", error);
-        }
+    listen((message: Message) => {
+      if (message.senderAddress !== props.address) {
+        return;
       }
-      return;
-    }
 
-    const response = Brpc.brpcResponseSchema.safeParse(json.data);
-
-    if (!response.success) {
-      if (options?.onReceivedInvalidResponse) {
-        try {
-          options.onReceivedInvalidResponse({ message });
-        } catch (error) {
-          console.warn("onReceivedInvalidResponse threw an error", error);
-        }
+      if (message.conversation.context === undefined) {
+        return;
       }
-      return;
-    }
 
-    const subscription = subscriptions.get(response.data.id);
-
-    if (subscription === undefined) {
-      if (options?.onNoSubscription) {
-        try {
-          options.onNoSubscription({ message });
-        } catch (error) {
-          console.warn("onNoSubscription threw an error", error);
-        }
+      if (!message.conversation.context.conversationId.startsWith(prefix)) {
+        return;
       }
-      return;
-    }
 
-    subscription({
-      ctx: {
-        unsubscribe: () => {
-          unsubscribe({ id: response.data.id });
+      const json = jsonStringSchema.safeParse(message.content);
+
+      if (!json.success) {
+        if (props.options?.onReceivedInvalidJson) {
+          try {
+            props.options.onReceivedInvalidJson({ message });
+          } catch (error) {
+            console.warn("onReceivedInvalidJson threw an error", error);
+          }
+        }
+        return;
+      }
+
+      const response = Brpc.brpcResponseSchema.safeParse(json.data);
+
+      if (!response.success) {
+        if (props.options?.onReceivedInvalidResponse) {
+          try {
+            props.options.onReceivedInvalidResponse({ message });
+          } catch (error) {
+            console.warn("onReceivedInvalidResponse threw an error", error);
+          }
+        }
+        return;
+      }
+
+      const subscription = subscriptions[response.data.id];
+
+      if (subscription === undefined) {
+        if (props.options?.onNoSubscription) {
+          try {
+            props.options.onNoSubscription({ message });
+          } catch (error) {
+            console.warn("onNoSubscription threw an error", error);
+          }
+        }
+        return;
+      }
+
+      subscription({
+        ctx: {
+          unsubscribe: () => {
+            unsubscribe({ id: response.data.id });
+          },
         },
-      },
-      response: response.data,
+        response: response.data,
+      });
     });
-  });
+    // TODO, make sure this dependency list is exhausive
+  }, [listen, subscriptions]);
 
-  const brpcClient: Brpc.BrpcClient<typeof api> = {} as Brpc.BrpcClient<
-    typeof api
-  >;
+  return useMemo<null | Brpc.BrpcClient<typeof props.api>>(() => {
+    if (send === null) {
+      console.log("FIG :: useBrpcClient :: send is null");
+      return null;
+    }
 
-  for (const [key, value] of Object.entries(api)) {
-    (brpcClient as any)[key as keyof typeof api] = async (
-      input: z.infer<typeof value.input>
-    ) => {
-      const request = {
-        id: uuidv4(),
-        name: key,
-        payload: input,
-      };
+    const tmp: Brpc.BrpcClient<typeof props.api> = {} as Brpc.BrpcClient<
+      typeof props.api
+    >;
 
-      let str: string;
-      try {
-        str = JSON.stringify(request);
-      } catch {
-        return {
-          ok: false,
-          code: "INPUT_SERIALIZATION_FAILED",
-          request,
-          response: null,
+    for (const [key, value] of Object.entries(props.api)) {
+      (tmp as any)[key as keyof typeof props.api] = async (
+        input: z.infer<typeof value.input>
+      ) => {
+        const request = {
+          id: uuidv4(),
+          name: key,
+          payload: input,
         };
-      }
 
-      const promise = new Promise<
-        Brpc.BrpcResult<z.infer<typeof value.output>>
-      >((resolve) => {
-        const timeout = setTimeout(() => {
-          resolve({
+        let str: string;
+        try {
+          str = JSON.stringify(request);
+        } catch {
+          return {
             ok: false,
-            code: "REQUEST_TIMEOUT",
+            code: "INPUT_SERIALIZATION_FAILED",
             request,
             response: null,
-          });
-        }, options?.timeoutMs ?? 10000);
+          };
+        }
 
-        const subscription = ({
-          ctx,
-          response,
-        }: {
-          ctx: { unsubscribe: () => void };
-          response: Brpc.BrpcResponse;
-        }) => {
-          clearTimeout(timeout);
-          ctx.unsubscribe();
-
-          const error = Brpc.brpcErrorSchema.safeParse(response.payload);
-
-          if (error.success) {
+        const promise = new Promise<
+          Brpc.BrpcResult<z.infer<typeof value.output>>
+        >((resolve) => {
+          const timeout = setTimeout(() => {
             resolve({
               ok: false,
-              code: error.data.code,
+              code: "REQUEST_TIMEOUT",
               request,
-              response,
+              response: null,
             });
-          }
+          }, props.options?.timeoutMs ?? 10000);
 
-          const success = Brpc.brpcSuccessSchema.safeParse(response.payload);
+          const subscription = ({
+            ctx,
+            response,
+          }: {
+            ctx: { unsubscribe: () => void };
+            response: Brpc.BrpcResponse;
+          }) => {
+            clearTimeout(timeout);
+            ctx.unsubscribe();
 
-          if (success.success) {
-            const output = value.output.safeParse(success.data.data);
+            const error = Brpc.brpcErrorSchema.safeParse(response.payload);
 
-            if (!output.success) {
+            if (error.success) {
               resolve({
                 ok: false,
-                code: "OUTPUT_TYPE_MISMATCH",
+                code: error.data.code,
+                request,
+                response,
+              });
+            }
+
+            const success = Brpc.brpcSuccessSchema.safeParse(response.payload);
+
+            if (success.success) {
+              const output = value.output.safeParse(success.data.data);
+
+              if (!output.success) {
+                resolve({
+                  ok: false,
+                  code: "OUTPUT_TYPE_MISMATCH",
+                  request,
+                  response,
+                });
+              }
+
+              resolve({
+                ok: true,
+                code: "SUCCESS",
+                data: output.data,
                 request,
                 response,
               });
             }
 
             resolve({
-              ok: true,
-              code: "SUCCESS",
-              data: output.data,
+              ok: false,
+              code: "INVALID_RESPONSE",
               request,
               response,
             });
-          }
+          };
 
-          resolve({
-            ok: false,
-            code: "INVALID_RESPONSE",
-            request,
-            response,
-          });
-        };
-
-        subscriptions.set(request.id, subscription);
-      });
-
-      try {
-        await send({
-          conversation: {
-            peerAddress: address,
-            context: {
-              conversationId: prefix,
-            },
-          },
-          content: str,
+          subscriptions[request.id] = subscription;
         });
-      } catch {
-        return {
-          ok: false,
-          code: "XMTP_SEND_FAILED",
-          request,
-          response: null,
-        };
-      }
 
-      return promise;
-    };
-  }
+        try {
+          // await send({
+          //   conversation: {
+          //     peerAddress: address,
+          //     context: {
+          //       conversationId: prefix,
+          //     },
+          //   },
+          //   content: str,
+          // });
+        } catch {
+          return {
+            ok: false,
+            code: "XMTP_SEND_FAILED",
+            request,
+            response: null,
+          };
+        }
 
-  return brpcClient;
+        return promise;
+      };
+    }
+
+    return tmp;
+  }, [send, subscriptions]);
 };

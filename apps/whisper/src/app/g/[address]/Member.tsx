@@ -1,32 +1,45 @@
 import { App } from "@/components/App";
 import { Messages } from "@/components/Messages";
 import { useGroupMember } from "@/hooks/useGroupMember";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useWallet } from "@/hooks/useWallet";
 
 export const Member = () => {
   const { wallet, create } = useWallet();
-  const client = useGroupMember();
+
+  const memoWallet = useMemo(() => wallet, [wallet?.address]);
+
+  const brpcClient = useGroupMember();
 
   useEffect(() => {
     create();
   }, []);
 
+  useMemo(() => {
+    console.log("WHISPER :: Member :: TEST brpcClient memo running");
+  }, [brpcClient]);
+
   useEffect(() => {
     (async () => {
-      if (client === null) {
+      if (brpcClient === null) {
+        console.log("WHISPER :: Member :: brpcClient === null");
         return;
       }
 
-      if (wallet === undefined) {
+      if (memoWallet === undefined) {
+        console.log("WHISPER :: Member :: wallet === undefined");
         return;
       }
 
-      const result = await client.join(wallet.address);
+      console.log(
+        "WHISPER :: Member :: await client.join(wallet.address) :: CALLED",
+      );
+
+      const result = await brpcClient.join(memoWallet.address);
 
       console.log("MEMBER :: await client.join(wallet.address)", result);
     })();
-  }, [client, wallet]);
+  }, [brpcClient, memoWallet]);
 
   return (
     <App>
