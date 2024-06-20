@@ -11,7 +11,13 @@ export const useClient = ({
   wallet?: Signer;
   opts?: { autoStart?: boolean };
 }) => {
-  const worker = createRemote({ wallet });
+  const worker = useMemo(() => {
+    if (wallet === undefined) {
+      return null;
+    }
+
+    return createRemote({ address: wallet.address });
+  }, [wallet]);
 
   const [client, setClient] = useState<AsyncState<undefined> | null>(null);
 

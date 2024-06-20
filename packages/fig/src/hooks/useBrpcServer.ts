@@ -33,20 +33,29 @@ export const useBrpcServer = <A extends Brpc.BrpcApi>({
   const stream = useGlobalMessageStream({ wallet });
   const send = useSendMessage({ wallet });
 
+  console.log(
+    "useBrpcServer :: stream.globalMessageStream.code",
+    stream?.globalMessageStream.code
+  );
+
   useEffect(() => {
     if (stream === null) {
+      console.log("useBrpcServer :: stream is null");
       return;
     }
 
     if (stream.listen === null) {
+      console.log("useBrpcServer :: stream.listen is null");
       return;
     }
 
     if (send === null) {
+      console.log("useBrpcServer :: send is null");
       return;
     }
 
     if (wallet === undefined) {
+      console.log("useBrpcServer :: wallet is undefined");
       return;
     }
 
@@ -309,5 +318,5 @@ export const useBrpcServer = <A extends Brpc.BrpcApi>({
         }
       }
     });
-  }, [stream, stream?.listen, send, wallet]);
+  }, [stream, stream?.listen, send, wallet, stream?.globalMessageStream.code]);
 };

@@ -3,8 +3,9 @@ import * as Comlink from "comlink";
 import { createRemote } from "../remote/createRemote.js";
 import { AsyncState } from "../remote/AsyncState.js";
 import { Message } from "../remote/Message.js";
+import { create } from "zustand";
 
-export const useGlobalMessageStream = ({
+export const useGlobalMessageStreamStore = ({
   wallet,
 }: {
   wallet?: { address: string };

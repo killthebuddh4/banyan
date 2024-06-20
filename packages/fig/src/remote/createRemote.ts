@@ -4,14 +4,10 @@ import { Actions } from "./Actions.js";
 
 const REMOTES: Record<string, Actions> = {};
 
-export const createRemote = ({ wallet }: { wallet?: { address: string } }) => {
-  if (wallet === undefined) {
-    return null;
+export const createRemote = ({ address }: { address: string }) => {
+  if (REMOTES[address] === undefined) {
+    REMOTES[address] = Comlink.wrap(new XmtpRemote());
   }
 
-  if (REMOTES[wallet.address] === undefined) {
-    REMOTES[wallet.address] = Comlink.wrap(new XmtpRemote());
-  }
-
-  return REMOTES[wallet.address];
+  return REMOTES[address];
 };
