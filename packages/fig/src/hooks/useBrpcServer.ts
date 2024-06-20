@@ -1,7 +1,7 @@
 import { Wallet } from "@ethersproject/wallet";
 import * as Brpc from "@killthebuddha/brpc/brpc.js";
 import { jsonStringSchema } from "@repo/lib/jsonStringSchema.js";
-import { useGlobalMessageStream } from "./useGlobalMessageStream.js";
+import { useListenToGlobalMessageStream } from "./useListenToGlobalMessageStream.js";
 import { useSendMessage } from "./useSendMessage.js";
 import { Message } from "../remote/Message.js";
 import { useEffect } from "react";
@@ -30,21 +30,11 @@ export const useBrpcServer = <A extends Brpc.BrpcApi>({
     onSendFailed?: () => void;
   };
 }) => {
-  const stream = useGlobalMessageStream({ wallet });
+  const listen = useListenToGlobalMessageStream({ wallet });
   const send = useSendMessage({ wallet });
 
-  console.log(
-    "useBrpcServer :: stream.globalMessageStream.code",
-    stream?.globalMessageStream.code
-  );
-
   useEffect(() => {
-    if (stream === null) {
-      console.log("useBrpcServer :: stream is null");
-      return;
-    }
-
-    if (stream.listen === null) {
+    if (listen === null) {
       console.log("useBrpcServer :: stream.listen is null");
       return;
     }
@@ -59,7 +49,7 @@ export const useBrpcServer = <A extends Brpc.BrpcApi>({
       return;
     }
 
-    stream.listen(async (message) => {
+    listen(async (message) => {
       console.log("useBrpcServer :: calling stream.listen");
 
       if (message.conversation.context === undefined) {
@@ -318,5 +308,5 @@ export const useBrpcServer = <A extends Brpc.BrpcApi>({
         }
       }
     });
-  }, [stream, stream?.listen, send, wallet, stream?.globalMessageStream.code]);
+  }, [listen, send, wallet]);
 };

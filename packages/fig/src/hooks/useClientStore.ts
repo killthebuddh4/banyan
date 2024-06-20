@@ -1,22 +1,18 @@
 import { useMemo, useEffect, useState } from "react";
 import * as Comlink from "comlink";
 import { AsyncState } from "../remote/AsyncState.js";
-import { create } from "zustand";
 import { Signer } from "../remote/Signer.js";
 import { useRemote } from "./useRemote.js";
+import { create } from "zustand";
 
-export const store = create<{
-  streams: Record<string, AsyncState<undefined>>;
+const store = create<{
+  clients: Record<string, AsyncState<undefined> | undefined>;
 }>(() => ({
-  streams: {},
+  clients: {},
 }));
 
-export const useGlobalMessageStreamStore = ({
-  wallet,
-}: {
-  wallet?: Signer;
-}) => {
-  const streams = store((state) => state.streams);
+export const useClientStore = ({ wallet }: { wallet?: Signer }) => {
+  const clients = store((state) => state.clients);
 
   const remote = useRemote({ wallet });
 
@@ -29,18 +25,16 @@ export const useGlobalMessageStreamStore = ({
       return;
     }
 
-    let gotChange = false;
-
-    remote.subscribeToGlobalMessageStreamStore(
+    remote.subscribeToClientStore(
       Comlink.proxy({
-        onChange: (stream) => {
+        onChange: (client) => {
           gotChange = true;
 
           store.setState((state) => {
             return {
-              streams: {
-                ...state.streams,
-                [wallet.address]: stream,
+              clients: {
+                ...state.clients,
+                [wallet.address]: client,
               },
             };
           });
@@ -48,12 +42,11 @@ export const useGlobalMessageStreamStore = ({
       })
     );
 
-    remote.fetchGlobalMessageStream().then((data) => {
+    let gotChange = false;
+
+    remote.fetchClient().then((data) => {
       if (!data.ok) {
-        console.log(
-          "useGlobalMessageStreamStore :: fetchGlobalMessageStream :: ERROR",
-          data.error
-        );
+        console.log("useClientStore :: fetchClient :: ERROR", data.error);
         return;
       }
 
@@ -63,10 +56,11 @@ export const useGlobalMessageStreamStore = ({
 
       store.setState((state) => {
         return {
-          streams: {
-            ...state.streams,
+          clients: {
+            ...state.clients,
             [wallet.address]: {
               ...data.data,
+              data: undefined,
             },
           },
         };
@@ -79,12 +73,12 @@ export const useGlobalMessageStreamStore = ({
       return null;
     }
 
-    const stream = streams[wallet.address];
+    const client = clients[wallet.address];
 
-    if (stream === undefined) {
+    if (client === undefined) {
       return null;
     }
 
-    return stream;
-  }, [streams, wallet]);
+    return client;
+  }, [wallet, clients]);
 };

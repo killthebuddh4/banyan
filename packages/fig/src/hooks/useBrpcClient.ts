@@ -3,10 +3,10 @@ import { z } from "zod";
 import * as Brpc from "@killthebuddha/brpc/brpc.js";
 import { jsonStringSchema } from "@repo/lib/jsonStringSchema.js";
 import { v4 as uuidv4 } from "uuid";
-import { useGlobalMessageStream } from "./useGlobalMessageStream.js";
 import { useSendMessage } from "./useSendMessage.js";
 import { Message } from "../remote/Message.js";
 import { Signer } from "../remote/Signer.js";
+import { useListenToGlobalMessageStream } from "./useListenToGlobalMessageStream.js";
 
 export const useBrpcClient = <A extends Brpc.BrpcApi>({
   api,
@@ -32,14 +32,10 @@ export const useBrpcClient = <A extends Brpc.BrpcApi>({
     onSendFailed?: () => void;
   };
 }) => {
-  const stream = useGlobalMessageStream({ wallet });
+  const listen = useListenToGlobalMessageStream({ wallet });
   const send = useSendMessage({ wallet });
 
-  if (stream === null) {
-    return null;
-  }
-
-  if (stream.listen === null) {
+  if (listen === null) {
     return null;
   }
 
@@ -80,7 +76,7 @@ export const useBrpcClient = <A extends Brpc.BrpcApi>({
     subscriptions.delete(id);
   };
 
-  stream.listen((message: Message) => {
+  listen((message: Message) => {
     if (message.senderAddress !== address) {
       return;
     }

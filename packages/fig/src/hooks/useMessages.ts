@@ -1,5 +1,6 @@
-import { useEffect, useMemo } from "react";
-import { useGlobalMessageStream } from "./useGlobalMessageStream.js";
+import { useCallback, useEffect, useMemo } from "react";
+import { useStartGlobalMessageStream } from "./useStartGlobalMessageStream.js";
+import { useListenToGlobalMessageStream } from "./useListenToGlobalMessageStream.js";
 import { useSendMessage } from "./useSendMessage.js";
 import { create } from "zustand";
 import { Message } from "../remote/Message.js";
@@ -33,56 +34,59 @@ export const useMessages = ({
   wallet?: Signer;
   opts?: { filter?: (m: Message) => boolean };
 }) => {
-  const globalMessageStream = useGlobalMessageStream({ wallet });
   const messageStore = useMessageStore();
+  const startGlobalMessageStream = useStartGlobalMessageStream({ wallet });
+  const listenToGlobalMessageStream = useListenToGlobalMessageStream({
+    wallet,
+  });
   const sendMessage = useSendMessage({ wallet });
 
   useEffect(() => {
     (async () => {
-      if (globalMessageStream === null) {
+      if (startGlobalMessageStream === null) {
         return;
       }
 
-      if (globalMessageStream.start === null) {
-        return;
-      }
       try {
-        await globalMessageStream.start();
+        await startGlobalMessageStream();
       } catch (e) {
         console.log("useMessages :: ERROR STARTING GLOBAL MESSAGE STREAM", e);
       }
     })();
-  }, [globalMessageStream?.start]);
+  }, [startGlobalMessageStream]);
+
+  const messageFilter = useCallback(
+    (message: Message) => {
+      if (wallet === undefined) {
+        return false;
+      }
+
+      if (opts?.filter === undefined) {
+        return true;
+      }
+
+      return opts.filter(message);
+    },
+    [wallet, opts?.filter]
+  );
 
   useEffect(() => {
+    if (listenToGlobalMessageStream === null) {
+      return;
+    }
+
     if (wallet === undefined) {
       return;
     }
 
-    if (globalMessageStream === null) {
-      return;
-    }
-
-    if (globalMessageStream.listen === null) {
-      return;
-    }
-
-    const filter = (() => {
-      if (opts?.filter === undefined) {
-        return () => true;
-      }
-
-      return opts.filter;
-    })();
-
-    globalMessageStream.listen((message) => {
-      if (!filter(message)) {
+    listenToGlobalMessageStream((message) => {
+      if (!messageFilter(message)) {
         return;
       }
 
       messageStore.pushMessage(wallet.address, message);
     });
-  }, [globalMessageStream?.listen]);
+  }, [wallet, listenToGlobalMessageStream, messageFilter]);
 
   const messages = useMemo(() => {
     if (wallet === undefined) {
