@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "module": "NodeNext",
+    "module": "nodenext",
     "target": "ES2017",
     "composite": false,
     "declaration": true,

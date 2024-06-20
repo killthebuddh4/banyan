@@ -1,6 +1,6 @@
 import { useRouter } from "next/navigation";
 import { useWallet } from "@/hooks/useWallet";
-import { Input } from "@/components/Input";
+import { InputSkeleton } from "@/components/InputSkeleton";
 
 export const Create = () => {
   const { create } = useWallet();
@@ -30,7 +30,7 @@ export const Create = () => {
           </div>
         </div>
       </div>
-      <Input />
+      <InputSkeleton />
     </div>
   );
 };

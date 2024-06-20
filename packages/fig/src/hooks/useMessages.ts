@@ -26,7 +26,13 @@ const useMessageStore = create<{
   },
 }));
 
-export const useMessages = ({ wallet }: { wallet?: Signer }) => {
+export const useMessages = ({
+  wallet,
+  opts,
+}: {
+  wallet?: Signer;
+  opts?: { filter?: (m: Message) => boolean };
+}) => {
   const globalMessageStream = useGlobalMessageStream({ wallet });
   const messageStore = useMessageStore();
   const sendMessage = useSendMessage({ wallet });
@@ -61,7 +67,19 @@ export const useMessages = ({ wallet }: { wallet?: Signer }) => {
       return;
     }
 
+    const filter = (() => {
+      if (opts?.filter === undefined) {
+        return () => true;
+      }
+
+      return opts.filter;
+    })();
+
     globalMessageStream.listen((message) => {
+      if (!filter(message)) {
+        return;
+      }
+
       messageStore.pushMessage(wallet.address, message);
     });
   }, [globalMessageStream?.listen]);

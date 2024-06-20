@@ -6,8 +6,9 @@ import { v4 as uuidv4 } from "uuid";
 import { useGlobalMessageStream } from "./useGlobalMessageStream.js";
 import { useSendMessage } from "./useSendMessage.js";
 import { Message } from "../remote/Message.js";
+import { Signer } from "../remote/Signer.js";
 
-export const useBrpcClient = async <A extends Brpc.BrpcApi>({
+export const useBrpcClient = <A extends Brpc.BrpcApi>({
   api,
   address,
   wallet,
@@ -15,7 +16,7 @@ export const useBrpcClient = async <A extends Brpc.BrpcApi>({
 }: {
   api: A;
   address: string;
-  wallet?: Wallet;
+  wallet?: Signer;
   options?: {
     timeoutMs?: number;
     conversationIdPrefix?: string;

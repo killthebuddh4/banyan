@@ -1,16 +1,31 @@
 "use client";
 
 import { Message } from "./Message";
-import { useMessages } from "@killthebuddha/fig";
+import { useMessages, Message as MessageType } from "@killthebuddha/fig";
 import { useWallet } from "@/hooks/useWallet";
 import { OwnerInstructions } from "./OwnerInstructions";
 import { InvitedInstructions } from "./InvitedInstructions";
 import { useGroupAddressParam } from "@/hooks/useGroupAddressParam";
+import { useCallback } from "react";
 
 export const Messages = () => {
   const groupAddress = useGroupAddressParam();
   const { wallet } = useWallet();
-  const { messages } = useMessages({ wallet });
+
+  const filterBrpcMessages = useCallback((message: MessageType) => {
+    const prefix = "banyan.sh/brpc";
+
+    if (message.conversation.context === undefined) {
+      return true;
+    }
+
+    return !message.conversation.context.conversationId.startsWith(prefix);
+  }, []);
+
+  const { messages } = useMessages({
+    wallet,
+    opts: { filter: filterBrpcMessages },
+  });
 
   return (
     <div className="messages">
@@ -24,9 +39,9 @@ export const Messages = () => {
         }
 
         if (wallet.address === groupAddress) {
-          return <InvitedInstructions />;
-        } else {
           return <OwnerInstructions />;
+        } else {
+          return <InvitedInstructions />;
         }
       })()}
 

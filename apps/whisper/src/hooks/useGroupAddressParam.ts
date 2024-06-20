@@ -5,7 +5,7 @@ export const useGroupAddressParam = () => {
   const address = params.address;
 
   if (typeof address !== "string") {
-    return null;
+    throw new Error("No group address provided");
   }
 
   return address;

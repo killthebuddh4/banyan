@@ -1,11 +1,5 @@
-import { Input } from "./Input";
-import { Messages } from "./Messages";
+import { ReactNode } from "react";
 
-export const App = () => {
-  return (
-    <div className="app">
-      <Messages />
-      <Input />
-    </div>
-  );
+export const App = (props: { children: ReactNode }) => {
+  return <div className="app">{props.children}</div>;
 };
