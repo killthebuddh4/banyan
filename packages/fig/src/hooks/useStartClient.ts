@@ -1,3 +1,4 @@
+import * as Comlink from "comlink";
 import { useRemote } from "./useRemote.js";
 import { Signer } from "../remote/Signer.js";
 import { useClientStore } from "./useClientStore.js";
@@ -9,17 +10,25 @@ export const useStartClient = ({ wallet }: { wallet?: Signer }) => {
 
   return useMemo(() => {
     if (remote === null) {
+      console.log("FIG :: useStartClient :: REMOTE IS NULL");
       return null;
     }
 
     if (client === null) {
+      console.log("FIG :: useStartClient :: CLIENT IS NULL");
       return null;
     }
 
-    if (client.code !== "success") {
+    if (client.code !== "idle" && client.code !== "error") {
+      console.log(`FIG :: useStartClient :: CLIENT CODE IS ${client.code}`);
       return null;
     }
 
-    return remote.startClient;
+    if (wallet === undefined) {
+      console.log("FIG :: useStartClient :: WALLET IS UNDEFINED");
+      return null;
+    }
+
+    return () => remote.startClient(Comlink.proxy(wallet));
   }, [remote, client]);
 };

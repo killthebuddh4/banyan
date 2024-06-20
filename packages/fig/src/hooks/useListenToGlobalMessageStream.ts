@@ -1,8 +1,11 @@
+import * as Comlink from "comlink";
 import { Signer } from "../remote/Signer.js";
 import { useRemote } from "./useRemote.js";
-import { useClient } from "./useClient.js";
+import { useClientStore } from "./useClientStore.js";
 import { useGlobalMessageStreamStore } from "./useGlobalMessageStreamStore.js";
 import { useMemo } from "react";
+import { AsyncHandler } from "../remote/AsyncHandler.js";
+import { Message } from "../remote/Message.js";
 
 export const useListenToGlobalMessageStream = ({
   wallet,
@@ -10,7 +13,7 @@ export const useListenToGlobalMessageStream = ({
   wallet?: Signer;
 }) => {
   const remote = useRemote({ wallet });
-  const client = useClient({ wallet });
+  const client = useClientStore({ wallet });
   const stream = useGlobalMessageStreamStore({ wallet });
 
   return useMemo(() => {
@@ -22,7 +25,7 @@ export const useListenToGlobalMessageStream = ({
       return null;
     }
 
-    if (client.client.code !== "success") {
+    if (client.code !== "success") {
       return null;
     }
 
@@ -30,6 +33,7 @@ export const useListenToGlobalMessageStream = ({
       return null;
     }
 
-    return remote.listenToGlobalMessageStream;
+    return (handler: (m: Message) => void) =>
+      remote.listenToGlobalMessageStream(Comlink.proxy(handler));
   }, [remote, client, stream]);
 };

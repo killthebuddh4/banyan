@@ -1,8 +1,7 @@
 import { useMemo } from "react";
-import { createRemote } from "../remote/createRemote.js";
 import { Signer } from "../remote/Signer.js";
 import { useRemote } from "./useRemote.js";
-import { useClient } from "./useClient.js";
+import { useClientStore } from "./useClientStore.js";
 
 export const useStartGlobalMessageStream = ({
   wallet,
@@ -10,7 +9,7 @@ export const useStartGlobalMessageStream = ({
   wallet?: Signer;
 }) => {
   const remote = useRemote({ wallet });
-  const client = useClient({ wallet });
+  const client = useClientStore({ wallet });
 
   return useMemo(() => {
     if (remote === null) {
@@ -21,7 +20,7 @@ export const useStartGlobalMessageStream = ({
       return null;
     }
 
-    if (client.client.code !== "success") {
+    if (client.code !== "success") {
       return null;
     }
 

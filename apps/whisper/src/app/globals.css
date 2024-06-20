@@ -44,12 +44,37 @@
 }
 
 .messages {
+  position: relative;
   display: flex;
   flex-direction: column;
   flex-grow: 1;
   overflow-y: scroll;
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+.client {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  opacity: 0.5;
+  font-size: 0.75rem;
+}
+
+.client-status-idle {
+  color: black;
+}
+
+.client-status-pending {
+  color: blue;
+}
+
+.client-status-success {
+  color: green;
+}
+
+.client-status-error {
+  color: red;
 }
 
 .messages::-webkit-scrollbar {

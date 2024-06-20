@@ -1,4 +1,3 @@
-import { Wallet } from "@ethersproject/wallet";
 import { z } from "zod";
 import * as Brpc from "@killthebuddha/brpc/brpc.js";
 import { jsonStringSchema } from "@repo/lib/jsonStringSchema.js";

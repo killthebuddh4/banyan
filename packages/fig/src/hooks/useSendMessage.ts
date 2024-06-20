@@ -1,11 +1,11 @@
 import { useMemo } from "react";
 import { useRemote } from "./useRemote.js";
 import { Signer } from "../remote/Signer.js";
-import { useClient } from "./useClient.js";
+import { useClientStore } from "./useClientStore.js";
 
 export const useSendMessage = ({ wallet }: { wallet?: Signer }) => {
   const remote = useRemote({ wallet });
-  const client = useClient({ wallet });
+  const client = useClientStore({ wallet });
 
   const sendMessage = useMemo(() => {
     if (remote === null) {
@@ -16,7 +16,7 @@ export const useSendMessage = ({ wallet }: { wallet?: Signer }) => {
       return null;
     }
 
-    if (client.client.code !== "success") {
+    if (client.code !== "success") {
       return null;
     }
 

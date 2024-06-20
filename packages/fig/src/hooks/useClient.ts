@@ -3,6 +3,9 @@ import * as Comlink from "comlink";
 import { createRemote } from "../remote/createRemote.js";
 import { AsyncState } from "../remote/AsyncState.js";
 import { Signer } from "../remote/Signer.js";
+import { useClientStore } from "./useClientStore.js";
+import { useStartClient } from "./useStartClient.js";
+import { useRemote } from "./useRemote.js";
 
 export const useClient = ({
   wallet,
@@ -11,65 +14,9 @@ export const useClient = ({
   wallet?: Signer;
   opts?: { autoStart?: boolean };
 }) => {
-  const worker = useMemo(() => {
-    if (wallet === undefined) {
-      return null;
-    }
-
-    return createRemote({ address: wallet.address });
-  }, [wallet]);
-
-  const [client, setClient] = useState<AsyncState<undefined> | null>(null);
-
-  useEffect(() => {
-    (async () => {
-      if (worker === null) {
-        setClient(null);
-      } else {
-        const state = await worker.fetchClient();
-
-        if (!state.ok) {
-          // TODO;
-        } else {
-          setClient(state.data);
-        }
-      }
-    })();
-  }, [worker]);
-
-  useEffect(() => {
-    if (worker === null) {
-      return;
-    } else {
-      worker.subscribeToClientStore(
-        Comlink.proxy({
-          onChange: (client) => {
-            setClient(client);
-          },
-        })
-      );
-    }
-  }, [worker]);
-
-  const start = useMemo(() => {
-    if (worker === null) {
-      return null;
-    }
-
-    if (wallet === undefined) {
-      return null;
-    }
-
-    if (client === null) {
-      return null;
-    }
-
-    if (client.code !== "idle" && client.code !== "error") {
-      return null;
-    }
-
-    return () => worker.startClient(Comlink.proxy(wallet));
-  }, [worker, wallet, client]);
+  const remote = useRemote({ wallet });
+  const client = useClientStore({ wallet });
+  const startClient = useStartClient({ wallet });
 
   const autoStart = useMemo(() => {
     if (opts?.autoStart === false) {
@@ -80,50 +27,32 @@ export const useClient = ({
   }, [opts?.autoStart]);
 
   useEffect(() => {
+    if (remote === null) {
+      console.log("FIG :: useClient :: REMOTE IS NULL");
+      return;
+    }
+
     if (!autoStart) {
+      console.log("FIG :: useClient :: AUTO START IS FALSE");
       return;
     }
 
-    if (start === null) {
+    if (startClient === null) {
+      console.log("FIG :: useClient :: START CLIENT IS NULL");
       return;
     }
 
-    start();
-  }, [autoStart, start]);
-
-  const stop = useMemo(() => {
-    if (worker === null) {
-      return null;
+    if (wallet === undefined) {
+      console.log("FIG :: useClient :: WALLET IS UNDEFINED");
+      return;
     }
 
-    if (client === null) {
-      return null;
-    }
-
-    if (client.code !== "success") {
-      return null;
-    }
-
-    return worker.stopClient;
-  }, [worker, client]);
-
-  if (worker === null) {
-    return null;
-  }
-
-  if (client === null) {
-    return null;
-  }
-
-  if (typeof wallet !== "object") {
-    return null;
-  }
-
-  console.log("USE CLIENT :: client.code", client.code);
+    console.log("FIG :: useClient :: STARTING CLIENT");
+    startClient();
+  }, [autoStart, startClient]);
 
   return {
-    start,
-    stop,
+    start: startClient,
     client,
   };
 };
