@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useMessages } from "@killthebuddha/fig";
 import { useGroupMembers } from "@/hooks/useGroupMembers";
 import { useWallet } from "@/hooks/useWallet";
 
@@ -38,7 +37,7 @@ export const Input = () => {
         //     }),
         // );
 
-        console.log(`Input :: Message sent to ${members.length} members`);
+        // console.log(`Input :: Message sent to ${members.length} members`);
       }}
     >
       <input

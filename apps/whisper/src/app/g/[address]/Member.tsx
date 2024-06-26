@@ -1,23 +1,55 @@
 import { App } from "@/components/App";
-import { Messages } from "@/components/Messages";
-import { useGroupMember } from "@/hooks/useGroupMember";
+import { useBrpcClient } from "@killthebuddha/fig";
 import { useEffect, useMemo } from "react";
 import { useWallet } from "@/hooks/useWallet";
+import { useLogin } from "@killthebuddha/fig";
+import { useStream } from "@killthebuddha/fig";
+import { useGroupAddressParam } from "@/hooks/useGroupAddressParam";
 
 export const Member = () => {
   const { wallet, create } = useWallet();
+  const groupAddress = useGroupAddressParam();
 
-  const memoWallet = useMemo(() => wallet, [wallet?.address]);
+  const brpcClient = useBrpcClient({
+    wallet,
+    address: groupAddress,
+  });
+  const { login, isLoggedIn } = useLogin({ wallet });
 
-  const brpcClient = useGroupMember();
+  const { start, isStreaming } = useStream({ wallet });
+
+  console.log(`WHISPER :: MEMBER :: isStreaming ${isStreaming}`);
+  console.log(
+    `WHISPER :: MEMBER :: isLoggedIn ${isLoggedIn} ${wallet?.address}`,
+  );
+
+  useEffect(() => {
+    if (login === null) {
+      return;
+    }
+
+    console.log("WHISPER :: Member :: login() :: CALLED");
+    login();
+  }, [login]);
+
+  useEffect(() => {
+    if (start === null) {
+      return;
+    }
+
+    if (!isLoggedIn) {
+      return;
+    }
+
+    console.log("WHISPER :: Member :: start() :: CALLED");
+    start().then((response) => {
+      console.log("WHISPER :: Member :: start() :: response", response);
+    });
+  }, [start, isLoggedIn]);
 
   useEffect(() => {
     create();
   }, []);
-
-  useMemo(() => {
-    console.log("WHISPER :: Member :: TEST brpcClient memo running");
-  }, [brpcClient]);
 
   useEffect(() => {
     (async () => {
@@ -26,24 +58,27 @@ export const Member = () => {
         return;
       }
 
-      if (memoWallet === undefined) {
-        console.log("WHISPER :: Member :: wallet === undefined");
+      if (!isStreaming) {
+        console.log("WHISPER :: Member :: isStreaming === false");
         return;
       }
 
-      console.log(
-        "WHISPER :: Member :: await client.join(wallet.address) :: CALLED",
-      );
+      console.log("MEMBER :: await client.pub() being called");
 
-      const result = await brpcClient.join(memoWallet.address);
+      const result = await brpcClient.pub();
+
+      console.log("MEMBER :: await client.pub()", result);
+
+      // const result = await brpcClient.join(memoWallet.address);
 
       console.log("MEMBER :: await client.join(wallet.address)", result);
     })();
-  }, [brpcClient, memoWallet]);
+  }, [brpcClient, isStreaming]);
 
   return (
     <App>
-      <Messages />
+      {null}
+      {/* <Messages /> */}
     </App>
   );
 };

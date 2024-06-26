@@ -1,6 +1,6 @@
 import * as Comlink from "comlink";
 import { Actions } from "../remote/Actions.js";
-import XmtpRemote from "../remote/remote.js?worker&inline";
+import XmtpRemote from "../remote/worker.js?worker&inline";
 import { Signer } from "../remote/Signer.js";
 import { useMemo } from "react";
 

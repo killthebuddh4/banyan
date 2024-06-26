@@ -30,7 +30,7 @@ export const createServer = async <A extends Brpc.BrpcApi>({
     onInputTypeMismatch?: () => void;
     onSerializationError?: () => void;
     onHandlingMessage?: () => void;
-    onResponseSent?: () => void;
+    onResponseSent?: ({ message }: { message: DecodedMessage }) => void;
     onSendFailed?: () => void;
   };
 }) => {
@@ -153,8 +153,17 @@ export const createServer = async <A extends Brpc.BrpcApi>({
           }
 
           const reply = async (str: string) => {
+            await new Promise((resolve) => setTimeout(resolve, 3000));
             try {
-              return await message.conversation.send(str);
+              const sent = await message.conversation.send(str);
+
+              if (options?.onResponseSent) {
+                try {
+                  options.onResponseSent({ message: sent });
+                } catch (error) {
+                  console.warn("onResponseSent threw an error", error);
+                }
+              }
             } catch (error) {
               if (options?.onSendFailed) {
                 try {

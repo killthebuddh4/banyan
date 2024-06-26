@@ -15,7 +15,7 @@ export const sendMessage = async (args: {
     timeoutMs?: number;
   };
 }): Promise<ActionResult<Message>> => {
-  console.log("ACTION :: sendMessage :: CALLED");
+  console.log("FIG :: ACTION :: sendMessage :: CALLED");
 
   const timer = setTimeout(() => {
     throw new Error("sendMessage() timed out");
@@ -34,9 +34,9 @@ export const sendMessage = async (args: {
 
     let xmtpConversation: Conversation;
     try {
-      xmtpConversation = await client.data.conversations.newConversation(
-        args.conversation.peerAddress,
-        (() => {
+      const newConversationArgs = {
+        peerAddress: args.conversation.peerAddress,
+        context: (() => {
           if (args.conversation.context === undefined) {
             return undefined;
           } else {
@@ -45,9 +45,25 @@ export const sendMessage = async (args: {
               metadata: {},
             };
           }
-        })()
+        })(),
+      };
+
+      console.log(
+        "FIG :: ACTION :: calling newConversation",
+        newConversationArgs
       );
-    } catch {
+
+      xmtpConversation = await client.data.conversations.newConversation(
+        newConversationArgs.peerAddress,
+        newConversationArgs.context
+      );
+
+      console.log("FIG :: ACTION :: newConversation succeeded");
+    } catch (error) {
+      console.error(
+        "FIG :: ACTION :: newConversation failed with error",
+        error
+      );
       return {
         ok: false,
         code: "REMOTE_ERROR",

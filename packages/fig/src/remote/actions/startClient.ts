@@ -21,7 +21,13 @@ export const startClient = async (
 
   store.setState({ client: { code: "pending" } });
 
-  const env = opts?.env ?? "production";
+  const env = (() => {
+    if (opts?.env === undefined) {
+      return "dev";
+    }
+
+    return opts.env;
+  })();
 
   let privateKeyOverride;
   if (wallet === null) {

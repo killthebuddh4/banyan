@@ -31,22 +31,33 @@ export const useLogin = ({
 
   useEffect(() => {
     if (!autoLogin) {
-      console.log("FIG :: useClient :: AUTO START IS FALSE");
+      console.log("FIG :: useLogin :: AUTO START IS FALSE");
       return;
     }
 
     if (startClient === null) {
-      console.log("FIG :: useClient :: START CLIENT IS NULL");
+      console.log("FIG :: useLogin :: START CLIENT IS NULL");
       return;
     }
 
     if (stopClient === null) {
-      console.log("FIG :: useClient :: STOP CLIENT IS NULL");
+      console.log("FIG :: useLogin :: STOP CLIENT IS NULL");
       return;
     }
 
-    console.log("FIG :: useClient :: STARTING CLIENT");
-    startClient();
+    if (state.client.code !== "idle") {
+      console.log("FIG :: useLogin :: CLIENT NOT READY TO START");
+      return;
+    }
+
+    console.log("FIG :: useLogin :: STARTING CLIENT");
+    startClient()
+      .then((response) => {
+        console.log("FIG :: useLogin :: START CLIENT RESPONSE", response);
+      })
+      .catch((error) => {
+        console.error("FIG :: useLogin :: START CLIENT ERROR", error);
+      });
 
     return () => {
       if (!autoLogout) {
@@ -55,7 +66,9 @@ export const useLogin = ({
 
       stopClient();
     };
-  }, [autoLogin, startClient, stopClient]);
+  }, [autoLogin, startClient, stopClient, state.client.code, autoLogout]);
+
+  console.log(`FIG :: useLogin :: state.client.code: ${state.client.code}`);
 
   return {
     login: startClient,
