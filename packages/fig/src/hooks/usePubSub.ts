@@ -1,9 +1,7 @@
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { Signer } from "../remote/Signer.js";
 import { useMessages } from "./useMessages.js";
 import { useRemoteActions } from "./useRemoteActions.js";
-import { useRemoteState } from "./useRemoteState.js";
-import { Conversation } from "../remote/Conversation.js";
 import { Message } from "../remote/Message.js";
 
 // The point of this hook is to work with somewhat arbitrary
@@ -12,14 +10,13 @@ import { Message } from "../remote/Message.js";
 // the XMTP conversation and messages into something like a
 // topic or channel.
 
+// TODO
+// You know what, a way better way to do this would be to use `brpc`,
+// that would actually be super legit.
+
 export const usePubSub = (props: {
   wallet?: Signer;
-  topic: {
-    peerAddress: string;
-    context: {
-      conversationId: string;
-    };
-  };
+  topic: string;
   members: string[];
   opts?: {
     allowAutoSubscribe?: boolean;
@@ -51,10 +48,7 @@ export const usePubSub = (props: {
         return false;
       }
 
-      if (
-        message.conversation.context.conversationId !==
-        props.topic.context.conversationId
-      ) {
+      if (message.conversation.context.conversationId !== props.topic) {
         return false;
       }
 
@@ -63,10 +57,7 @@ export const usePubSub = (props: {
     [props.topic, props.members, allowAutoSubscribe]
   );
 
-  const { messages } = useMessages({
-    wallet: props.wallet,
-    opts: { filter },
-  });
+  const { messages } = useMessages({ wallet: props.wallet, opts: { filter } });
 
   const members = useMemo(() => {
     if (!allowAutoSubscribe) {
@@ -94,9 +85,7 @@ export const usePubSub = (props: {
           return sendMessage({
             conversation: {
               peerAddress: address,
-              context: {
-                conversationId: props.topic.context.conversationId,
-              },
+              context: { conversationId: props.topic },
             },
             content,
           });
