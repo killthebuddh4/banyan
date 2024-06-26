@@ -1,10 +1,10 @@
 import { ActionResult } from "../ActionResult.js";
-import { clientStore } from "../stores/clientStore.js";
+import { store } from "../state/store.js";
 
 export const stopClient = async (): Promise<ActionResult<undefined>> => {
   console.log("ACTION :: stopClient :: CALLED");
 
-  const state = clientStore.getState();
+  const state = store.getState();
 
   if (state.client.code !== "success") {
     return {
@@ -14,7 +14,7 @@ export const stopClient = async (): Promise<ActionResult<undefined>> => {
     };
   }
 
-  clientStore.setState({ client: { code: "idle" } });
+  store.setState({ client: { code: "idle" } });
 
   return {
     ok: true,

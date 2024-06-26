@@ -2,10 +2,10 @@ import { z } from "zod";
 import * as Brpc from "@killthebuddha/brpc/brpc.js";
 import { jsonStringSchema } from "@repo/lib/jsonStringSchema.js";
 import { v4 as uuidv4 } from "uuid";
-import { useSendMessage } from "./useSendMessage.js";
+import { useSendMessage } from "./remote/useSendMessage.js";
 import { Message } from "../remote/Message.js";
 import { Signer } from "../remote/Signer.js";
-import { useListenToGlobalMessageStream } from "./useListenToGlobalMessageStream.js";
+import { useListenToGlobalMessageStream } from "./remote/useListenToGlobalMessageStream.js";
 import { useState, useEffect, useMemo } from "react";
 
 type Sub = ({

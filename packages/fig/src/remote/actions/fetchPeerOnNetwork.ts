@@ -1,9 +1,9 @@
-import { clientStore } from "../stores/clientStore.js";
+import { store } from "../state/store.js";
 
 export const fetchPeerOnNetwork = async (args: { peerAddress: string }) => {
   console.log("ACTION :: fetchPeerOnNetwork :: CALLED");
 
-  const client = clientStore.getState().client;
+  const client = store.getState().client;
 
   if (client.code !== "success") {
     return {

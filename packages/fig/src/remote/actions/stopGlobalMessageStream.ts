@@ -1,4 +1,4 @@
-import { globalMessageStreamStore } from "../stores/globalMessageStreamStore.js";
+import { store } from "../state/store.js";
 import { ActionResult } from "../ActionResult.js";
 
 export const stopGlobalMessageStream = async (): Promise<
@@ -6,7 +6,7 @@ export const stopGlobalMessageStream = async (): Promise<
 > => {
   console.log("ACTION :: stopGlobalMessageStream :: CALLED");
 
-  const messageStream = globalMessageStreamStore.getState().stream;
+  const messageStream = store.getState().globalMessageStream;
 
   if (messageStream.code !== "success") {
     return {
@@ -18,7 +18,7 @@ export const stopGlobalMessageStream = async (): Promise<
 
   messageStream.data.stop();
 
-  globalMessageStreamStore.setState({ stream: { code: "idle" } });
+  store.setState({ globalMessageStream: { code: "idle" } });
 
   return {
     ok: true,

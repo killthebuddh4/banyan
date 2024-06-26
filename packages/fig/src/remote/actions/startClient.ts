@@ -1,4 +1,4 @@
-import { clientStore } from "../stores/clientStore.js";
+import { store } from "../state/store.js";
 import { Signer } from "../Signer.js";
 import { ActionResult } from "../ActionResult.js";
 import { Client } from "@xmtp/xmtp-js";
@@ -9,7 +9,7 @@ export const startClient = async (
 ): Promise<ActionResult<undefined>> => {
   console.log("ACTION :: startClient :: CALLED");
 
-  const state = clientStore.getState();
+  const state = store.getState();
 
   if (state.client.code !== "idle") {
     return {
@@ -19,7 +19,7 @@ export const startClient = async (
     };
   }
 
-  clientStore.setState({ client: { code: "pending" } });
+  store.setState({ client: { code: "pending" } });
 
   const env = opts?.env ?? "production";
 
@@ -29,7 +29,7 @@ export const startClient = async (
     if (xmtpKey === undefined) {
       // Not sure whether to set the state to error, because the clientStore isn't really
       // in an error state, the startClient function just failed.
-      clientStore.setState({ client: { code: "idle" } });
+      store.setState({ client: { code: "idle" } });
 
       return {
         ok: false,
@@ -43,7 +43,7 @@ export const startClient = async (
           privateKeyOverride: Buffer.from(xmtpKey, "base64"),
         });
       } catch {
-        clientStore.setState({
+        store.setState({
           client: {
             code: "error",
             error:
@@ -63,7 +63,7 @@ export const startClient = async (
     try {
       privateKeyOverride = await Client.getKeys(wallet, { env });
     } catch {
-      clientStore.setState({
+      store.setState({
         client: {
           code: "error",
           error: "Client.getKeys failed with given wallet",
@@ -84,7 +84,7 @@ export const startClient = async (
       privateKeyOverride,
     });
 
-    clientStore.setState({
+    store.setState({
       client: {
         code: "success",
         data: client,
@@ -97,7 +97,7 @@ export const startClient = async (
       data: undefined,
     };
   } catch {
-    clientStore.setState({
+    store.setState({
       client: { code: "error", error: "Client.create failed" },
     });
     return {

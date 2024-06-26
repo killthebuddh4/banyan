@@ -1,5 +1,5 @@
 import { Conversation } from "@xmtp/xmtp-js";
-import { clientStore } from "../stores/clientStore.js";
+import { store } from "../state/store.js";
 import { ActionResult } from "../ActionResult.js";
 import { Message } from "../Message.js";
 
@@ -22,7 +22,7 @@ export const sendMessage = async (args: {
   }, args.opts?.timeoutMs || 10000);
 
   try {
-    const client = clientStore.getState().client;
+    const client = store.getState().client;
 
     if (client.code !== "success") {
       return {

@@ -1,5 +1,5 @@
 import { ActionResult } from "../ActionResult.js";
-import { globalMessageStreamStore } from "../stores/globalMessageStreamStore.js";
+import { store } from "../state/store.js";
 import { Message } from "../Message.js";
 
 export const listenToGlobalMessageStream = async (
@@ -7,7 +7,7 @@ export const listenToGlobalMessageStream = async (
 ): Promise<ActionResult<undefined>> => {
   console.log("ACTION :: listenToGlobalMessageStream :: CALLED");
 
-  const messageStream = globalMessageStreamStore.getState().stream;
+  const messageStream = store.getState().globalMessageStream;
 
   if (messageStream.code !== "success") {
     return {

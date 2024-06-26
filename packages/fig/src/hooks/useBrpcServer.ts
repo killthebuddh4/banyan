@@ -1,8 +1,8 @@
 import { Wallet } from "@ethersproject/wallet";
 import * as Brpc from "@killthebuddha/brpc/brpc.js";
 import { jsonStringSchema } from "@repo/lib/jsonStringSchema.js";
-import { useListenToGlobalMessageStream } from "./useListenToGlobalMessageStream.js";
-import { useSendMessage } from "./useSendMessage.js";
+import { useListenToGlobalMessageStream } from "./remote/useListenToGlobalMessageStream.js";
+import { useSendMessage } from "./remote/useSendMessage.js";
 import { Message } from "../remote/Message.js";
 import { useEffect, useMemo } from "react";
 

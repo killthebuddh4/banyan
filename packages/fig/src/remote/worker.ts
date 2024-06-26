@@ -1,9 +1,9 @@
-import "../polyfills";
+import "../polyfills.js";
 import * as Comlink from "comlink";
 import { startClient } from "./actions/startClient.js";
 import { stopClient } from "./actions/stopClient.js";
 import { subscribeToClientStore } from "./actions/subscribeToClientStore.js";
-import { fetchClient } from "./actions/fetchClient.js";
+import { fetchState } from "./actions/fetchState.js";
 import { subscribeToGlobalMessageStreamStore } from "./actions/subscribeToGlobalMessageStreamStore.js";
 import { startGlobalMessageStream } from "./actions/startGlobalMessageStream.js";
 import { fetchGlobalMessageStream } from "./actions/fetchGlobalMessageStream.js";
@@ -14,7 +14,7 @@ Comlink.expose({
   startClient,
   stopClient,
   subscribeToClientStore,
-  fetchClient,
+  fetchState,
   startGlobalMessageStream,
   subscribeToGlobalMessageStreamStore,
   fetchGlobalMessageStream,

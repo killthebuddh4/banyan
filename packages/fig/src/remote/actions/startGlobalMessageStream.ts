@@ -1,5 +1,4 @@
-import { clientStore } from "../stores/clientStore.js";
-import { globalMessageStreamStore } from "../stores/globalMessageStreamStore.js";
+import { store } from "../state/store.js";
 import { createMessageStream } from "../createMesssageStream.js";
 import { ActionResult } from "../ActionResult.js";
 
@@ -8,7 +7,7 @@ export const startGlobalMessageStream = async (): Promise<
 > => {
   console.log("ACTION :: startGlobalMessageStream :: CALLED");
 
-  const messageStream = globalMessageStreamStore.getState().stream;
+  const messageStream = store.getState().globalMessageStream;
 
   if (messageStream.code !== "idle") {
     return {
@@ -18,7 +17,7 @@ export const startGlobalMessageStream = async (): Promise<
     };
   }
 
-  const client = clientStore.getState().client;
+  const client = store.getState().client;
 
   if (client.code !== "success") {
     return {
@@ -28,7 +27,7 @@ export const startGlobalMessageStream = async (): Promise<
     };
   }
 
-  globalMessageStreamStore.setState({ stream: { code: "pending" } });
+  store.setState({ globalMessageStream: { code: "pending" } });
 
   try {
     const gen = await client.data.conversations.streamAllMessages();
@@ -38,8 +37,8 @@ export const startGlobalMessageStream = async (): Promise<
       "ACTION :: startGlobalMessageStream :: STARTED GLOBAL MESSAGE STREAM"
     );
 
-    globalMessageStreamStore.setState({
-      stream: { code: "success", data: stream },
+    store.setState({
+      globalMessageStream: { code: "success", data: stream },
     });
 
     return {
@@ -48,8 +47,8 @@ export const startGlobalMessageStream = async (): Promise<
       data: undefined,
     };
   } catch {
-    globalMessageStreamStore.setState({
-      stream: {
+    store.setState({
+      globalMessageStream: {
         code: "error",
         error: "client.data.conversations.streamAllMessages failed",
       },
