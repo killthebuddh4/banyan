@@ -5,22 +5,30 @@ import { v4 as uuidv4 } from "uuid";
 import { Message } from "../remote/Message.js";
 import { Actions } from "../remote/Actions.js";
 
+/* ***************************************************************************
+ *
+ * NOTE: This code heavily duplicates createClient from the `brpc` package. This
+ * implementation is more recent and has some improvements and sooner rather than
+ * later we should refactor the `brpc` package to use this implementation.
+ *
+ * ***************************************************************************/
+
 export const createBrpcClient = <A extends Brpc.BrpcApi>({
   api,
-  listen,
-  sendMessage,
-  conversation,
+  subscribe,
+  publish,
+  topic,
   clientAddress,
   options,
 }: {
   api: A;
-  conversation: {
+  topic: {
     peerAddress: string;
-    context?: { conversationId: string; metadata: {} };
+    context: { conversationId: string; metadata: {} };
   };
   clientAddress: string;
-  listen: (handler: (message: Message) => void) => void;
-  sendMessage: Actions["sendMessage"];
+  subscribe: (handler: (message: Message) => void) => void;
+  publish: Actions["sendMessage"];
   options?: {
     timeoutMs?: number;
     onSelfSentMessage?: ({ message }: { message: Message }) => void;
@@ -52,13 +60,28 @@ export const createBrpcClient = <A extends Brpc.BrpcApi>({
     subscriptions.delete(id);
   };
 
-  listen(async (message) => {
+  subscribe(async (message) => {
     console.log(
       "FIG :: createBrpcCLient :: listen got a message",
       message.content
     );
 
     if (message.senderAddress === clientAddress) {
+      return;
+    }
+
+    if (message.conversation.context === undefined) {
+      console.log("FIG :: useBrpcClient :: ignoring message without context");
+      return;
+    }
+
+    if (
+      message.conversation.context.conversationId !==
+      topic.context?.conversationId
+    ) {
+      console.log(
+        "FIG :: useBrpcClient :: ignoring message with incorrect conversationId"
+      );
       return;
     }
 
@@ -212,10 +235,10 @@ export const createBrpcClient = <A extends Brpc.BrpcApi>({
 
       try {
         console.log("FIG :: createBrpcClient :: sending message", {
-          conversation,
+          topic,
           str,
         });
-        const sent = await sendMessage({ conversation, content: str });
+        const sent = await publish({ conversation: topic, content: str });
 
         console.log("FIG :: createBrpcClient :: sent message", sent);
       } catch {

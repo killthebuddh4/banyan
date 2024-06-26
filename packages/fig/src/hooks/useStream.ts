@@ -8,6 +8,7 @@ export const useStream = (props: {
   opts?: { autoStart?: boolean; autoStop?: boolean };
 }) => {
   const actions = useRemoteActions({ wallet: props.wallet });
+
   const { client, globalMessageStream } = useRemoteState({
     wallet: props.wallet,
   });

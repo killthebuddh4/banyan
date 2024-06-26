@@ -48,8 +48,8 @@ export const useBrpcServer = <A extends Brpc.BrpcApi>(props: {
       createBrpcServer({
         api: props.api,
         address: wallet.address,
-        listen,
-        sendMessage,
+        subscribe: listen,
+        publish: sendMessage,
         options: props.options,
       });
   }, [props.api, props.wallet?.address, listen, sendMessage, props.options]);

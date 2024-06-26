@@ -8,7 +8,9 @@ import * as Brpc from "@killthebuddha/brpc/brpc.js";
 
 export const useBrpcClient = <A extends Brpc.BrpcApi>(props: {
   api: A;
-  address: string;
+  server: {
+    address: string;
+  };
   wallet?: Signer;
   options?: {
     timeoutMs?: number;
@@ -25,50 +27,16 @@ export const useBrpcClient = <A extends Brpc.BrpcApi>(props: {
     onSendFailed?: () => void;
   };
 }) => {
+  const walletAddress = props.wallet?.address;
+
   const { sendMessage } = useRemoteActions({
     wallet: props.wallet,
   });
 
   const { listen } = useStream({ wallet: props.wallet });
 
-  const prefix = (() => {
-    if (props.options?.conversationIdPrefix) {
-      return props.options.conversationIdPrefix;
-    }
-
-    return "banyan.sh/brpc";
-  })();
-
-  const wrappedListen = useMemo(() => {
-    console.log("FIG :: useBrpcClient :: listen got a message");
+  const start = useMemo(() => {
     if (listen === null) {
-      return null;
-    }
-
-    return (handler: (message: Message) => void) => {
-      return listen((message) => {
-        if (message.conversation.context === undefined) {
-          console.log(
-            "FIG :: useBrpcClient :: ignoring message without context"
-          );
-          return;
-        }
-
-        if (!message.conversation.context.conversationId.startsWith(prefix)) {
-          console.log(
-            "FIG :: useBrpcClient :: ignoring message with incorrect conversationId"
-          );
-          return;
-        }
-
-        console.log("FIG :: useBrpcClient :: handling message");
-        handler(message);
-      });
-    };
-  }, [listen, prefix]);
-
-  return useMemo(() => {
-    if (wrappedListen === null) {
       return null;
     }
 
@@ -76,31 +44,41 @@ export const useBrpcClient = <A extends Brpc.BrpcApi>(props: {
       return null;
     }
 
-    if (props.wallet === undefined) {
+    if (walletAddress === undefined) {
       return null;
     }
 
-    return createBrpcClient({
-      api: props.api,
-      conversation: {
-        peerAddress: props.address,
-        context: {
-          conversationId: `${prefix}`,
-          metadata: {},
+    const prefix = (() => {
+      if (props.options?.conversationIdPrefix) {
+        return props.options.conversationIdPrefix;
+      }
+
+      return "banyan.sh/brpc";
+    })();
+
+    return () =>
+      createBrpcClient({
+        api: props.api,
+        topic: {
+          peerAddress: props.server.address,
+          context: {
+            conversationId: `${prefix}`,
+            metadata: {},
+          },
         },
-      },
-      clientAddress: props.wallet.address,
-      listen: wrappedListen,
-      sendMessage,
-      options: props.options,
-    });
+        clientAddress: walletAddress,
+        subscribe: listen,
+        publish: sendMessage,
+        options: props.options,
+      });
   }, [
     props.api,
-    props.address,
-    props.wallet?.address,
-    wrappedListen,
+    props.server.address,
+    walletAddress,
+    listen,
     sendMessage,
-    prefix,
     props.options,
   ]);
+
+  return { start };
 };

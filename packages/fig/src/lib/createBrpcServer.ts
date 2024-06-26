@@ -3,11 +3,19 @@ import { jsonStringSchema } from "@repo/lib/jsonStringSchema.js";
 import { Message } from "../remote/Message.js";
 import { Actions } from "../remote/Actions.js";
 
+/* ***************************************************************************
+ *
+ * NOTE: This code heavily duplicates createServer from the `brpc` package. This
+ * implementation is more recent and has some improvements and sooner rather than
+ * later we should refactor the `brpc` package to use this implementation.
+ *
+ * ***************************************************************************/
+
 export const createBrpcServer = <A extends Brpc.BrpcApi>(args: {
   api: A;
-  listen: (handler: (message: Message) => void) => void;
   address: string;
-  sendMessage: Actions["sendMessage"];
+  subscribe: (handler: (message: Message) => void) => void;
+  publish: Actions["sendMessage"];
   options?: {
     conversationIdPrefix?: string;
     onMessage?: ({ message }: { message: Message }) => void;
@@ -25,7 +33,7 @@ export const createBrpcServer = <A extends Brpc.BrpcApi>(args: {
     onSendFailed?: () => void;
   };
 }) => {
-  args.listen(async (message) => {
+  args.subscribe(async (message) => {
     console.log("FIG :: createBrpcServer :: listen got a message");
 
     if (message.conversation.context === undefined) {
@@ -92,7 +100,7 @@ export const createBrpcServer = <A extends Brpc.BrpcApi>(args: {
 
     const reply = async (str: string) => {
       try {
-        return await args.sendMessage({
+        return await args.publish({
           conversation: {
             peerAddress: message.senderAddress,
             context: {
