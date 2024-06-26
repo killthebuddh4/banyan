@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useMemo } from "react";
-import { Message } from "../remote/Message.js";
 import { Signer } from "../remote/Signer.js";
 import { useMessages } from "./useMessages.js";
 import { useRemoteActions } from "./useRemoteActions.js";
 import { useRemoteState } from "./useRemoteState.js";
+import { Conversation } from "../remote/Conversation.js";
+import { Message } from "../remote/Message.js";
 
 // The point of this hook is to work with somewhat arbitrary
 // groups of conversations. It multiplexes inbound conversations
@@ -11,37 +12,98 @@ import { useRemoteState } from "./useRemoteState.js";
 // the XMTP conversation and messages into something like a
 // topic or channel.
 
-export const usePubSub = ({
-  wallet,
-  opts,
-}: {
+export const usePubSub = (props: {
   wallet?: Signer;
-  opts?: { filter?: (m: Message) => boolean };
+  topic: {
+    peerAddress: string;
+    context: {
+      conversationId: string;
+    };
+  };
+  members: string[];
+  opts?: {
+    allowAutoSubscribe?: boolean;
+  };
 }) => {
-  const { messages, pushMessages } = useMessages();
+  const { sendMessage } = useRemoteActions({ wallet: props.wallet });
 
-  const messageFilter = useCallback(
+  const allowAutoSubscribe = useMemo(() => {
+    if (props.opts?.allowAutoSubscribe === true) {
+      return true;
+    }
+
+    return false;
+  }, [props.opts?.allowAutoSubscribe]);
+
+  const filter = useCallback(
     (message: Message) => {
-      if (wallet === undefined) {
+      if (!allowAutoSubscribe) {
+        const sender = props.members.find((address) => {
+          return address === message.senderAddress;
+        });
+
+        if (sender === undefined) {
+          return false;
+        }
+      }
+
+      if (message.conversation.context === undefined) {
         return false;
       }
 
-      if (opts?.filter === undefined) {
-        return true;
+      if (
+        message.conversation.context.conversationId !==
+        props.topic.context.conversationId
+      ) {
+        return false;
       }
 
-      return opts.filter(message);
+      return true;
     },
-    [wallet, opts?.filter]
+    [props.topic, props.members, allowAutoSubscribe]
   );
 
-  const messages = useMemo(() => {
-    if (wallet === undefined) {
-      return [];
+  const { messages } = useMessages({
+    wallet: props.wallet,
+    opts: { filter },
+  });
+
+  const members = useMemo(() => {
+    if (!allowAutoSubscribe) {
+      return props.members;
     }
 
-    return messageStore.messages[wallet.address] || [];
-  }, [messageStore.messages, wallet?.address]);
+    return Array.from(
+      new Set([
+        ...props.members,
+        ...messages
+          .map((m) => m.senderAddress)
+          .filter((address) => address !== props.wallet?.address),
+      ])
+    );
+  }, [props.members, messages, allowAutoSubscribe]);
 
-  return { messages, send: sendMessage };
+  const publish = useMemo(() => {
+    if (sendMessage === null) {
+      return null;
+    }
+
+    return async ({ content }: { content: string }) => {
+      return await Promise.all(
+        members.map(async (address) => {
+          return sendMessage({
+            conversation: {
+              peerAddress: address,
+              context: {
+                conversationId: props.topic.context.conversationId,
+              },
+            },
+            content,
+          });
+        })
+      );
+    };
+  }, [sendMessage, props.members, props.topic]);
+
+  return { messages, publish };
 };
