@@ -1,8 +1,9 @@
 import { z } from "zod";
 import { Wallet } from "@ethersproject/wallet";
-import { createClient } from "./createClient.js";
-import { createServer } from "./createServer.js";
 import { createProcedure } from "./createProcedure.js";
+import { bindClient } from "./bindClient.js";
+import { createXmtp } from "./createXmtp.js";
+import { bindServer } from "./bindServer.js";
 
 const authorizedWallet = Wallet.createRandom();
 
@@ -59,21 +60,33 @@ describe("Brpc", () => {
   it("should work", async function () {
     this.timeout(15000);
 
-    const server = await createServer({
+    const xmtpForServer = await createXmtp({});
+
+    bindServer({
       api: { add, concat },
+      xmtp: xmtpForServer,
     });
 
-    await server.start();
+    await xmtpForServer.start();
 
-    const { api, close } = await createClient({
-      address: server.address,
-      api: { add, concat, priv },
+    CLEANUP.push(xmtpForServer.stop);
+
+    const xmtpForClient = await createXmtp({});
+
+    const client = bindClient({
+      api: { add, concat },
+      xmtp: xmtpForClient,
+      conversation: {
+        peerAddress: xmtpForServer.address,
+        context: { conversationId: "banyan.sh/brpc", metadata: {} },
+      },
     });
 
-    CLEANUP.push(close);
-    CLEANUP.push(server.close);
+    await xmtpForClient.start();
 
-    const addResult = await api.add({ a: 1, b: 2 });
+    CLEANUP.push(xmtpForClient.stop);
+
+    const addResult = await client.add({ a: 1, b: 2 });
 
     if (!addResult.ok) {
       console.error(addResult);
@@ -85,7 +98,7 @@ describe("Brpc", () => {
       throw new Error("add returned wrong result");
     }
 
-    const concatResult = await api.concat({ a: "hello", b: "world" });
+    const concatResult = await client.concat({ a: "hello", b: "world" });
 
     if (!concatResult.ok) {
       throw new Error("concat failed");
@@ -102,19 +115,31 @@ describe("Brpc", () => {
   it("should not allow public access to private procedures", async function () {
     this.timeout(15000);
 
-    const server = await createServer({
+    const xmtpForServer = await createXmtp({});
+
+    bindServer({
       api: { stealTreasure },
+      xmtp: xmtpForServer,
     });
 
-    await server.start();
+    await xmtpForServer.start();
 
-    const { api: client, close } = await createClient({
-      address: server.address,
+    CLEANUP.push(xmtpForServer.stop);
+
+    const xmtpForClient = await createXmtp({});
+
+    const client = bindClient({
       api: { stealTreasure },
+      xmtp: xmtpForClient,
+      conversation: {
+        peerAddress: xmtpForServer.address,
+        context: { conversationId: "banyan.sh/brpc", metadata: {} },
+      },
     });
 
-    CLEANUP.push(close);
-    CLEANUP.push(server.close);
+    await xmtpForClient.start();
+
+    CLEANUP.push(xmtpForClient.stop);
 
     const result = await client.stealTreasure({ amount: 100 });
 
@@ -144,38 +169,58 @@ describe("Brpc", () => {
       },
     });
 
-    const server = await createServer({
+    const xmtpForServer = await createXmtp({});
+
+    bindServer({
       api: { auth },
+      xmtp: xmtpForServer,
     });
 
-    await server.start();
+    await xmtpForServer.start();
 
-    const unauthorizedClient = await createClient({
-      address: server.address,
+    CLEANUP.push(xmtpForServer.stop);
+
+    const xmtpForUnauthorizedClient = await createXmtp({});
+
+    const unauthorizedClient = bindClient({
       api: { auth },
+      xmtp: xmtpForUnauthorizedClient,
+      conversation: {
+        peerAddress: xmtpForServer.address,
+        context: { conversationId: "banyan.sh/brpc", metadata: {} },
+      },
     });
 
-    const authorizedClient = await createClient({
-      address: server.address,
-      api: { auth },
+    await xmtpForUnauthorizedClient.start();
+
+    CLEANUP.push(xmtpForUnauthorizedClient.stop);
+
+    const xmtpForAuthorizedClient = await createXmtp({
       options: {
         wallet: authorizedWallet,
       },
     });
 
-    CLEANUP.push(authorizedClient.close);
-    CLEANUP.push(unauthorizedClient.close);
-    CLEANUP.push(server.close);
+    const authorizedClient = bindClient({
+      api: { auth },
+      xmtp: xmtpForAuthorizedClient,
+      conversation: {
+        peerAddress: xmtpForServer.address,
+        context: { conversationId: "banyan.sh/brpc", metadata: {} },
+      },
+    });
 
-    const x = auth.handler;
+    await xmtpForAuthorizedClient.start();
 
-    const unauthorizedResult = await unauthorizedClient.api.auth();
+    CLEANUP.push(xmtpForAuthorizedClient.stop);
+
+    const unauthorizedResult = await unauthorizedClient.auth();
 
     if (unauthorizedResult.ok) {
       throw new Error("auth should have failed for unauthorized client");
     }
 
-    const authorizedResult = await authorizedClient.api.auth();
+    const authorizedResult = await authorizedClient.auth();
 
     if (!authorizedResult.ok) {
       throw new Error("auth should have succeeded for authorized client");

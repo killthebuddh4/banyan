@@ -1,34 +1,31 @@
 import { z } from "zod";
-import * as Brpc from "@killthebuddha/brpc/brpc.js";
+import * as Brpc from "./brpc.js";
 import { jsonStringSchema } from "@repo/lib/jsonStringSchema.js";
 import { v4 as uuidv4 } from "uuid";
-import { Message } from "../remote/Message.js";
-import { Actions } from "../remote/Actions.js";
+import { Message } from "./Message.js";
 
-/* ***************************************************************************
- *
- * NOTE: This code heavily duplicates createClient from the `brpc` package. This
- * implementation is more recent and has some improvements and sooner rather than
- * later we should refactor the `brpc` package to use this implementation.
- *
- * ***************************************************************************/
-
-export const createBrpcClient = <A extends Brpc.BrpcApi>({
+export const bindClient = <A extends Brpc.BrpcApi>({
   api,
-  subscribe,
-  publish,
-  topic,
-  clientAddress,
+  xmtp,
+  conversation,
   options,
 }: {
   api: A;
-  topic: {
+  conversation: {
     peerAddress: string;
     context: { conversationId: string; metadata: {} };
   };
-  clientAddress: string;
-  subscribe: (handler: (message: Message) => void) => void;
-  publish: Actions["sendMessage"];
+  xmtp: {
+    address: string;
+    subscribe: (handler: (message: Message) => void) => void;
+    publish: (args: {
+      conversation: {
+        peerAddress: string;
+        context: { conversationId: string; metadata: {} };
+      };
+      content: string;
+    }) => Promise<Message>;
+  };
   options?: {
     timeoutMs?: number;
     onSelfSentMessage?: ({ message }: { message: Message }) => void;
@@ -36,6 +33,17 @@ export const createBrpcClient = <A extends Brpc.BrpcApi>({
     onReceivedInvalidResponse?: ({ message }: { message: Message }) => void;
     onNoSubscription?: ({ message }: { message: Message }) => void;
     onHandlerError?: () => void;
+    onSendingRequest?: ({
+      conversation,
+      content,
+    }: {
+      conversation: {
+        peerAddress: string;
+        context?: { conversationId: string };
+      };
+      content: string;
+    }) => void;
+    onSentRequest?: ({ message }: { message: Message }) => void;
     onSendFailed?: () => void;
   };
 }) => {
@@ -60,28 +68,19 @@ export const createBrpcClient = <A extends Brpc.BrpcApi>({
     subscriptions.delete(id);
   };
 
-  subscribe(async (message) => {
-    console.log(
-      "FIG :: createBrpcCLient :: listen got a message",
-      message.content
-    );
-
-    if (message.senderAddress === clientAddress) {
+  xmtp.subscribe(async (message) => {
+    if (message.senderAddress === xmtp.address) {
       return;
     }
 
     if (message.conversation.context === undefined) {
-      console.log("FIG :: useBrpcClient :: ignoring message without context");
       return;
     }
 
     if (
       message.conversation.context.conversationId !==
-      topic.context?.conversationId
+      conversation.context?.conversationId
     ) {
-      console.log(
-        "FIG :: useBrpcClient :: ignoring message with incorrect conversationId"
-      );
       return;
     }
 
@@ -124,8 +123,6 @@ export const createBrpcClient = <A extends Brpc.BrpcApi>({
       return;
     }
 
-    console.log("FIG :: createBrpcClient :: calling subscription");
-
     subscription({
       ctx: {
         unsubscribe: () => {
@@ -142,12 +139,8 @@ export const createBrpcClient = <A extends Brpc.BrpcApi>({
 
   for (const [key, value] of Object.entries(api)) {
     (brpcClient as any)[key as keyof typeof api] = async (
-      input: z.infer<typeof value.input>
+      input: z.infer<typeof value.input>,
     ) => {
-      console.log(
-        "FIG :: createBrpcClient :: the client-side method was called"
-      );
-
       const request = {
         id: uuidv4(),
         name: key,
@@ -234,13 +227,28 @@ export const createBrpcClient = <A extends Brpc.BrpcApi>({
       });
 
       try {
-        console.log("FIG :: createBrpcClient :: sending message", {
-          topic,
-          str,
-        });
-        const sent = await publish({ conversation: topic, content: str });
+        const sendRequestArgs = {
+          conversation: conversation,
+          content: str,
+        };
 
-        console.log("FIG :: createBrpcClient :: sent message", sent);
+        if (options?.onSendingRequest) {
+          try {
+            options.onSendingRequest(sendRequestArgs);
+          } catch (error) {
+            console.warn("onSendingRequest threw an error", error);
+          }
+        }
+
+        const sent = await xmtp.publish(sendRequestArgs);
+
+        if (options?.onSentRequest) {
+          try {
+            options.onSentRequest({ message: sent });
+          } catch (error) {
+            console.warn("onSentRequest threw an error", error);
+          }
+        }
       } catch {
         return {
           ok: false,

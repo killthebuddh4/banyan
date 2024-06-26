@@ -10,7 +10,7 @@
     "lint": "eslint .",
     "format": "prettier --check .",
     "types": "tsc --noEmit",
-    "build": "tsc",
+    "build": "npm run clean && tsc",
     "clean": "rm -rf ./build"
   },
   "devDependencies": {

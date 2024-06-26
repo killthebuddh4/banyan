@@ -1,10 +1,10 @@
 import { Message } from "../remote/Message.js";
 import { Signer } from "../remote/Signer.js";
-import { useMemo } from "react";
-import { createBrpcClient } from "../lib/createBrpcClient.js";
+import { useEffect, useMemo, useState } from "react";
 import { useRemoteActions } from "./useRemoteActions.js";
 import { useStream } from "./useStream.js";
 import * as Brpc from "@killthebuddha/brpc/brpc.js";
+import { bindClient } from "@killthebuddha/brpc/bindClient.js";
 
 export const useBrpcClient = <A extends Brpc.BrpcApi>(props: {
   api: A;
@@ -35,50 +35,49 @@ export const useBrpcClient = <A extends Brpc.BrpcApi>(props: {
 
   const { listen } = useStream({ wallet: props.wallet });
 
-  const start = useMemo(() => {
+  useEffect(() => {
+    if (props.wallet === undefined) {
+      return;
+    }
+    
     if (listen === null) {
-      return null;
+      return;
     }
 
     if (sendMessage === null) {
-      return null;
+      return;
     }
 
-    if (walletAddress === undefined) {
-      return null;
-    }
-
-    const prefix = (() => {
-      if (props.options?.conversationIdPrefix) {
-        return props.options.conversationIdPrefix;
-      }
-
-      return "banyan.sh/brpc";
-    })();
-
-    return () =>
-      createBrpcClient({
-        api: props.api,
-        topic: {
-          peerAddress: props.server.address,
-          context: {
-            conversationId: `${prefix}`,
-            metadata: {},
-          },
-        },
-        clientAddress: walletAddress,
+    bindClient({
+      api: props.api,
+      xmtp: {
+        address: props.wallet.address,
         subscribe: listen,
-        publish: sendMessage,
-        options: props.options,
-      });
-  }, [
-    props.api,
-    props.server.address,
-    walletAddress,
-    listen,
-    sendMessage,
-    props.options,
-  ]);
+        publish: async ({ conversation, content }) => {
+          const result = await sendMessage({
+            conversation,
+            content,
+          });
 
-  return { start };
-};
+          if (!result.ok) {
+            throw new Error(result.error);
+          }
+
+          return result.data;
+        },
+      },
+      conversation: {
+        peerAddress: props.server.address,
+        context: {
+          conversationId: "banyan.sh/brpc",
+          metadata: {},
+        },
+      },
+      options: props.options,
+    });
+  }
+
+
+
+
+

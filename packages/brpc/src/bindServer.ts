@@ -1,21 +1,20 @@
-import * as Brpc from "@killthebuddha/brpc/brpc.js";
+import * as Brpc from "./brpc.js";
 import { jsonStringSchema } from "@repo/lib/jsonStringSchema.js";
-import { Message } from "../remote/Message.js";
-import { Actions } from "../remote/Actions.js";
+import { Message } from "./Message.js";
 
-/* ***************************************************************************
- *
- * NOTE: This code heavily duplicates createServer from the `brpc` package. This
- * implementation is more recent and has some improvements and sooner rather than
- * later we should refactor the `brpc` package to use this implementation.
- *
- * ***************************************************************************/
-
-export const createBrpcServer = <A extends Brpc.BrpcApi>(args: {
+export const bindServer = <A extends Brpc.BrpcApi>(args: {
   api: A;
-  address: string;
-  subscribe: (handler: (message: Message) => void) => void;
-  publish: Actions["sendMessage"];
+  xmtp: {
+    address: string;
+    subscribe: (handler: (message: Message) => void) => void;
+    publish: (args: {
+      conversation: {
+        peerAddress: string;
+        context?: { conversationId: string; metadata: {} };
+      };
+      content: string;
+    }) => Promise<Message>;
+  };
   options?: {
     conversationIdPrefix?: string;
     onMessage?: ({ message }: { message: Message }) => void;
@@ -29,13 +28,11 @@ export const createBrpcServer = <A extends Brpc.BrpcApi>(args: {
     onInputTypeMismatch?: () => void;
     onSerializationError?: () => void;
     onHandlingMessage?: () => void;
-    onResponseSent?: () => void;
+    onResponseSent?: ({ sent }: { sent: Message }) => void;
     onSendFailed?: () => void;
   };
 }) => {
-  args.subscribe(async (message) => {
-    console.log("FIG :: createBrpcServer :: listen got a message");
-
+  args.xmtp.subscribe(async (message) => {
     if (message.conversation.context === undefined) {
       return;
     }
@@ -60,7 +57,7 @@ export const createBrpcServer = <A extends Brpc.BrpcApi>(args: {
       }
     }
 
-    if (message.senderAddress === args.address) {
+    if (message.senderAddress === args.xmtp.address) {
       if (args.options?.onSelfSentMessage) {
         try {
           args.options.onSelfSentMessage({ message });
@@ -100,15 +97,18 @@ export const createBrpcServer = <A extends Brpc.BrpcApi>(args: {
 
     const reply = async (str: string) => {
       try {
-        return await args.publish({
-          conversation: {
-            peerAddress: message.senderAddress,
-            context: {
-              conversationId: prefix,
-            },
-          },
+        const sent = await args.xmtp.publish({
+          conversation: message.conversation,
           content: str,
         });
+
+        if (args.options?.onResponseSent) {
+          try {
+            args.options.onResponseSent({ sent });
+          } catch (error) {
+            console.warn("onResponseSent threw an error", error);
+          }
+        }
       } catch (error) {
         if (args.options?.onSendFailed) {
           try {
@@ -138,7 +138,7 @@ export const createBrpcServer = <A extends Brpc.BrpcApi>(args: {
             ok: false,
             code: "UNKNOWN_PROCEDURE",
           },
-        })
+        }),
       );
 
       return;
@@ -186,7 +186,7 @@ export const createBrpcServer = <A extends Brpc.BrpcApi>(args: {
               ok: false,
               code: "UNAUTHORIZED",
             },
-          })
+          }),
         );
 
         return;
@@ -210,7 +210,7 @@ export const createBrpcServer = <A extends Brpc.BrpcApi>(args: {
               ok: false,
               code: "INPUT_TYPE_MISMATCH",
             },
-          })
+          }),
         );
 
         return;
@@ -243,7 +243,7 @@ export const createBrpcServer = <A extends Brpc.BrpcApi>(args: {
               ok: false,
               code: "SERVER_ERROR",
             },
-          })
+          }),
         );
 
         return;
@@ -275,7 +275,7 @@ export const createBrpcServer = <A extends Brpc.BrpcApi>(args: {
               ok: false,
               code: "OUTPUT_SERIALIZATION_FAILED",
             },
-          })
+          }),
         );
 
         return;

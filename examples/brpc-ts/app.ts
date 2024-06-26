@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { createProcedure } from "@killthebuddha/brpc/createProcedure.js";
-import { createClient } from "@killthebuddha/brpc/createClient.js";
+import { createClient } from "@killthebuddha/brpc/bindClient.js";
 
 /* TYPE SAFETY USING SCHEMAS */
 
