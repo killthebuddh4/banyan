@@ -4,6 +4,7 @@ export * from "./hooks/useInbox.js";
 export * from "./hooks/usePubSub.js";
 export * from "./hooks/useBrpcServer.js";
 export * from "./hooks/useBrpcClient.js";
+export * from "./hooks/useBrpcBroadcast.js";
 export * from "./remote/Signer.js";
 export * from "./remote/AsyncState.js";
 export * from "./remote/Message.js";

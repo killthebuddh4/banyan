@@ -72,6 +72,7 @@ export const brpcErrorSchema = z.object({
   code: z.union([
     z.literal("INPUT_SERIALIZATION_FAILED"),
     z.literal("XMTP_SEND_FAILED"),
+    z.literal("XMTP_BROADCAST_FAILED"),
     z.literal("UNKNOWN_PROCEDURE"),
     z.literal("INPUT_TYPE_MISMATCH"),
     z.literal("OUTPUT_TYPE_MISMATCH"),

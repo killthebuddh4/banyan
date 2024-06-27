@@ -1,13 +1,14 @@
 import { usePubSub } from "./usePubSub.js";
-import { bindClient } from "@killthebuddha/brpc/bindClient.js";
+import { bindBroadcast } from "@killthebuddha/brpc/bindBroadcast.js";
 import * as Brpc from "@killthebuddha/brpc/brpc.js";
 import { Signer } from "../remote/Signer.js";
 import { useMemo } from "react";
 
-export const useBrpcClient = <A extends Brpc.BrpcApi>(props: {
+export const useBrpcBroadcast = <P extends Brpc.BrpcProcedure>(props: {
   wallet?: Signer;
-  serverAddress?: string;
-  api: A;
+  serverAddresses?: string[];
+  name: string;
+  procedure: P;
 }) => {
   const { publish, subscribe } = usePubSub({ wallet: props.wallet });
 
@@ -43,17 +44,23 @@ export const useBrpcClient = <A extends Brpc.BrpcApi>(props: {
       return null;
     }
 
-    if (props.serverAddress === undefined) {
+    if (props.serverAddresses === undefined) {
       console.log("FIG :: useBrpcClient :: props.serverAddress === undefined");
       return null;
     }
 
-    console.log("FIG :: useBrpcClient :: calling bindClient");
+    if (props.serverAddresses.length === 0) {
+      console.log("FIG :: useBrpcClient :: props.serverAddress.length === 0");
+      return null;
+    }
 
-    return bindClient({
-      api: props.api,
+    console.log("FIG :: useBrpcClient :: calling bindBroadcast");
+
+    return bindBroadcast({
+      name: props.name,
+      procedure: props.procedure,
       conversation: {
-        peerAddress: props.serverAddress,
+        peerAddresses: props.serverAddresses,
         context: {
           conversationId: "banyan.sh/brpc",
           metadata: {},
@@ -65,5 +72,11 @@ export const useBrpcClient = <A extends Brpc.BrpcApi>(props: {
         subscribe,
       },
     });
-  }, [subscribe, wrappedPublish, props.wallet, props.api, props.serverAddress]);
+  }, [
+    subscribe,
+    wrappedPublish,
+    props.wallet,
+    props.procedure,
+    props.serverAddresses,
+  ]);
 };

@@ -1,11 +1,15 @@
+import { Message } from "@killthebuddha/fig";
 import { create } from "zustand";
 
 export const store = create<{
-  owner: string | null;
   members: string[];
   presence: Record<string, number>;
+  muxedMessages: Array<{
+    id: string;
+    original: Message;
+  }>;
 }>(() => ({
-  owner: null,
   members: [],
   presence: {},
+  muxedMessages: [],
 }));
