@@ -3,10 +3,11 @@ import { useWallet } from "@/hooks/useWallet";
 import { useLogin, useBrpcServer, usePubSub } from "@killthebuddha/fig";
 import { Messages } from "@/components/Messages";
 import { Input } from "@/components/Input";
-import { useEffect } from "react";
 import { join } from "@/brpc/join";
 import { members } from "@/brpc/members";
 import { keepalive } from "@/brpc/keepalive";
+import { useGroupMembers } from "@/hooks/useGroupMembers";
+import { useEffect } from "react";
 
 const api = {
   join,
@@ -22,8 +23,38 @@ export const Owner = () => {
   }
 
   useLogin({ wallet, opts: { autoLogin: true, env: "production" } });
-  usePubSub({ wallet, opts: { autoStart: true } });
   useBrpcServer({ wallet, api });
+
+  const { publish } = usePubSub({ wallet, opts: { autoStart: true } });
+
+  const { members } = useGroupMembers();
+
+  useEffect(() => {
+    (async () => {
+      if (publish === null) {
+        return;
+      }
+
+      console.log("WHISPER :: Owner.tsx :: broadcasting join");
+
+      const sent = await Promise.all(
+        members.map((member) => {
+          return publish({
+            conversation: {
+              peerAddress: member,
+              context: {
+                conversationId: "whisper.banyan.sh/members",
+                metadata: {},
+              },
+            },
+            content: JSON.stringify(members),
+          });
+        }),
+      );
+
+      console.log("WHISPER :: Owner.tsx :: broadcasted join", sent);
+    })();
+  }, [publish, members]);
 
   return (
     <App>

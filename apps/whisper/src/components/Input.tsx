@@ -7,6 +7,7 @@ import { useGroupMembers } from "@/hooks/useGroupMembers";
 export const Input = () => {
   const { wallet } = useWallet();
   const [messageInput, setMessageInput] = useState("");
+  const [isSending, setIsSending] = useState(false);
   const { publish } = usePubSub({ wallet });
   const groupAddress = useGroupAddressParam();
   const groupMembers = useGroupMembers();
@@ -35,6 +36,8 @@ export const Input = () => {
 
         console.log("WHISPER :: Input.tsx :: sending to", recipients);
 
+        setIsSending(true);
+
         try {
           await Promise.all(
             recipients.map((recipient) => {
@@ -50,6 +53,8 @@ export const Input = () => {
           );
         } catch (error) {
           console.error("WHISPER :: Input.tsx :: error while sending", error);
+        } finally {
+          setIsSending(false);
         }
 
         setMessageInput("");
@@ -57,10 +62,11 @@ export const Input = () => {
     >
       <input
         type="text"
+        placeholder="Type a message..."
         value={messageInput}
         onChange={(e) => setMessageInput(e.target.value)}
       />
-      <button type="submit">Send</button>
+      <button type="submit">{isSending ? "Sending..." : "Send"}</button>
     </form>
   );
 };

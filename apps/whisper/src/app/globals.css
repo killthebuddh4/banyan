@@ -77,6 +77,10 @@
   color: red;
 }
 
+.nobodyHasJoined {
+  color: red;
+}
+
 .messages::-webkit-scrollbar {
   display: none;
 }
@@ -85,6 +89,20 @@
   display: flex;
   flex-direction: column;
   padding: 0.25rem;
+  opacity: 1;
+}
+
+.fadeIn {
+  animation: fadeIn 0.5s;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .message.outbound {
@@ -103,6 +121,11 @@
   display: flex;
   flex-grow: 1;
   padding: 1rem;
+  background-color: #f0f0f0;
+}
+
+.input input:focus {
+  background-color: #ffffff;
 }
 
 input:focus {
@@ -110,6 +133,7 @@ input:focus {
 }
 
 .input button {
+  position: relative;
   display: flex;
   flex-basis: 8rem;
   flex-shrink: 0;

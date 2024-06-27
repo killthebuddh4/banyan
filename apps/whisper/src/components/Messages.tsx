@@ -15,7 +15,7 @@ export const Messages = () => {
     wallet,
     opts: {
       filter: (message) => {
-        return message.content === "hello";
+        return message.conversation.context === undefined;
       },
     },
   });
