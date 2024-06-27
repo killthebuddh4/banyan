@@ -2,12 +2,14 @@ import { useState } from "react";
 import { useWallet } from "@/hooks/useWallet";
 import { usePubSub } from "@killthebuddha/fig";
 import { useGroupAddressParam } from "@/hooks/useGroupAddressParam";
+import { useGroupMembers } from "@/hooks/useGroupMembers";
 
 export const Input = () => {
   const { wallet } = useWallet();
   const [messageInput, setMessageInput] = useState("");
   const { publish } = usePubSub({ wallet });
   const groupAddress = useGroupAddressParam();
+  const groupMembers = useGroupMembers();
 
   return (
     <form
@@ -27,14 +29,28 @@ export const Input = () => {
           return;
         }
 
-        if (groupAddress === wallet.address) {
-          return;
-        }
+        const recipients = [...groupMembers.members, groupAddress].filter(
+          (address) => address !== wallet.address,
+        );
 
-        await publish({
-          conversation: { peerAddress: groupAddress },
-          content: messageInput,
-        });
+        console.log("WHISPER :: Input.tsx :: sending to", recipients);
+
+        try {
+          await Promise.all(
+            recipients.map((recipient) => {
+              return publish({
+                conversation: { peerAddress: recipient },
+                content: messageInput,
+              });
+            }),
+          );
+
+          console.log(
+            `WHISPER :: Input.tsx :: done sending to ${recipients.length} recipients`,
+          );
+        } catch (error) {
+          console.error("WHISPER :: Input.tsx :: error while sending", error);
+        }
 
         setMessageInput("");
       }}
