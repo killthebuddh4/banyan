@@ -11,7 +11,14 @@ import { useMemo } from "react";
 export const Messages = () => {
   const { wallet } = useWallet();
   const groupAddress = useGroupAddressParam();
-  const { inbox } = useInbox({ wallet });
+  const { inbox } = useInbox({
+    wallet,
+    opts: {
+      filter: (message) => {
+        return message.content === "hello";
+      },
+    },
+  });
   const login = useLogin({ wallet });
 
   const clientStatus = useMemo(() => {

@@ -31,7 +31,29 @@ export const useInbox = (props: {
   opts?: { filter: (message: Message) => boolean };
 }) => {
   const { subscribe } = usePubSub({ wallet: props.wallet });
-  const inbox = useInboxStore((state) => state.messages);
+
+  const filter = (() => {
+    if (props.opts?.filter === undefined) {
+      return () => true;
+    }
+
+    return props.opts.filter;
+  })();
+
+  const inbox = useInboxStore((state) => {
+    return Object.entries(state.messages).reduce((acc, [key, value]) => {
+      if (value === undefined) {
+        return acc;
+      }
+
+      const messages = value.filter(filter);
+
+      acc[key] = messages;
+
+      return acc;
+    }, {} as Record<string, Message[]>);
+  });
+
   const pushMessage = useInboxStore((state) => state.pushMessage);
 
   useEffect(() => {
