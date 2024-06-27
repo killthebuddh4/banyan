@@ -16,11 +16,5 @@
     "noEmit": true,
     "jsx": "react-jsx"
   },
-  "include": [
-    "env.d.ts",
-    "vite-env.d.ts",
-    "vite.config.ts",
-    "src/**/*.ts",
-    "src/remote/Message.ts"
-  ]
+  "include": ["env.d.ts", "vite-env.d.ts", "vite.config.ts", "src/**/*.ts"]
 }

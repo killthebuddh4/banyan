@@ -2,7 +2,7 @@ import { z } from "zod";
 import { Wallet } from "@ethersproject/wallet";
 import { createProcedure } from "./createProcedure.js";
 import { bindClient } from "./bindClient.js";
-import { createXmtp } from "./createXmtp.js";
+import { createPubSub } from "./createPubSub.js";
 import { bindServer } from "./bindServer.js";
 
 const authorizedWallet = Wallet.createRandom();
@@ -60,7 +60,7 @@ describe("Brpc", () => {
   it("should work", async function () {
     this.timeout(15000);
 
-    const xmtpForServer = await createXmtp({});
+    const xmtpForServer = await createPubSub({});
 
     bindServer({
       api: { add, concat },
@@ -71,7 +71,7 @@ describe("Brpc", () => {
 
     CLEANUP.push(xmtpForServer.stop);
 
-    const xmtpForClient = await createXmtp({});
+    const xmtpForClient = await createPubSub({});
 
     const client = bindClient({
       api: { add, concat },
@@ -115,7 +115,7 @@ describe("Brpc", () => {
   it("should not allow public access to private procedures", async function () {
     this.timeout(15000);
 
-    const xmtpForServer = await createXmtp({});
+    const xmtpForServer = await createPubSub({});
 
     bindServer({
       api: { stealTreasure },
@@ -126,7 +126,7 @@ describe("Brpc", () => {
 
     CLEANUP.push(xmtpForServer.stop);
 
-    const xmtpForClient = await createXmtp({});
+    const xmtpForClient = await createPubSub({});
 
     const client = bindClient({
       api: { stealTreasure },
@@ -169,7 +169,7 @@ describe("Brpc", () => {
       },
     });
 
-    const xmtpForServer = await createXmtp({});
+    const xmtpForServer = await createPubSub({});
 
     bindServer({
       api: { auth },
@@ -180,7 +180,7 @@ describe("Brpc", () => {
 
     CLEANUP.push(xmtpForServer.stop);
 
-    const xmtpForUnauthorizedClient = await createXmtp({});
+    const xmtpForUnauthorizedClient = await createPubSub({});
 
     const unauthorizedClient = bindClient({
       api: { auth },
@@ -195,7 +195,7 @@ describe("Brpc", () => {
 
     CLEANUP.push(xmtpForUnauthorizedClient.stop);
 
-    const xmtpForAuthorizedClient = await createXmtp({
+    const xmtpForAuthorizedClient = await createPubSub({
       options: {
         wallet: authorizedWallet,
       },

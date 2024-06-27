@@ -8,17 +8,21 @@ export const useLogin = ({
   opts,
 }: {
   wallet?: Signer;
-  opts?: { autoLogin?: boolean; autoLogout?: boolean };
+  opts?: {
+    env: "production" | "dev";
+    autoLogin?: boolean;
+    autoLogout?: boolean;
+  };
 }) => {
   const state = useRemoteState({ wallet });
   const { startClient, stopClient } = useRemoteActions({ wallet });
 
   const autoLogin = useMemo(() => {
-    if (opts?.autoLogin === false) {
-      return false;
+    if (opts?.autoLogin === true) {
+      return true;
     }
 
-    return true;
+    return false;
   }, [opts?.autoLogin]);
 
   const autoLogout = useMemo(() => {
@@ -50,8 +54,7 @@ export const useLogin = ({
       return;
     }
 
-    console.log("FIG :: useLogin :: STARTING CLIENT");
-    startClient()
+    startClient({ env: opts?.env })
       .then((response) => {
         console.log("FIG :: useLogin :: START CLIENT RESPONSE", response);
       })

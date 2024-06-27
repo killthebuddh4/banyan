@@ -1,10 +1,11 @@
 import { ActionResult } from "../ActionResult.js";
 import { store } from "../state/store.js";
 import { Message } from "../Message.js";
+import { add } from "../state/globalListeners.js";
 
 export const listenToGlobalMessageStream = async (
   handler: (m: Message) => void
-): Promise<ActionResult<undefined>> => {
+): Promise<ActionResult<{ listenerId: string }>> => {
   console.log("ACTION :: listenToGlobalMessageStream :: CALLED");
 
   const messageStream = store.getState().globalMessageStream;
@@ -21,7 +22,7 @@ export const listenToGlobalMessageStream = async (
     "ACTION :: listenToGlobalMessageStream :: LISTENING TO GLOBAL MESSAGE STREAM"
   );
 
-  messageStream.data.listen((message) => {
+  const ignore = messageStream.data.listen((message) => {
     return handler({
       id: message.id,
       content: message.content,
@@ -34,9 +35,11 @@ export const listenToGlobalMessageStream = async (
     });
   });
 
+  const listenerId = add(ignore);
+
   return {
     ok: true,
     code: "SUCCESS",
-    data: undefined,
+    data: { listenerId },
   };
 };

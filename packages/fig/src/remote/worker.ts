@@ -7,6 +7,8 @@ import { startGlobalMessageStream } from "./actions/startGlobalMessageStream.js"
 import { listenToGlobalMessageStream } from "./actions/listenToGlobalMessageStream.js";
 import { sendMessage } from "./actions/sendMessage.js";
 import { subscribeToState } from "./actions/subscribeToState.js";
+import { ignoreGlobalMessageStream } from "./actions/ignoreGlobalMessageStream.js";
+import { stopGlobalMessageStream } from "./actions/stopGlobalMessageStream.js";
 
 Comlink.expose({
   startClient,
@@ -14,6 +16,8 @@ Comlink.expose({
   fetchState,
   subscribeToState,
   startGlobalMessageStream,
+  stopGlobalMessageStream,
   listenToGlobalMessageStream,
+  ignoreGlobalMessageStream,
   sendMessage,
 });

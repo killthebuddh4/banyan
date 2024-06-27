@@ -1,59 +1,23 @@
 import { App } from "@/components/App";
-import { useBrpcServer } from "@killthebuddha/fig";
-import { useEffect, useMemo } from "react";
 import { useWallet } from "@/hooks/useWallet";
-import { useLogin } from "@killthebuddha/fig";
-import { useStream } from "@killthebuddha/fig";
+import { useLogin, usePubSub } from "@killthebuddha/fig";
+import { Messages } from "@/components/Messages";
+import { Input } from "@/components/Input";
 
 export const Owner = () => {
-  const { wallet, create } = useWallet();
+  const { wallet } = useWallet();
 
   if (wallet === undefined) {
     throw new Error("WHISPER :: Owner.tsx :: wallet === undefined");
   }
 
-  const { login, isLoggedIn } = useLogin({ wallet });
+  useLogin({ wallet, opts: { autoLogin: true, env: "production" } });
+  usePubSub({ wallet, opts: { autoStart: true } });
 
-  const { start, isStreaming } = useStream({ wallet });
-
-  console.log(`WHISPER :: OWNER :: isStreaming ${isStreaming}`);
-  console.log(
-    `WHISPER :: OWNER :: isLoggedIn ${isLoggedIn} ${wallet?.address}`,
+  return (
+    <App>
+      <Messages />
+      <Input />
+    </App>
   );
-
-  useEffect(() => {
-    if (login === null) {
-      return;
-    }
-
-    console.log("WHISPER :: Owner :: login() :: CALLED");
-    login();
-  }, [login]);
-
-  useEffect(() => {
-    if (start === null) {
-      return;
-    }
-
-    if (!isLoggedIn) {
-      return;
-    }
-
-    console.log("WHISPER :: Owner :: start() :: CALLED");
-    start().then((response) => {
-      console.log("WHISPER :: Owner :: start() :: response", response);
-    });
-  }, [start, isLoggedIn]);
-
-  const { start } = useBrpcServer({ wallet });
-
-  useEffect(() => {
-    if (start === null) {
-      return;
-    }
-
-    start();
-  }, [start]);
-
-  return <App>{null /* <Messages /> */}</App>;
 };

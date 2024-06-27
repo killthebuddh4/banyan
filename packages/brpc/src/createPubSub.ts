@@ -3,7 +3,7 @@ import { Client } from "@xmtp/xmtp-js";
 import * as Brpc from "./brpc.js";
 import { Message } from "./Message.js";
 
-export const createXmtp = async <A extends Brpc.BrpcApi>({
+export const createPubSub = async <A extends Brpc.BrpcApi>({
   options,
 }: {
   options?: {
@@ -44,12 +44,6 @@ export const createXmtp = async <A extends Brpc.BrpcApi>({
 
     return "dev";
   })();
-
-  const STATE = {
-    client: null as Client | null,
-    stream: null as AsyncGenerator<Message, void, unknown> | null,
-    handler: undefined as ((message: Message) => void) | undefined,
-  };
 
   let xmtp: Client | null = null;
   let stream: AsyncGenerator<Message, void, unknown> | null = null;

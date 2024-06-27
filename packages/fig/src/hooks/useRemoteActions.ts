@@ -38,8 +38,8 @@ export const useRemoteActions = (props: { wallet?: Signer }) => {
       return null;
     }
 
-    const cb = async () => {
-      return remote.startClient(proxy);
+    const cb = async (opts: { env?: "production" | "dev" }) => {
+      return remote.startClient(proxy, opts);
     };
 
     return cb;
@@ -105,6 +105,18 @@ export const useRemoteActions = (props: { wallet?: Signer }) => {
     return cb;
   }, [remote]);
 
+  const stopGlobalMessageStream = useMemo(() => {
+    if (remote === null) {
+      return null;
+    }
+
+    const cb: typeof remote.stopGlobalMessageStream = async () => {
+      return remote.stopGlobalMessageStream();
+    };
+
+    return cb;
+  }, [remote]);
+
   const listenToGlobalMessageStream = useMemo(() => {
     if (remote === null) {
       return null;
@@ -136,6 +148,7 @@ export const useRemoteActions = (props: { wallet?: Signer }) => {
     subscribeToState,
     unsubscribeToState,
     startGlobalMessageStream,
+    stopGlobalMessageStream,
     listenToGlobalMessageStream,
     sendMessage,
   };

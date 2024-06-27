@@ -1,12 +1,13 @@
 import { useState } from "react";
-import { useGroupMembers } from "@/hooks/useGroupMembers";
 import { useWallet } from "@/hooks/useWallet";
+import { usePubSub } from "@killthebuddha/fig";
+import { useGroupAddressParam } from "@/hooks/useGroupAddressParam";
 
 export const Input = () => {
-  const wallet = useWallet();
-  // const { send } = useMessages({ wallet });
-  const members = useGroupMembers();
+  const { wallet } = useWallet();
   const [messageInput, setMessageInput] = useState("");
+  const { publish } = usePubSub({ wallet });
+  const groupAddress = useGroupAddressParam();
 
   return (
     <form
@@ -18,26 +19,24 @@ export const Input = () => {
           return;
         }
 
-        // if (send === null) {
-        //   return;
-        // }
+        if (publish === null) {
+          return;
+        }
 
-        // setMessageInput("");
+        if (wallet === undefined) {
+          return;
+        }
 
-        // console.log(`Input :: Sending message to ${members.length} members`);
+        if (groupAddress === wallet.address) {
+          return;
+        }
 
-        // await Promise.all(
-        //   members
-        //     .filter((member) => member !== wallet.address)
-        //     .map((member) => {
-        //       return send({
-        //         conversation: { peerAddress: member },
-        //         content: messageInput,
-        //       });
-        //     }),
-        // );
+        await publish({
+          conversation: { peerAddress: groupAddress },
+          content: messageInput,
+        });
 
-        // console.log(`Input :: Message sent to ${members.length} members`);
+        setMessageInput("");
       }}
     >
       <input

@@ -2,7 +2,7 @@ import { store } from "../state/store.js";
 import { ActionResult } from "../ActionResult.js";
 
 export const stopGlobalMessageStream = async (): Promise<
-  ActionResult<undefined>
+  ActionResult<{ stopped: boolean }>
 > => {
   console.log("ACTION :: stopGlobalMessageStream :: CALLED");
 
@@ -16,6 +16,9 @@ export const stopGlobalMessageStream = async (): Promise<
     };
   }
 
+  // TODO It's likely a good idea to also unsubscribe all subscribers and notify
+  // them in some fashion.
+
   messageStream.data.stop();
 
   store.setState({ globalMessageStream: { code: "idle" } });
@@ -23,6 +26,6 @@ export const stopGlobalMessageStream = async (): Promise<
   return {
     ok: true,
     code: "SUCCESS",
-    data: undefined,
+    data: { stopped: true },
   };
 };
