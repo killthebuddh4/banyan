@@ -1,25 +1,23 @@
-import { z } from "zod";
-import { useGroupStore } from "../hooks/useGroupStore";
+import { store } from "./store";
 import { createProcedure } from "@killthebuddha/brpc/createProcedure.js";
 
 const MAX_GROUP_SIZE = 10;
 
 export const join = createProcedure({
-  input: z.string(),
-  output: z.object({ added: z.boolean() }),
   auth: async () => true,
-  handler: async (input) => {
-    console.log("WHISPTER :: brpc.join :: CALLED");
-    if (useGroupStore.getState().members.length >= MAX_GROUP_SIZE) {
-      return { added: false };
+  handler: async (_, ctx) => {
+    console.log("WHISPER :: join :: called");
+
+    if (store.getState().members.length >= MAX_GROUP_SIZE) {
+      return { joined: false };
     }
 
-    useGroupStore.setState((state) => {
+    store.setState((state) => {
       const members = new Set(state.members);
-      members.add(input);
+      members.add(ctx.message.senderAddress);
       return { members: Array.from(members) };
     });
 
-    return { added: true };
+    return { joined: true };
   },
 });

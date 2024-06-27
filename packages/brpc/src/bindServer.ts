@@ -32,6 +32,8 @@ export const bindServer = <A extends Brpc.BrpcApi>(args: {
     onSendFailed?: () => void;
   };
 }) => {
+  console.log("BRPC :: bindServer :: binding to xmtp (args.xmtp.subscribe)");
+
   args.xmtp.subscribe(async (message) => {
     if (message.conversation.context === undefined) {
       return;

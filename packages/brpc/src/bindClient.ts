@@ -68,6 +68,9 @@ export const bindClient = <A extends Brpc.BrpcApi>({
     subscriptions.delete(id);
   };
 
+  console.log(
+    "BRPC :: bindClient :: binding to xmtp (args.xmtp.subscribe called)",
+  );
   xmtp.subscribe(async (message) => {
     if (message.senderAddress === xmtp.address) {
       return;

@@ -1,8 +1,18 @@
 import { App } from "@/components/App";
 import { useWallet } from "@/hooks/useWallet";
-import { useLogin, usePubSub } from "@killthebuddha/fig";
+import { useLogin, useBrpcServer, usePubSub } from "@killthebuddha/fig";
 import { Messages } from "@/components/Messages";
 import { Input } from "@/components/Input";
+import { useEffect } from "react";
+import { join } from "@/brpc/join";
+import { members } from "@/brpc/members";
+import { keepalive } from "@/brpc/keepalive";
+
+const api = {
+  join,
+  members,
+  keepalive,
+};
 
 export const Owner = () => {
   const { wallet } = useWallet();
@@ -13,6 +23,7 @@ export const Owner = () => {
 
   useLogin({ wallet, opts: { autoLogin: true, env: "production" } });
   usePubSub({ wallet, opts: { autoStart: true } });
+  useBrpcServer({ wallet, api });
 
   return (
     <App>
