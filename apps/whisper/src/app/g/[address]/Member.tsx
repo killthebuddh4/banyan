@@ -1,7 +1,7 @@
 import { App } from "@/components/App";
 import { useEffect } from "react";
 import { useWallet } from "@/hooks/useWallet";
-import { useLogin, useBrpcClient, usePubSub } from "@killthebuddha/fig";
+import { useLogin, useBrpcClient } from "@killthebuddha/fig";
 import { Messages } from "@/components/Messages";
 import { Input } from "@/components/Input";
 import { join } from "@/brpc/join";
@@ -9,7 +9,6 @@ import { members } from "@/brpc/members";
 import { keepalive } from "@/brpc/keepalive";
 import { useGroupAddressParam } from "@/hooks/useGroupAddressParam";
 import { useHandleNotifyOnJoin } from "@/hooks/useHandleNotifyOnJoin";
-import { store } from "@/brpc/store";
 
 const api = {
   join,

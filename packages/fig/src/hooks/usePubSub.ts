@@ -4,6 +4,7 @@ import { useRemoteActions } from "./useRemoteActions.js";
 import { useRemoteState } from "./useRemoteState.js";
 import { ignoreGlobalMessageStream } from "../remote/actions/ignoreGlobalMessageStream.js";
 import { Message } from "../remote/Message.js";
+import { v4 as uuidv4 } from "uuid";
 
 export const usePubSub = (props: {
   wallet?: Signer;
@@ -77,15 +78,13 @@ export const usePubSub = (props: {
       return null;
     }
 
-    return async (handler: (message: Message) => void) => {
-      const result = await listenToGlobalMessageStream(handler);
+    return (handler: (message: Message) => void) => {
+      const id = uuidv4();
 
-      if (result.code !== "SUCCESS") {
-        throw new Error("Failed to listen to global message stream");
-      }
+      listenToGlobalMessageStream(id, handler);
 
       return () => {
-        ignoreGlobalMessageStream(result.data.listenerId);
+        ignoreGlobalMessageStream(id);
       };
     };
   }, [

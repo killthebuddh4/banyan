@@ -1,5 +1,5 @@
 import { useWallet } from "@/hooks/useWallet";
-import { usePubSub, useBrpcBroadcast } from "@killthebuddha/fig";
+import { usePubSub } from "@killthebuddha/fig";
 import { useGroupMembers } from "@/hooks/useGroupMembers";
 import { useEffect } from "react";
 

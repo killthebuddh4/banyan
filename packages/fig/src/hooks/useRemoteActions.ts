@@ -122,8 +122,11 @@ export const useRemoteActions = (props: { wallet?: Signer }) => {
       return null;
     }
 
-    const cb: typeof remote.listenToGlobalMessageStream = async (cb) => {
-      return remote.listenToGlobalMessageStream(Comlink.proxy(cb));
+    const cb: typeof remote.listenToGlobalMessageStream = async (
+      id,
+      handler
+    ) => {
+      return remote.listenToGlobalMessageStream(id, Comlink.proxy(handler));
     };
 
     return cb;
