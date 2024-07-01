@@ -39,13 +39,11 @@ export const createRouter = (args: {
 }) => {
   const procedures = new Map<string, Brpc.BrpcProcedure>();
 
-  const bind = (args: { [key: string]: Brpc.BrpcProcedure }) => {
-    for (const [key, value] of Object.entries(args)) {
+  const attach = (api: { [key: string]: Brpc.BrpcProcedure }) => {
+    for (const [key, value] of Object.entries(api)) {
       procedures.set(key, value);
     }
-  };
 
-  const start = () => {
     const { unsubscribe } = args.hub.subscribe(async (message) => {
       if (
         message.conversation.context?.conversationId !==
@@ -309,5 +307,5 @@ export const createRouter = (args: {
     return { stop: unsubscribe };
   };
 
-  return { start, bind };
+  return { attach };
 };

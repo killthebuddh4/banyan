@@ -70,9 +70,7 @@ describe("Brpc", () => {
       context: { conversationId: "banyan.sh/brpc", metadata: {} },
     });
 
-    router.bind({ add, concat });
-
-    router.start();
+    router.attach({ add, concat });
 
     await hubForServer.start();
 
@@ -141,9 +139,7 @@ describe("Brpc", () => {
       context: { conversationId: "banyan.sh/brpc", metadata: {} },
     });
 
-    router.bind({ stealTreasure });
-
-    router.start();
+    router.attach({ stealTreasure });
 
     await hubForServer.start();
 
@@ -202,9 +198,7 @@ describe("Brpc", () => {
       context: { conversationId: "banyan.sh/brpc", metadata: {} },
     });
 
-    router.bind({ auth });
-
-    router.start();
+    router.attach({ auth });
 
     await hubForServer.start();
 
