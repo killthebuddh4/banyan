@@ -1,9 +1,9 @@
 import { Wallet } from "@ethersproject/wallet";
 import { Client } from "@xmtp/xmtp-js";
-import * as Brpc from "./brpc.js";
 import { Message } from "./Message.js";
+import { v4 as uuidv4 } from "uuid";
 
-export const createPubSub = async <A extends Brpc.BrpcApi>({
+export const createHub = ({
   options,
 }: {
   options?: {
@@ -11,6 +11,7 @@ export const createPubSub = async <A extends Brpc.BrpcApi>({
     xmtpEnv?: "dev" | "production";
     conversationIdPrefix?: string;
     onSelfSentMessage?: ({ message }: { message: Message }) => void;
+    onStartWithoutHandlers?: () => void;
     onMissedMessage?: ({ message }: { message: Message }) => void;
     onHandlingMessage?: ({ message }: { message: Message }) => void;
     onCreateXmtpError?: () => void;
@@ -47,13 +48,26 @@ export const createPubSub = async <A extends Brpc.BrpcApi>({
 
   let xmtp: Client | null = null;
   let stream: AsyncGenerator<Message, void, unknown> | null = null;
-  let handler: ((message: Message) => void) | undefined;
+
+  const handlers = new Map<string, (message: Message) => void>();
+
+  const stop = async () => {
+    if (stream === null) {
+      return;
+    }
+
+    await stream.return();
+  };
 
   const start = async () => {
-    if (handler === undefined) {
-      throw new Error(
-        "handler is not set, cannot start a server without a handler",
-      );
+    if (handlers.size === 0) {
+      if (options?.onStartWithoutHandlers) {
+        try {
+          options.onStartWithoutHandlers();
+        } catch (error) {
+          console.warn("onStartWithoutHandlers threw an error", error);
+        }
+      }
     }
 
     xmtp = await (async () => {
@@ -107,7 +121,7 @@ export const createPubSub = async <A extends Brpc.BrpcApi>({
           continue;
         }
 
-        if (handler === undefined) {
+        if (handlers.size === 0) {
           if (options?.onMissedMessage) {
             try {
               options.onMissedMessage({ message });
@@ -119,7 +133,7 @@ export const createPubSub = async <A extends Brpc.BrpcApi>({
           continue;
         }
 
-        try {
+        for (const handler of handlers.values()) {
           if (options?.onHandlingMessage) {
             try {
               options.onHandlingMessage({ message });
@@ -128,13 +142,23 @@ export const createPubSub = async <A extends Brpc.BrpcApi>({
             }
           }
 
-          handler(message);
-        } catch (error) {
-          if (options?.onHandlerError) {
-            try {
-              options.onHandlerError();
-            } catch (error) {
-              console.warn("onHandlerError threw an error", error);
+          try {
+            if (options?.onHandlingMessage) {
+              try {
+                options.onHandlingMessage({ message });
+              } catch (error) {
+                console.warn("onHandlingMessage threw an error", error);
+              }
+            }
+
+            handler(message);
+          } catch (error) {
+            if (options?.onHandlerError) {
+              try {
+                options.onHandlerError();
+              } catch (error) {
+                console.warn("onHandlerError threw an error", error);
+              }
             }
           }
         }
@@ -143,11 +167,14 @@ export const createPubSub = async <A extends Brpc.BrpcApi>({
   };
 
   const subscribe = (h: (message: Message) => void) => {
-    if (handler !== undefined) {
-      throw new Error("already subscribed, cannot subscribe twice");
-    }
+    const id = uuidv4();
+    handlers.set(id, h);
 
-    handler = h;
+    return {
+      unsubscribe: () => {
+        handlers.delete(id);
+      },
+    };
   };
 
   const publish = async (args: {
@@ -199,13 +226,5 @@ export const createPubSub = async <A extends Brpc.BrpcApi>({
     }
   };
 
-  const stop = async () => {
-    if (stream === null) {
-      return;
-    }
-
-    await stream.return();
-  };
-
-  return { address: wallet.address, start, publish, subscribe, stop };
+  return { address: wallet.address, start, stop, subscribe, publish };
 };
