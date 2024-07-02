@@ -3,7 +3,7 @@ import { Client } from "@xmtp/xmtp-js";
 import { Message } from "./Message.js";
 import { v4 as uuidv4 } from "uuid";
 
-export const createHub = ({
+export const createBrpc = ({
   options,
 }: {
   options?: {

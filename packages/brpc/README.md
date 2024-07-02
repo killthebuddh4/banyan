@@ -13,6 +13,7 @@
 - [Examples](#examples)
 - [How does it work?](#how-does-it-work)
 - [Roadmap](#roadmap)
+- [NOTES 2024-07-01](#notes-2024-07-01)
 
 # Quickstart
 
@@ -90,3 +91,26 @@ _TODO_
 # Roadmap
 
 _TODO_
+
+
+# NOTES 2024-07-01
+
+createClient should setup everything for you and return something like a `stop`
+function. it's super cheap to create clients on the fly
+
+createRouter should similarly be super cheap and the kind of thing you can call over and over on a single instance of a Hub.
+
+both createClient and createRouter should take an ApiDefinition for symmetry.
+
+createClient and createRouter should both be functions on a Hub object. or maybe a `Brpc` object?
+
+`Brpc.start()` should be the only thing you need to do that takes a while.
+
+
+- createPubSub
+- createBrpc
+- createProcedure
+- createRouter
+- createClient
+
+I think this covers everything?
