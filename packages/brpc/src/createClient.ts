@@ -1,163 +1,23 @@
 import { z } from "zod";
-import * as Brpc from "./brpc.js";
+import * as Brpc from "./types/brpc.js";
 import { v4 as uuidv4 } from "uuid";
-import { jsonStringSchema } from "@repo/lib/jsonStringSchema.js";
-import { Message } from "./Message.js";
+import { jsonStringSchema } from "./lib/jsonStringSchema.js";
+import { Topic } from "./types/Topic.js";
+import { ClientOptions } from "./types/ClientOptions.js";
+import { Publish } from "./types/Publish.js";
+import { Subscribe } from "./types/Subscribe.js";
 
-export const createClient = <A extends Brpc.BrpcApi>({
-  api,
-  hub,
-  conversation,
-  options,
-}: {
+export const createClient = <A extends Brpc.BrpcApi>(args: {
   api: A;
-  hub: {
-    address: string;
-    subscribe: (handler: (message: Message) => void) => {
-      unsubscribe: () => void;
-    };
-    publish: (args: {
-      conversation: {
-        peerAddress: string;
-        context: { conversationId: string; metadata: {} };
-      };
-      content: string;
-    }) => Promise<Message>;
-  };
-  conversation: {
-    peerAddress: string;
-    context: { conversationId: string; metadata: {} };
-  };
-  options?: {
-    timeoutMs?: number;
-    onSelfSentMessage?: ({ message }: { message: Message }) => void;
-    onReceivedInvalidJson?: ({ message }: { message: Message }) => void;
-    onReceivedInvalidResponse?: ({ message }: { message: Message }) => void;
-    onNoSubscription?: ({ message }: { message: Message }) => void;
-    onEndpointError?: () => void;
-    onTimeout?: () => void;
-    onSendingRequest?: ({
-      conversation,
-      content,
-    }: {
-      conversation: {
-        peerAddress: string;
-        context?: { conversationId: string };
-      };
-      content: string;
-    }) => void;
-    onSentRequest?: ({ message }: { message: Message }) => void;
-    onSendRequestFailed?: () => void;
-  };
+  publish: Publish;
+  subscribe: Subscribe;
+  topic: Topic;
+  options?: ClientOptions;
 }) => {
-  const requests: Map<
-    string,
-    ({
-      ctx,
-      response,
-    }: {
-      ctx: { detach: () => void };
-      response: Brpc.BrpcResponse;
-    }) => void
-  > = new Map();
+  const client = {};
 
-  const start = () => {
-    const stop = hub.subscribe(async (message) => {
-      if (message.senderAddress === hub.address) {
-        if (options?.onSelfSentMessage) {
-          try {
-            options.onSelfSentMessage({ message });
-          } catch (error) {
-            console.warn("onSelfSentMessage threw an error", error);
-          }
-        }
-      }
-
-      // TODO, Handle skipped messages in a more observable way
-
-      if (message.conversation.context === undefined) {
-        return;
-      }
-
-      if (
-        message.conversation.context.conversationId !==
-        conversation.context?.conversationId
-      ) {
-        return;
-      }
-
-      const json = jsonStringSchema.safeParse(message.content);
-
-      if (!json.success) {
-        if (options?.onReceivedInvalidJson) {
-          try {
-            options.onReceivedInvalidJson({ message });
-          } catch (error) {
-            console.warn("onReceivedInvalidJson threw an error", error);
-          }
-        }
-        return;
-      }
-
-      const response = Brpc.brpcResponseSchema.safeParse(json.data);
-
-      if (!response.success) {
-        if (options?.onReceivedInvalidResponse) {
-          try {
-            options.onReceivedInvalidResponse({ message });
-          } catch (error) {
-            console.warn("onReceivedInvalidResponse threw an error", error);
-          }
-        }
-        return;
-      }
-
-      const endpoint = requests.get(response.data.id);
-
-      if (endpoint === undefined) {
-        if (options?.onNoSubscription) {
-          try {
-            options.onNoSubscription({ message });
-          } catch (error) {
-            console.warn("onNoSubscription threw an error", error);
-          }
-        }
-        return;
-      }
-
-      try {
-        endpoint({
-          ctx: {
-            detach: () => {
-              const endpoint = requests.get(response.data.id);
-
-              if (endpoint === undefined) {
-                return;
-              }
-
-              requests.delete(response.data.id);
-            },
-          },
-          response: response.data,
-        });
-      } catch {
-        if (options?.onEndpointError) {
-          try {
-            options.onEndpointError();
-          } catch (error) {
-            console.warn("onEndpointError threw an error", error);
-          }
-        }
-      }
-    });
-
-    return { stop };
-  };
-
-  const client: Brpc.BrpcClient<typeof api> = {} as Brpc.BrpcClient<typeof api>;
-
-  for (const [key, value] of Object.entries(api)) {
-    (client as any)[key as keyof typeof api] = async (
+  for (const [key, value] of Object.entries(args.api)) {
+    (client as any)[key as keyof typeof args.api] = async (
       input: z.infer<typeof value.input>,
     ) => {
       const request = {
@@ -170,6 +30,14 @@ export const createClient = <A extends Brpc.BrpcApi>({
       try {
         str = JSON.stringify(request);
       } catch {
+        if (args.options?.onInputSerializationError) {
+          try {
+            args.options.onInputSerializationError();
+          } catch {
+            console.warn("onInputSerializationError threw an error");
+          }
+        }
+
         return {
           ok: false,
           code: "INPUT_SERIALIZATION_FAILED",
@@ -182,11 +50,11 @@ export const createClient = <A extends Brpc.BrpcApi>({
         Brpc.BrpcResult<z.infer<typeof value.output>>
       >((resolve) => {
         const timeout = setTimeout(() => {
-          if (options?.onTimeout) {
+          if (args.options?.onRequestTimeout) {
             try {
-              options.onTimeout();
+              args.options.onRequestTimeout();
             } catch (error) {
-              console.warn("onTimeout threw an error", error);
+              console.warn("onRequestTimeout threw an error", error);
             }
           }
 
@@ -196,30 +64,73 @@ export const createClient = <A extends Brpc.BrpcApi>({
             request,
             response: null,
           });
-        }, options?.timeoutMs ?? 10000);
+        }, args.options?.timeoutMs ?? 10000);
 
-        const endpoint = ({
-          ctx,
-          response,
-        }: {
-          ctx: { detach: () => void };
-          response: Brpc.BrpcResponse;
-        }) => {
-          ctx.detach();
+        const { unsubscribe } = args.subscribe(async (message) => {
+          if (
+            message.conversation.context?.conversationId !==
+            args.topic.context.conversationId
+          ) {
+            return;
+          }
+
+          const json = jsonStringSchema.safeParse(message.content);
+
+          if (!json.success) {
+            if (args.options?.onReceivedInvalidJson) {
+              try {
+                args.options.onReceivedInvalidJson({ message });
+              } catch (error) {
+                console.warn("onReceivedInvalidJson threw an error", error);
+              }
+            }
+            return;
+          }
+
+          const response = Brpc.brpcResponseSchema.safeParse(json.data);
+
+          if (!response.success) {
+            if (args.options?.onReceivedInvalidResponse) {
+              try {
+                args.options.onReceivedInvalidResponse({ message });
+              } catch (error) {
+                console.warn("onReceivedInvalidResponse threw an error", error);
+              }
+            }
+            return;
+          }
+
+          const id = response.data.id;
+
+          if (id !== request.id) {
+            if (args.options?.onIdMismatch) {
+              try {
+                args.options.onIdMismatch({ message });
+              } catch {
+                console.warn("onNoSubscription threw an error");
+              }
+            }
+            return;
+          }
+
+          unsubscribe();
+
           clearTimeout(timeout);
 
-          const error = Brpc.brpcErrorSchema.safeParse(response.payload);
+          const error = Brpc.brpcErrorSchema.safeParse(response.data.payload);
 
           if (error.success) {
             resolve({
               ok: false,
               code: error.data.code,
               request,
-              response,
+              response: response.data,
             });
           }
 
-          const success = Brpc.brpcSuccessSchema.safeParse(response.payload);
+          const success = Brpc.brpcSuccessSchema.safeParse(
+            response.data.payload,
+          );
 
           if (success.success) {
             const output = value.output.safeParse(success.data.data);
@@ -229,7 +140,7 @@ export const createClient = <A extends Brpc.BrpcApi>({
                 ok: false,
                 code: "OUTPUT_TYPE_MISMATCH",
                 request,
-                response,
+                response: response.data,
               });
             }
 
@@ -238,50 +149,56 @@ export const createClient = <A extends Brpc.BrpcApi>({
               code: "SUCCESS",
               data: output.data,
               request,
-              response,
+              response: response.data,
             });
+          }
+
+          if (args.options?.onReceivedInvalidResponse) {
+            try {
+              args.options.onReceivedInvalidResponse({ message });
+            } catch {
+              console.warn("onReceivedInvalidResponse threw an error", error);
+            }
           }
 
           resolve({
             ok: false,
             code: "INVALID_RESPONSE",
             request,
-            response,
+            response: response.data,
           });
-        };
-
-        requests.set(request.id, endpoint);
+        });
       });
 
       try {
         const sendRequestArgs = {
-          conversation: conversation,
+          topic: args.topic,
           content: str,
         };
 
-        if (options?.onSendingRequest) {
+        if (args.options?.onSendingRequest) {
           try {
-            options.onSendingRequest(sendRequestArgs);
-          } catch (error) {
-            console.warn("onSendingRequest threw an error", error);
+            args.options.onSendingRequest(sendRequestArgs);
+          } catch {
+            console.warn("onSendingRequest threw an error");
           }
         }
 
-        const sent = await hub.publish(sendRequestArgs);
+        const sent = await args.publish(sendRequestArgs);
 
-        if (options?.onSentRequest) {
+        if (args.options?.onSentRequest) {
           try {
-            options.onSentRequest({ message: sent });
-          } catch (error) {
-            console.warn("onSentRequest threw an error", error);
+            args.options.onSentRequest({ message: sent.published });
+          } catch {
+            console.warn("onSentRequest threw an error");
           }
         }
-      } catch {
-        if (options?.onSendRequestFailed) {
+      } catch (error) {
+        if (args.options?.onSendRequestError) {
           try {
-            options.onSendRequestFailed();
-          } catch (error) {
-            console.warn("onSendRequestFailed threw an error", error);
+            args.options.onSendRequestError({ error: error as Error });
+          } catch {
+            console.warn("onSendRequestFailed threw an error");
           }
         }
 
@@ -297,5 +214,5 @@ export const createClient = <A extends Brpc.BrpcApi>({
     };
   }
 
-  return { start, api: client };
+  return client as Brpc.BrpcClient<typeof args.api>;
 };

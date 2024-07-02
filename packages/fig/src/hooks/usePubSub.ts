@@ -81,6 +81,8 @@ export const usePubSub = (props: {
     return (handler: (message: Message) => void) => {
       const id = uuidv4();
 
+      // TODO We're ignoring the result here, ::wags finger disapprovingly::
+
       listenToGlobalMessageStream(id, handler);
 
       return () => {

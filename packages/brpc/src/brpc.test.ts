@@ -1,9 +1,7 @@
 import { z } from "zod";
 import { Wallet } from "@ethersproject/wallet";
 import { createProcedure } from "./createProcedure.js";
-import { createClient } from "./createClient.js";
-import { createRouter } from "./createRouter.js";
-import { createHub } from "./createHub.js";
+import { createBrpc } from "./createBrpc.js";
 
 const authorizedWallet = Wallet.createRandom();
 
@@ -53,57 +51,41 @@ describe("Brpc", () => {
   it("should work", async function () {
     this.timeout(15000);
 
-    const hubForServer = createHub({
-      options: {
-        onStartWithoutHandlers: () => {
-          console.log("SERVER started without handlers");
-        },
-        onHandlingMessage: ({ message }) => {
-          console.log("SERVER handling message from: ", message.senderAddress);
-          console.log("SERVER handling message content: ", message.content);
-        },
-      },
-    });
+    const brpcForServer = createBrpc({});
 
-    const router = createRouter({
-      hub: hubForServer,
-      context: { conversationId: "banyan.sh/brpc", metadata: {} },
-    });
-
-    router.attach({ add, concat });
-
-    await hubForServer.start();
-
-    CLEANUP.push(hubForServer.stop);
-
-    const hubForClient = createHub({
-      options: {
-        onStartWithoutHandlers: () => {
-          console.log("CLIENT started without handlers");
-        },
-        onHandlingMessage: ({ message }) => {
-          console.log("CLIENT handling message from: ", message.senderAddress);
-          console.log("CLIENT handling message content: ", message.content);
-        },
-      },
-    });
-
-    const client = createClient({
+    brpcForServer.router({
       api: { add, concat },
-      hub: hubForClient,
-      conversation: {
-        peerAddress: hubForServer.address,
-        context: { conversationId: "banyan.sh/brpc", metadata: {} },
+      topic: {
+        peerAddress: "",
+        context: {
+          conversationId: "banyan.sh/brpc",
+          metadata: {},
+        },
       },
     });
 
-    client.start();
+    await brpcForServer.start({});
 
-    await hubForClient.start();
+    CLEANUP.push(brpcForServer.stop);
 
-    CLEANUP.push(hubForClient.stop);
+    const brpcForClient = createBrpc({});
 
-    const addResult = await client.api.add({ a: 1, b: 2 });
+    const client = brpcForClient.client({
+      api: { add, concat },
+      topic: {
+        peerAddress: brpcForServer.address,
+        context: {
+          conversationId: "banyan.sh/brpc",
+          metadata: {},
+        },
+      },
+    });
+
+    await brpcForClient.start({});
+
+    CLEANUP.push(brpcForClient.stop);
+
+    const addResult = await client.add({ a: 1, b: 2 });
 
     if (!addResult.ok) {
       console.error(addResult);
@@ -115,7 +97,7 @@ describe("Brpc", () => {
       throw new Error("add returned wrong result");
     }
 
-    const concatResult = await client.api.concat({ a: "hello", b: "world" });
+    const concatResult = await client.concat({ a: "hello", b: "world" });
 
     if (!concatResult.ok) {
       throw new Error("concat failed");
@@ -132,37 +114,41 @@ describe("Brpc", () => {
   it("should not allow public access to private procedures", async function () {
     this.timeout(15000);
 
-    const hubForServer = await createHub({});
+    const brpcForServer = createBrpc({});
 
-    const router = createRouter({
-      hub: hubForServer,
-      context: { conversationId: "banyan.sh/brpc", metadata: {} },
-    });
-
-    router.attach({ stealTreasure });
-
-    await hubForServer.start();
-
-    CLEANUP.push(hubForServer.stop);
-
-    const hubForClient = await createHub({});
-
-    const client = createClient({
+    brpcForServer.router({
       api: { stealTreasure },
-      hub: hubForClient,
-      conversation: {
-        peerAddress: hubForServer.address,
-        context: { conversationId: "banyan.sh/brpc", metadata: {} },
+      topic: {
+        peerAddress: "",
+        context: {
+          conversationId: "banyan.sh/brpc",
+          metadata: {},
+        },
       },
     });
 
-    client.start();
+    await brpcForServer.start({});
 
-    await hubForClient.start();
+    CLEANUP.push(brpcForServer.stop);
 
-    CLEANUP.push(hubForClient.stop);
+    const brpcForClient = createBrpc({});
 
-    const result = await client.api.stealTreasure({ amount: 100 });
+    const client = brpcForClient.client({
+      api: { stealTreasure },
+      topic: {
+        peerAddress: brpcForServer.address,
+        context: {
+          conversationId: "banyan.sh/brpc",
+          metadata: {},
+        },
+      },
+    });
+
+    await brpcForClient.start({});
+
+    CLEANUP.push(brpcForClient.stop);
+
+    const result = await client.stealTreasure({ amount: 100 });
 
     if (result.ok) {
       throw new Error("stealTreasure should have failed");
@@ -191,64 +177,68 @@ describe("Brpc", () => {
       },
     });
 
-    const hubForServer = await createHub({});
+    const brpcForServer = createBrpc({});
 
-    const router = createRouter({
-      hub: hubForServer,
-      context: { conversationId: "banyan.sh/brpc", metadata: {} },
-    });
-
-    router.attach({ auth });
-
-    await hubForServer.start();
-
-    CLEANUP.push(hubForServer.stop);
-
-    const hubForUnauthorizedClient = createHub({});
-
-    const unauthorizedClient = createClient({
+    brpcForServer.router({
       api: { auth },
-      hub: hubForUnauthorizedClient,
-      conversation: {
-        peerAddress: hubForServer.address,
-        context: { conversationId: "banyan.sh/brpc", metadata: {} },
+      topic: {
+        peerAddress: "",
+        context: {
+          conversationId: "banyan.sh/brpc",
+          metadata: {},
+        },
       },
     });
 
-    unauthorizedClient.start();
+    await brpcForServer.start({});
 
-    await hubForUnauthorizedClient.start();
+    CLEANUP.push(brpcForServer.stop);
 
-    CLEANUP.push(hubForUnauthorizedClient.stop);
+    const brpcForUnauthorizedClient = createBrpc({});
 
-    const hubForAuthorizedClient = await createHub({
+    const unauthorizedClient = brpcForUnauthorizedClient.client({
+      api: { auth },
+      topic: {
+        peerAddress: brpcForServer.address,
+        context: {
+          conversationId: "banyan.sh/brpc",
+          metadata: {},
+        },
+      },
+    });
+
+    await brpcForUnauthorizedClient.start({});
+
+    CLEANUP.push(brpcForUnauthorizedClient.stop);
+
+    const brpcForAuthorizedClient = createBrpc({
       options: {
         wallet: authorizedWallet,
       },
     });
 
-    const authorizedClient = createClient({
+    const authorizedClient = brpcForAuthorizedClient.client({
       api: { auth },
-      hub: hubForAuthorizedClient,
-      conversation: {
-        peerAddress: hubForServer.address,
-        context: { conversationId: "banyan.sh/brpc", metadata: {} },
+      topic: {
+        peerAddress: brpcForServer.address,
+        context: {
+          conversationId: "banyan.sh/brpc",
+          metadata: {},
+        },
       },
     });
 
-    authorizedClient.start();
+    await brpcForAuthorizedClient.start({});
 
-    await hubForAuthorizedClient.start();
+    CLEANUP.push(brpcForAuthorizedClient.stop);
 
-    CLEANUP.push(hubForAuthorizedClient.stop);
-
-    const unauthorizedResult = await unauthorizedClient.api.auth();
+    const unauthorizedResult = await unauthorizedClient.auth();
 
     if (unauthorizedResult.ok) {
       throw new Error("auth should have failed for unauthorized client");
     }
 
-    const authorizedResult = await authorizedClient.api.auth();
+    const authorizedResult = await authorizedClient.auth();
 
     if (!authorizedResult.ok) {
       throw new Error("auth should have succeeded for authorized client");

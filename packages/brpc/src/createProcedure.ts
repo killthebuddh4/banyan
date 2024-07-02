@@ -1,5 +1,5 @@
 import { z } from "zod";
-import * as Brpc from "./brpc.js";
+import * as Brpc from "./types/brpc.js";
 
 export const createProcedure = <I = undefined, O = undefined>(args: {
   input?: z.ZodType<I>;

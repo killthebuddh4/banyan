@@ -1,19 +1,19 @@
 "use client";
 
 import { useWallet } from "@/hooks/useWallet";
-import { useBrpcHookServer, useLogin, usePubSub } from "@killthebuddha/fig";
+import { useLogin, usePubSub } from "@killthebuddha/fig";
 import { useEffect } from "react";
-import { hook } from "@/lib/hook";
+import { useHooksProvider } from "@/hooks/useHooksProvider";
+import { useConsumerStore } from "@/hooks/useConsumerStore";
 
-export default function HookServer() {
+export default function HookProvider() {
   const { wallet, create } = useWallet();
   useLogin({ wallet, opts: { autoLogin: true, env: "production" } });
   usePubSub({ wallet, opts: { autoStart: true } });
 
-  const hooks = useBrpcHookServer({
-    api: { hook },
-    wallet,
-  });
+  const consumers = useConsumerStore((state) => state.consumers);
+
+  const clients = useHooksProvider();
 
   useEffect(() => {
     if (wallet !== undefined) {
@@ -34,17 +34,19 @@ export default function HookServer() {
           return `Wallet address: ${wallet.address}`;
         })()}
       </p>
+      <p>{`There are currently ${consumers.length} consumers connected.`}</p>
       {(() => {
-        if (hooks === null) {
-          return <div>Loading hooks...</div>;
-        }
-
         return (
           <button
             onClick={async () => {
+              if (clients === null) {
+                return;
+              }
               try {
                 console.log("CALLING HOOK");
-                const result = await hooks.hook(1);
+                const result = await Promise.all(
+                  clients.map((client) => client.hook(1)),
+                );
                 console.log("HOOK RESULT", result);
               } catch (e) {
                 console.error("HOOK FAILED", e);

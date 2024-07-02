@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-export const store = create<{
+export const useEventCountStore = create<{
   eventCount: number;
 }>(() => ({
   eventCount: 0,

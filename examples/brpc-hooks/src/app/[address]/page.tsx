@@ -1,27 +1,19 @@
 "use client";
 
 import { useWallet } from "@/hooks/useWallet";
-import { useBrpcHookClient, useLogin, usePubSub } from "@killthebuddha/fig";
+import { useLogin, usePubSub } from "@killthebuddha/fig";
 import { useEffect } from "react";
-import { hook } from "@/lib/hook";
-import { store } from "@/lib/store";
-import { useParams } from "next/navigation.js";
+import { useHooksConsumer } from "@/hooks/useHooksConsumer";
+import { useEventCountStore } from "@/hooks/useEventCountStore";
 
-export default function HookClient() {
+export default function HookConsumer() {
   const { wallet, create } = useWallet();
-  const hookServerAddress = useHookServerAddressParam();
-  const eventCount = store((state) => state.eventCount);
-
-  console.log("EVENT COUNT IN CLIENT", eventCount);
 
   useLogin({ wallet, opts: { autoLogin: true, env: "production" } });
   usePubSub({ wallet, opts: { autoStart: true } });
+  const client = useHooksConsumer();
 
-  const client = useBrpcHookClient({
-    api: { hook },
-    serverAddress: hookServerAddress,
-    wallet,
-  });
+  const eventCount = useEventCountStore((state) => state.eventCount);
 
   useEffect(() => {
     if (wallet !== undefined) {
@@ -69,14 +61,3 @@ export default function HookClient() {
     </div>
   );
 }
-
-const useHookServerAddressParam = () => {
-  const params = useParams();
-  const address = params.address;
-
-  if (typeof address !== "string") {
-    throw new Error("No group address provided");
-  }
-
-  return address;
-};

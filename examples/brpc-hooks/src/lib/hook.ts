@@ -1,18 +1,18 @@
 import { createProcedure } from "@killthebuddha/brpc/createProcedure.js";
-import { store } from "./store";
+import { useEventCountStore } from "../hooks/useEventCountStore";
 
 export const hook = createProcedure({
   auth: async () => true,
   handler: async (increment: number) => {
     console.log("HOOK CALLED", increment);
-    store.setState((state) => {
+    useEventCountStore.setState((state) => {
       return {
         eventCount: state.eventCount + increment,
       };
     });
 
-    console.log("HOOK STATE", store.getState());
+    console.log("HOOK STATE", useEventCountStore.getState());
 
-    return { eventCount: store.getState().eventCount };
+    return { eventCount: useEventCountStore.getState().eventCount };
   },
 });

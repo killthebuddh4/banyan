@@ -1,5 +1,11 @@
 import { z } from "zod";
 
+//
+//
+// TODO Pull these types into their own files in /types
+//
+//
+
 /* ***********************************************************
  *
  * TRANSPORT
