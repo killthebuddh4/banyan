@@ -32,3 +32,9 @@ NEXT
 When you create a group, you should start an ownerClient and ownerServer,
 When someone joins the group, they should start a memberClient and memberServer.
 when someone joins the group, they should tell the group owner.
+
+- join
+- ping
+- post
+- publish
+- sync

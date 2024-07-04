@@ -1,7 +1,7 @@
-import { useGroupMembers } from "@/hooks/useGroupMembers";
+import { ownerStore } from "@/lib/ownerStore";
 
 export const OwnerInstructions = () => {
-  const { members } = useGroupMembers();
+  const numMembers = ownerStore((state) => Object.values(state.members).length);
 
   return (
     <div className="created">
@@ -25,15 +25,15 @@ export const OwnerInstructions = () => {
         </em>
       </div>
       {(() => {
-        if (members.length > 0) {
+        if (numMembers > 0) {
           return (
             <div>
               <b>
                 {(() => {
-                  if (members.length === 1) {
+                  if (numMembers === 1) {
                     return "1 other person has joined this group.";
                   } else {
-                    return `${members.length} other people have joined this group.`;
+                    return `${numMembers} other people have joined this group.`;
                   }
                 })()}
               </b>

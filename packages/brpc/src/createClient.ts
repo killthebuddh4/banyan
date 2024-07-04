@@ -67,10 +67,30 @@ export const createClient = <A extends Brpc.BrpcApi>(args: {
         }, args.options?.timeoutMs ?? 10000);
 
         const { unsubscribe } = args.subscribe(async (message) => {
+          if (message.senderAddress !== args.topic.peerAddress) {
+            if (args.options?.onSelfSentMessage) {
+              try {
+                args.options.onSelfSentMessage({ message });
+              } catch {
+                console.warn("onSelfSentMessage threw an error");
+              }
+            }
+
+            return;
+          }
+
           if (
             message.conversation.context?.conversationId !==
             args.topic.context.conversationId
           ) {
+            if (args.options?.onTopicMismatch) {
+              try {
+                args.options.onTopicMismatch({ message });
+              } catch {
+                console.warn("onTopicMismatch threw an error");
+              }
+            }
+
             return;
           }
 

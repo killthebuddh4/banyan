@@ -1,7 +1,5 @@
-import { useGroupMembers } from "@/hooks/useGroupMembers";
-
 export const InvitedInstructions = () => {
-  const { members } = useGroupMembers();
+  const numMembers = 0;
 
   return (
     <div className="created">
@@ -22,7 +20,7 @@ export const InvitedInstructions = () => {
         </em>
       </div>
       {(() => {
-        if (members.length === 0) {
+        if (numMembers === 0) {
           console.warn(
             "There are no members in this group even though you are a member.",
           );
@@ -33,10 +31,10 @@ export const InvitedInstructions = () => {
           <div>
             <b>
               {(() => {
-                if (members.length === 1) {
+                if (numMembers === 1) {
                   return "There is 1 other person in this group.";
                 } else {
-                  return `There are ${members.length} other people are in this group.`;
+                  return `There are ${numMembers} other people are in this group.`;
                 }
               })()}
             </b>

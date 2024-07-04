@@ -2,21 +2,20 @@
 
 import { useWallet } from "@/hooks/useWallet";
 import { useGroupAddressParam } from "@/hooks/useGroupAddressParam";
-import { Owner } from "./Owner";
-import { Member } from "./Member";
+import { Owner } from "@/components/Owner";
+import { Member } from "@/components/Member";
 
 export default function Home() {
-  const { wallet, create } = useWallet();
+  const { wallet } = useWallet();
   const groupAddress = useGroupAddressParam();
 
   if (wallet === undefined) {
-    create();
-    return null;
+    return <Member />;
   }
 
-  if (wallet.address === groupAddress) {
-    return <Owner />;
+  if (wallet.address !== groupAddress) {
+    return <Member />;
   }
 
-  return <Member />;
+  return <Owner />;
 }

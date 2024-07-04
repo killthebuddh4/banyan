@@ -1,24 +1,17 @@
 "use client";
 
 import { Message } from "./Message";
-import { useLogin, useInbox, Message as TMessage } from "@killthebuddha/fig";
+import { useLogin } from "@killthebuddha/fig";
 import { useWallet } from "@/hooks/useWallet";
 import { OwnerInstructions } from "./OwnerInstructions";
 import { InvitedInstructions } from "./InvitedInstructions";
 import { useGroupAddressParam } from "@/hooks/useGroupAddressParam";
 import { useMemo } from "react";
+import { memberStore } from "@/lib/memberStore";
 
 export const Messages = () => {
   const { wallet } = useWallet();
   const groupAddress = useGroupAddressParam();
-  const { inbox } = useInbox({
-    wallet,
-    opts: {
-      filter: (message) => {
-        return message.conversation.context === undefined;
-      },
-    },
-  });
   const login = useLogin({ wallet });
 
   const clientStatus = useMemo(() => {
@@ -37,10 +30,7 @@ export const Messages = () => {
     return "";
   }, [login.isLoggedIn, login.isLoggingIn, login.isLoginError]);
 
-  const messages = (() => {
-    // console.warn("WHISPER :: WARMING :: MESSAGES ARE ONT SORTED");
-    return Object.values(inbox).flat() as TMessage[];
-  })();
+  const messages = memberStore((s) => s.messages);
 
   return (
     <div className="messages">
@@ -69,8 +59,8 @@ export const Messages = () => {
         return messages.map((message, i) => (
           <Message
             key={i}
-            text={String(message.content)}
-            outbound={message.senderAddress === wallet.address}
+            text={String(message.text)}
+            outbound={message.sender === wallet.address}
           />
         ));
       })()}

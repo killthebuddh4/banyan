@@ -1,16 +1,40 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useWallet } from "@/hooks/useWallet";
-import { usePubSub } from "@killthebuddha/fig";
+import { useBrpc } from "@killthebuddha/fig";
 import { useGroupAddressParam } from "@/hooks/useGroupAddressParam";
-import { useGroupMembers } from "@/hooks/useGroupMembers";
+import { post } from "@/lib/post";
 
 export const Input = () => {
   const { wallet } = useWallet();
+  const brpc = useBrpc({ wallet });
   const [messageInput, setMessageInput] = useState("");
   const [isSending, setIsSending] = useState(false);
-  const { publish } = usePubSub({ wallet });
   const groupAddress = useGroupAddressParam();
-  const groupMembers = useGroupMembers();
+
+  const client = useMemo(() => {
+    if (brpc.client === null) {
+      return null;
+    }
+
+    return brpc.client({
+      api: { post },
+      topic: {
+        peerAddress: groupAddress,
+        context: {
+          conversationId: "banyan.sh/whisper",
+          metadata: {},
+        },
+      },
+      // options: {
+      //   onReceivedInvalidResponse: ({ message }) => {
+      //     console.error(
+      //       "WHISPER :: Input.tsx :: received invalid response",
+      //       message,
+      //     );
+      //   },
+      // },
+    });
+  }, [brpc.client, groupAddress]);
 
   return (
     <form
@@ -22,35 +46,20 @@ export const Input = () => {
           return;
         }
 
-        if (publish === null) {
+        if (client === null) {
           return;
         }
 
-        if (wallet === undefined) {
-          return;
-        }
-
-        const recipients = [...groupMembers.members, groupAddress].filter(
-          (address) => address !== wallet.address,
-        );
-
-        console.log("WHISPER :: Input.tsx :: sending to", recipients);
+        console.log("WHISPER :: Input.tsx :: posting message");
 
         setIsSending(true);
 
         try {
-          await Promise.all(
-            recipients.map((recipient) => {
-              return publish({
-                conversation: { peerAddress: recipient },
-                content: messageInput,
-              });
-            }),
-          );
+          const result = await client.post({ text: messageInput });
 
-          console.log(
-            `WHISPER :: Input.tsx :: done sending to ${recipients.length} recipients`,
-          );
+          console.log("WHISPER :: Input.tsx :: posted message", result);
+
+          console.log(`WHISPER :: Input.tsx :: done posting message`);
         } catch (error) {
           console.error("WHISPER :: Input.tsx :: error while sending", error);
         } finally {
