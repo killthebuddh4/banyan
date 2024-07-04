@@ -2,7 +2,7 @@ import { App } from "@/components/App";
 import { useEffect, useMemo } from "react";
 import { useWallet } from "@/hooks/useWallet";
 import { useLogin, useBrpc } from "@killthebuddha/fig";
-import { Messages } from "@/components/Messages";
+import { MessagesForMember } from "./MessagesForMember";
 import { Input } from "@/components/Input";
 import { join } from "@/lib/join";
 import { sync } from "@/lib/sync";
@@ -81,7 +81,7 @@ export const Member = () => {
 
   return (
     <App>
-      <Messages />
+      <MessagesForMember />
       <Input />
     </App>
   );

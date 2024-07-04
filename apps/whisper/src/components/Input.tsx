@@ -25,14 +25,6 @@ export const Input = () => {
           metadata: {},
         },
       },
-      // options: {
-      //   onReceivedInvalidResponse: ({ message }) => {
-      //     console.error(
-      //       "WHISPER :: Input.tsx :: received invalid response",
-      //       message,
-      //     );
-      //   },
-      // },
     });
   }, [brpc.client, groupAddress]);
 

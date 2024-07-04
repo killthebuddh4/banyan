@@ -1,8 +1,8 @@
 import { App } from "@/components/App";
 import { useWallet } from "@/hooks/useWallet";
 import { useLogin, useBrpc } from "@killthebuddha/fig";
-import { Messages } from "@/components/Messages";
-import { Input } from "@/components/Input";
+import { MessagesForOwner } from "./MessagesForOwner";
+import { OwnerInput } from "./OwnerInput";
 import { join } from "@/lib/join";
 import { post } from "@/lib/post";
 import { sync } from "@/lib/sync";
@@ -94,8 +94,8 @@ export const Owner = () => {
 
   return (
     <App>
-      <Messages />
-      <Input />
+      <MessagesForOwner />
+      <OwnerInput />
     </App>
   );
 };
