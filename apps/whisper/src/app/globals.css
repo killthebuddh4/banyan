@@ -43,6 +43,13 @@
   height: calc(100vh - var(--header-height) - 1rem);
 }
 
+.appHeader {
+  display: flex;
+  align-items: center;
+  border-bottom: 2px solid black;
+  height: 2rem;
+}
+
 .messages {
   position: relative;
   display: flex;
@@ -90,10 +97,28 @@
   flex-direction: column;
   padding: 0.25rem;
   opacity: 1;
+  gap: 0.25rem;
+}
+
+.messageHeader {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  gap: 0.25rem;
+}
+
+.messageHeader h1 {
+  font-weight: bold;
+  line-height: 0.9;
+}
+
+.messageHeader time {
+  font-size: 0.75rem;
+  opacity: 0.6;
 }
 
 .fadeIn {
-  animation: fadeIn 0.5s;
+  animation: fadeIn 0.75s;
 }
 
 @keyframes fadeIn {
@@ -106,8 +131,16 @@
 }
 
 .message.outbound {
-  align-items: flex-end;
-  background-color: lightgray;
+  background-color: #f5f5f5;
+}
+
+.connecting {
+  margin: 1rem 1rem 0 1rem;
+  animation: fadeIn 0.75s;
+}
+
+.connecting > div {
+  margin-bottom: 0.25rem;
 }
 
 .input {
@@ -204,6 +237,36 @@ input:focus {
 .created {
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 1rem;
+  margin: 1rem;
   padding: 1rem;
+  background-color: #f5f5f5;
+  margin-bottom: 2rem;
+  border: 2px solid black;
+}
+
+.join {
+  display: flex;
+  flex-grow: 1;
+  align-items: center;
+  background: #f0f0f0;
+}
+
+.join input {
+  min-width: 400px;
+  padding-left: 1rem;
+}
+
+.join > button {
+  background: white;
+  border: none;
+}
+
+.join .active {
+  border: 2px solid black;
+}
+
+.cannotJoin {
+  color: red;
 }

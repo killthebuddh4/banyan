@@ -8,6 +8,7 @@ export type ClientOptions = {
   onTopicMismatch?: (args: { message: Message }) => void;
   onReceivedInvalidJson?: (args: { message: Message }) => void;
   onReceivedInvalidResponse?: (args: { message: Message }) => void;
+  onInvalidPayload: (args: { message: Message }) => void;
   onIdMismatch?: (args: { message: Message }) => void;
   onResponseHandlerError?: (args: { error: Error }) => void;
   onInputSerializationError?: () => void;

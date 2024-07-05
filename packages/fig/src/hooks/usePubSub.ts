@@ -22,11 +22,11 @@ export const usePubSub = (props: {
   });
 
   const autoStart = useMemo(() => {
-    if (props.opts?.autoStart === false) {
-      return false;
+    if (props.opts?.autoStart === true) {
+      return true;
     }
 
-    return true;
+    return false;
   }, [props.opts?.autoStart]);
 
   const autoStop = useMemo(() => {

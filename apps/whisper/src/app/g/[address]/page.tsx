@@ -1,19 +1,13 @@
 "use client";
 
-import { useWallet } from "@/hooks/useWallet";
-import { useGroupAddressParam } from "@/hooks/useGroupAddressParam";
-import { Owner } from "@/components/Owner";
-import { Member } from "@/components/Member";
+import { useOwnerStore } from "./ownerApi";
+import { Owner } from "./Owner";
+import { Member } from "./Member";
 
 export default function Home() {
-  const { wallet } = useWallet();
-  const groupAddress = useGroupAddressParam();
+  const wallet = useOwnerStore((s) => s.wallet);
 
-  if (wallet === undefined) {
-    return <Member />;
-  }
-
-  if (wallet.address !== groupAddress) {
+  if (wallet === null) {
     return <Member />;
   }
 

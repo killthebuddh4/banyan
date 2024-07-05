@@ -173,17 +173,17 @@ export const createClient = <A extends Brpc.BrpcApi>(args: {
             });
           }
 
-          if (args.options?.onReceivedInvalidResponse) {
+          if (args.options?.onInvalidPayload) {
             try {
-              args.options.onReceivedInvalidResponse({ message });
+              args.options.onInvalidPayload({ message });
             } catch {
-              console.warn("onReceivedInvalidResponse threw an error", error);
+              console.warn("onInvalidPayload threw an error", error);
             }
           }
 
           resolve({
             ok: false,
-            code: "INVALID_RESPONSE",
+            code: "INVALID_PAYLOAD",
             request,
             response: response.data,
           });

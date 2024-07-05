@@ -84,6 +84,7 @@ export const brpcErrorSchema = z.object({
     z.literal("OUTPUT_TYPE_MISMATCH"),
     z.literal("OUTPUT_SERIALIZATION_FAILED"),
     z.literal("INVALID_RESPONSE"),
+    z.literal("INVALID_PAYLOAD"),
     z.literal("UNAUTHORIZED"),
     z.literal("REQUEST_TIMEOUT"),
     z.literal("SERVER_ERROR"),
