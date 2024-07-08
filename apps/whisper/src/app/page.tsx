@@ -6,16 +6,6 @@ import { useOwnerStore, join, post } from "./owner";
 import { sync, ping } from "./g/[address]/member";
 import { useEffect, useMemo, useState } from "react";
 
-const renderDate = (date: number) => {
-  return new Date(date).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "numeric",
-  });
-};
-
 export default function Owner() {
   const wallet = useOwnerStore((s) => s.wallet);
 
@@ -69,19 +59,11 @@ export default function Owner() {
         return;
       }
 
-      console.log(
-        `WHISPER :: OWNER :: Syncing with ${brpcClients.length} members`,
-      );
-
       try {
-        const result = await Promise.all(
+        await Promise.all(
           brpcClients.map(async (client) => {
             return client.sync({ messages });
           }),
-        );
-
-        console.log(
-          `WHISPER :: OWNER :: Synced with ${brpcClients.length} members`,
         );
 
         useOwnerStore.setState((state) => {
@@ -92,7 +74,7 @@ export default function Owner() {
           };
         });
       } catch (error) {
-        console.error("WHISPER :: OWNER :: error while syncing", error);
+        // TODO
       }
     })();
   }, [brpcClients, messages]);
@@ -150,112 +132,150 @@ export default function Owner() {
 
   const isSending = useOwnerStore((s) => s.isSending);
 
+  const [showLauncher, setShowLauncher] = useState(true);
+
+  useEffect(() => {
+    if (!isStreaming) {
+      setShowLauncher(true);
+    }
+
+    if (isStreaming) {
+      setTimeout(() => {
+        setShowLauncher(false);
+      }, 1000);
+    }
+  }, [isStreaming]);
+
   return (
     <div className="app">
-      <div className={`message fadeIn`}>
-        <div className="messageHeader">
-          <h1>hush bot</h1>
-          <time>{renderDate(Date.now())}</time>
-        </div>
-        <p>
-          Hush is an app for <b>private</b>, <b>secure</b>, and <b>ephemeral</b>{" "}
-          groupchats.{" "}
-          <a href="https://github.com/banyan">Click here to learn more</a>.
-        </p>
-        <p>
-          To <b>initialize the group</b>, enter an alias (your ephemeral
-          username) username) and click the "Launch" button.
-        </p>
-      </div>
+      {isStreaming && (
+        <div className="launcherWrapper">
+          <form
+            className="launcherForm"
+            onSubmit={(e) => {
+              e.preventDefault();
 
-      {alias === null ? null : (
-        <div className={`message fadeIn`}>
-          <div className="messageHeader">
-            <h1>hush bot</h1>
-            <time>{String(new Date())}</time>
-          </div>
-          <p>
-            Ok, your alias is set to <span className="alias">{alias}</span>.
-            I'll initialize the groupchat now, 1 sec...
-          </p>
-        </div>
-      )}
+              if (alias !== null) {
+                return;
+              }
 
-      {isStreaming && wallet !== undefined && (
-        <div className={`message fadeIn`}>
-          <div className="messageHeader">
-            <h1>hush bot</h1>
-            <time>{String(new Date())}</time>
-          </div>
-          <p>
-            Ok, the groupchat is live! <b>Share the following URL</b> with
-            anyone you want to invite.
-          </p>
-          <button
-            onClick={() =>
-              navigator.clipboard.writeText(
-                `http://localhost:3000/g/${wallet.address}`,
-              )
-            }
-            className="groupchatLink"
+              if (aliasInput.length === 0) {
+                return;
+              }
+
+              useOwnerStore.setState((state) => {
+                return {
+                  ...state,
+                  alias: aliasInput,
+                  aliasInput: "",
+                };
+              });
+            }}
           >
-            {`https://hush.banyan.sh/g/${wallet.address}`}
-          </button>
+            <div className="launcherHeader">
+              <div className="launcherOss">
+                <p>
+                  Hush is <b>private</b>, <b>secure</b>, and <b>ephemeral</b>{" "}
+                  groupchats.{" "}
+                </p>
+              </div>
+              <a className="launcherLearnMore" href="https://github.com/banyan">
+                Click here to learn more
+              </a>
+            </div>
+            <div className="launcherInputWrapper">
+              <input
+                className="launcherInput"
+                type="text"
+                placeholder="Enter an alias (an ephemeral username)..."
+                value={alias || aliasInput}
+                onChange={(e) => {
+                  if (alias !== null) {
+                    return;
+                  }
+
+                  useOwnerStore.setState((state) => {
+                    return {
+                      ...state,
+                      aliasInput: e.target.value,
+                    };
+                  });
+                }}
+              />
+              <button className="launcherInputButton" onClick={() => null}>
+                {alias === null ? "Launch" : "Launching..."}
+              </button>
+            </div>
+          </form>
         </div>
       )}
-      <div className="messages">
-        {messages.map((message) => {
-          return (
-            <div
-              className={`message fadeIn ${message.sender === wallet?.address ? "outbound" : "inbound"}`}
-            >
-              <div className="messageHeader">
-                <h1>{message.alias}</h1>
-                <time>{String(new Date(message.timestamp))}</time>
-              </div>
-              <p>{message.text}</p>
-            </div>
-          );
-        })}
-      </div>
-      <form
-        className="input aliasInputForm"
-        onSubmit={async (e) => {
-          e.preventDefault();
+      {showLauncher && (
+        <header className="appHeader">
+          <a
+            className="groupchatUrl"
+            target="_blank"
+            href={`https://hush.banyan.sh/g/${wallet?.address}`}
+          >{`https://hush.banyan.sh/g/${wallet?.address}`}</a>
+          <a href="https://github.com">Learn More</a>
+        </header>
+      )}
+      {showLauncher && (
+        <>
+          {/* <div className="inviteUrl">
+            <p>
+              Anyone with the following URL can join your groupchat. (click to
+              copy)
+            </p>
+            <p className="groupchatUrl">{`http://hush.banyan.sh/g/${wallet?.address}`}</p>
+            <a target="_blank" href={`https://github.com`}>
+              GitHub
+            </a>
+          </div> */}
+          <div className="instructions">
+            <p>You've created a private, secure, and ephemeral groupchat.</p>
+            <p>
+              <b>Anyone with your group's invite URL can join the groupchat.</b>
+            </p>
+            <p>
+              The group will exist only until this browser tab is closed or
+              refreshed.
+            </p>
+            <p className="terminate">
+              To terminate the groupchat, close or refresh this browser tab.
+            </p>
+            <p>
+              When the groupchat is destroyed, the other members who have
+              already joined will be notified.
+            </p>
+            <p>
+              <span className="warning">WARNING</span>: We cannot prevent any
+              members of the group from recording the conversation.
+            </p>
+          </div>
+          <form
+            className="messageInputForm"
+            onSubmit={async (e) => {
+              e.preventDefault();
 
-          // WHEN THE INPUT IS FOR THE ALIAS
-          if (alias === null) {
-            // Better UX here.
-            if (aliasInput.length === 0) {
-              return;
-            }
+              if (!isStreaming) {
+                return;
+              }
 
-            useOwnerStore.setState((state) => {
-              return {
-                ...state,
-                alias: aliasInput,
-              };
-            });
-          }
+              if (isSending) {
+                return;
+              }
 
-          // WHEN THE INPUT IS FOR SENDING A MESSAGE
-          if (isStreaming) {
-            if (isSending) {
-              return;
-            }
+              if (messageInput === "") {
+                return;
+              }
 
-            if (messageInput === "") {
-              return;
-            }
+              useOwnerStore.setState((state) => {
+                return {
+                  ...state,
+                  isSending: true,
+                };
+              });
 
-            useOwnerStore.setState((state) => {
-              return {
-                ...state,
-                isSending: true,
-              };
-            });
-
-            try {
               useOwnerStore.setState((state) => {
                 const found = state.messages.find(
                   (m) => m.text === messageInput,
@@ -287,72 +307,50 @@ export default function Owner() {
                   ],
                 };
               });
-            } catch (error) {
-              console.error(
-                "WHISPER :: Input.tsx :: error while sending",
-                error,
-              );
-            }
-          }
-        }}
-      >
-        <input
-          type="text"
-          placeholder={
-            // TODO I think there's more states here.
-            alias === null ? "Enter an alias..." : "Type a message..."
-          }
-          value={(() => {
-            if (alias === null) {
-              return aliasInput;
-            }
-
-            if (isStreaming) {
-              return messageInput;
-            }
-          })()}
-          onChange={(e) => {
-            // WHEN ITS AN INPUT FOR THE ALIAS
-            if (alias === null) {
-              return useOwnerStore.setState((state) => {
-                return {
-                  ...state,
-                  aliasInput: e.target.value,
-                };
-              });
-            }
-
-            // WHEN ITS AN INPUT FOR SENDING A MESSAGE
-            if (isStreaming) {
-              return useOwnerStore.setState((state) => {
-                return {
-                  ...state,
-                  messageInput: e.target.value,
-                };
-              });
-            }
-          }}
-        />
-        <button type="submit">
-          {(() => {
-            if (isLaunching) {
-              return "Launching...";
-            }
-
-            if (isSending) {
-              return "Sending...";
-            }
-
-            if (alias === null) {
-              return "Launch";
-            }
-
-            if (brpcClients !== null) {
-              return "Send";
-            }
-          })()}
-        </button>
-      </form>
+            }}
+          >
+            <input
+              className="messageInputInput"
+              type="text"
+              placeholder="Type a message..."
+              value={messageInput}
+              onChange={(e) => {
+                return useOwnerStore.setState((state) => {
+                  return {
+                    ...state,
+                    messageInput: e.target.value,
+                  };
+                });
+              }}
+            />
+          </form>
+        </>
+      )}
+      {/* <div classname="messages">
+        {messages.map((message) => {
+          return (
+            <div
+              classname={`message fadein ${message.sender === wallet?.address ? "outbound" : "inbound"}`}
+            >
+              <div classname="messageheader">
+                <h1>{message.alias}</h1>
+                <time>{string(new date(message.timestamp))}</time>
+              </div>
+              <p>{message.text}</p>
+            </div>
+          );
+        })}
+      </div> */}
     </div>
   );
 }
+
+const renderDate = (date: number) => {
+  return new Date(date).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "numeric",
+  });
+};
