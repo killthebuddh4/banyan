@@ -1,19 +1,35 @@
 import { create } from "zustand";
 import { createProcedure } from "@killthebuddha/brpc/createProcedure.js";
+import { Signer } from "@killthebuddha/fig";
 
-type Whisper = {
+export type Whisper = {
   id: string;
   timestamp: number;
   sender: string;
   text: string;
+  alias: string;
 };
 
 export const useMemberStore = create<{
-  owner: { address: string; alias: string; lastSeen: number } | null;
+  alias: string | null;
+  aliasInput: string;
+  messageInput: string;
+  wallet: Signer | undefined;
+  isSending: boolean;
   messages: Whisper[];
+  owner: { address: string; alias: string; lastSeen: number } | null;
+  isJoining: boolean;
+  isJoined: boolean;
 }>(() => ({
-  owner: null,
+  alias: null,
+  aliasInput: "",
+  messageInput: "",
+  wallet: undefined,
+  isSending: false,
   messages: [],
+  owner: null,
+  isJoining: false,
+  isJoined: false,
 }));
 
 export const ping = createProcedure({
@@ -52,6 +68,7 @@ export const sync = createProcedure({
     return owner.address === context.message.senderAddress;
   },
   handler: async ({ messages }: { messages: Whisper[] }) => {
+    console.log("MEMBER :: SYNC API :: CALLED");
     useMemberStore.setState((state) => {
       return { ...state, messages };
     });

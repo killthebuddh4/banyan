@@ -14,24 +14,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <main className="root">
-          <div className="header">
-            <div>
-              <em>whisper</em>, made with ❤️ by{" "}
-              <a className="banyan" href="https://banyan.sh" target="_blank">
-                Banyan
-              </a>
-            </div>
-            <a
-              className="banyan"
-              href="https://github.com/killthebuddh4/banyan"
-              target="_blank"
-            >
-              GitHub
-            </a>
-          </div>
-          {children}
-        </main>
+        {children}
         <Analytics />
       </body>
     </html>

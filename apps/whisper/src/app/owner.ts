@@ -11,16 +11,24 @@ type Whisper = {
 };
 
 export const useOwnerStore = create<{
-  wallet: Signer | null;
+  alias: string | null;
+  aliasInput: string;
+  messageInput: string;
+  wallet: Signer | undefined;
   members: Record<
     string,
-    { alias: string; lastSeen: number; missedPings: number }
+    { alias: string; firstSeen: number; lastSeen: number; missedPings: number }
   >;
+  isSending: boolean;
   messages: Whisper[];
 }>(() => ({
-  wallet: null,
+  alias: null,
+  aliasInput: "",
+  messageInput: "",
+  wallet: undefined,
   members: {},
   messages: [],
+  isSending: false,
 }));
 
 const MAX_GROUP_SIZE = 10;
@@ -38,6 +46,14 @@ export const join = createProcedure({
       (member) => member.alias === args.alias,
     );
 
+    const ownerAlias = useOwnerStore.getState().alias;
+
+    if (ownerAlias === null) {
+      throw new Error(
+        "WHISPER :: Owner.tsx :: owner alias is null when the join api was called",
+      );
+    }
+
     if (found !== undefined) {
       return { joined: false, reason: "ALIAS_ALREADY_EXISTS" };
     }
@@ -49,6 +65,7 @@ export const join = createProcedure({
           ...state.members,
           [ctx.message.senderAddress]: {
             alias: args.alias,
+            firstSeen: Date.now(),
             lastSeen: Date.now(),
             missedPings: 0,
           },
@@ -56,7 +73,7 @@ export const join = createProcedure({
       };
     });
 
-    return { joined: true };
+    return { joined: true, ownerAlias };
   },
 });
 
