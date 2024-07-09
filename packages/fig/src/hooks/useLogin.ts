@@ -1,83 +1,44 @@
-import { useMemo, useEffect } from "react";
+import { useMemo } from "react";
 import { Signer } from "../remote/Signer.js";
-import { useRemoteActions } from "./useRemoteActions.js";
-import { useRemoteState } from "./useRemoteState.js";
+import { useXmtpActions } from "./useXmtpActions.js";
+import { useXmtpState } from "./useXmtpState.js";
 
 export const useLogin = ({
   wallet,
   opts,
 }: {
   wallet?: Signer;
-  opts?: {
-    env: "production" | "dev";
-    autoLogin?: boolean;
-    autoLogout?: boolean;
-  };
+  opts?: { env?: "production" | "dev" };
 }) => {
-  const state = useRemoteState({ wallet });
-  const { startClient, stopClient } = useRemoteActions({ wallet });
+  const state = useXmtpState({ wallet });
+  const { startClient, stopClient } = useXmtpActions();
 
-  const autoLogin = useMemo(() => {
-    if (opts?.autoLogin === true) {
-      return true;
-    }
-
-    return false;
-  }, [opts?.autoLogin]);
-
-  const autoLogout = useMemo(() => {
-    if (opts?.autoLogout === true) {
-      return true;
-    }
-
-    return false;
-  }, [opts?.autoLogout]);
-
-  useEffect(() => {
-    if (!autoLogin) {
-      console.log("FIG :: useLogin :: AUTO START IS FALSE");
-      return;
-    }
-
-    if (startClient === null) {
-      console.log("FIG :: useLogin :: START CLIENT IS NULL");
-      return;
-    }
-
-    if (stopClient === null) {
-      console.log("FIG :: useLogin :: STOP CLIENT IS NULL");
-      return;
-    }
-
-    if (state.client.code !== "idle") {
-      console.log("FIG :: useLogin :: CLIENT NOT READY TO START");
-      return;
-    }
-
-    startClient({ env: opts?.env })
-      .then((response) => {
-        console.log("FIG :: useLogin :: START CLIENT RESPONSE", response);
-      })
-      .catch((error) => {
-        console.error("FIG :: useLogin :: START CLIENT ERROR", error);
-      });
-
-    return () => {
-      if (!autoLogout) {
-        return;
+  const login = useMemo(() => {
+    return async () => {
+      if (wallet === undefined) {
+        throw new Error("useLogin :: wallet is undefined");
       }
 
-      stopClient();
+      return startClient({ wallet, opts });
     };
-  }, [autoLogin, startClient, stopClient, state.client.code, autoLogout]);
+  }, [wallet, startClient, opts]);
 
-  console.log(`FIG :: useLogin :: state.client.code: ${state.client.code}`);
+  const logout = useMemo(() => {
+    return async () => {
+      if (wallet === undefined) {
+        throw new Error("useLogin :: wallet is undefined");
+      }
+
+      return stopClient(wallet);
+    };
+  }, [wallet, stopClient]);
 
   return {
-    login: startClient,
-    logout: stopClient,
-    isLoggingIn: state.client.code === "pending",
-    isLoggedIn: state.client.code === "success",
-    isLoginError: state.client.code === "error",
+    login,
+    logout,
+    isReady: state.client?.code === "idle",
+    isPending: state.client?.code === "pending",
+    isSuccess: state.client?.code === "success",
+    isError: state.client?.code === "error",
   };
 };

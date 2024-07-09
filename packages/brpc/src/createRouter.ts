@@ -7,7 +7,6 @@ import { Subscribe } from "./types/Subscribe.js";
 
 export const createRouter = (args: {
   api: { [key: string]: Brpc.BrpcProcedure | undefined };
-  address: string;
   publish: Publish;
   subscribe: Subscribe;
   topic: Topic;
@@ -37,7 +36,7 @@ export const createRouter = (args: {
       }
     }
 
-    if (message.senderAddress === args.address) {
+    if (message.senderAddress === args.topic.peerAddress) {
       if (args.options?.onSelfSentMessage) {
         try {
           args.options.onSelfSentMessage({ message });

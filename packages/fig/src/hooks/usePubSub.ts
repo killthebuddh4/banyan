@@ -1,110 +1,78 @@
 import { useMemo, useEffect } from "react";
 import { Signer } from "../remote/Signer.js";
-import { useRemoteActions } from "./useRemoteActions.js";
-import { useRemoteState } from "./useRemoteState.js";
-import { ignoreGlobalMessageStream } from "../remote/actions/ignoreGlobalMessageStream.js";
+import { useXmtpActions } from "./useXmtpActions.js";
+import { useXmtpState } from "./useXmtpState.js";
 import { Message } from "../remote/Message.js";
 import { v4 as uuidv4 } from "uuid";
 
 export const usePubSub = (props: {
   wallet?: Signer;
-  opts?: { autoStart?: boolean; autoStop?: boolean };
+  opts?: {
+    filter?: (message: Message) => boolean;
+  };
 }) => {
   const {
     listenToGlobalMessageStream,
+    ignoreGlobalMessageStream,
     startGlobalMessageStream,
     stopGlobalMessageStream,
     sendMessage,
-  } = useRemoteActions({ wallet: props.wallet });
+  } = useXmtpActions();
 
-  const { client, globalMessageStream } = useRemoteState({
-    wallet: props.wallet,
-  });
-
-  const autoStart = useMemo(() => {
-    if (props.opts?.autoStart === true) {
-      return true;
-    }
-
-    return false;
-  }, [props.opts?.autoStart]);
-
-  const autoStop = useMemo(() => {
-    if (props.opts?.autoStop === true) {
-      return true;
-    }
-
-    return false;
-  }, [props.opts?.autoStop]);
+  const state = useXmtpState(props);
 
   const start = useMemo(() => {
-    if (startGlobalMessageStream === null) {
-      return null;
-    }
+    const wallet = props.wallet;
 
-    if (client.code !== "success") {
-      return null;
-    }
+    return async () => {
+      if (wallet === undefined) {
+        throw new Error("usePubSub :: wallet is undefined");
+      }
 
-    if (globalMessageStream.code !== "idle") {
-      return null;
-    }
-
-    return startGlobalMessageStream;
-  }, [startGlobalMessageStream, client.code, globalMessageStream.code]);
+      return startGlobalMessageStream(wallet);
+    };
+  }, [props.wallet, startGlobalMessageStream]);
 
   const stop = useMemo(() => {
-    if (stopGlobalMessageStream === null) {
-      return null;
-    }
+    const wallet = props.wallet;
 
-    if (globalMessageStream.code !== "success") {
-      return null;
-    }
+    return async () => {
+      if (wallet === undefined) {
+        throw new Error("usePubSub :: wallet is undefined");
+      }
 
-    return stopGlobalMessageStream;
-  }, []);
+      return stopGlobalMessageStream(wallet);
+    };
+  }, [props.wallet, stopGlobalMessageStream]);
 
   const subscribe = useMemo(() => {
-    if (listenToGlobalMessageStream === null) {
-      return null;
-    }
-
-    if (ignoreGlobalMessageStream === null) {
-      return null;
-    }
-
-    if (globalMessageStream.code !== "success") {
-      return null;
-    }
+    const wallet = props.wallet;
 
     return (handler: (message: Message) => void) => {
-      const id = uuidv4();
+      if (wallet === undefined) {
+        return null;
+      }
 
-      // TODO We're ignoring the result here, ::wags finger disapprovingly::
-
-      listenToGlobalMessageStream(id, handler);
-
-      return () => {
-        ignoreGlobalMessageStream(id);
-      };
+      return listenToGlobalMessageStream({ wallet, id: uuidv4(), handler });
     };
-  }, [
-    listenToGlobalMessageStream,
-    ignoreGlobalMessageStream,
-    globalMessageStream.code,
-  ]);
+  }, [props.wallet, listenToGlobalMessageStream]);
+
+  const unsubscribe = useMemo(() => {
+    const wallet = props.wallet;
+
+    return (id: string) => {
+      if (wallet === undefined) {
+        return;
+      }
+
+      ignoreGlobalMessageStream({ wallet, id });
+    };
+  }, [props.wallet, ignoreGlobalMessageStream]);
 
   const publish = useMemo(() => {
-    if (sendMessage === null) {
-      return null;
-    }
+    const wallet = props.wallet;
 
-    if (client.code !== "success") {
-      return null;
-    }
-
-    return async (props: {
+    return async (publishProps: {
       conversation: {
         peerAddress: string;
         context?: {
@@ -114,45 +82,26 @@ export const usePubSub = (props: {
       };
       content: string;
     }) => {
-      return sendMessage(props);
+      if (wallet === undefined) {
+        throw new Error("usePubSub :: publish :: wallet is undefined");
+      }
+
+      return sendMessage({
+        wallet,
+        ...publishProps,
+      });
     };
-  }, [sendMessage, client.code]);
-
-  useEffect(() => {
-    (() => {
-      if (!autoStart) {
-        console.log("FIG :: useStream :: AUTO START IS FALSE");
-        return;
-      }
-
-      if (start === null) {
-        console.log("FIG :: useStream :: START STREAM IS NULL");
-        return;
-      }
-
-      start();
-    })();
-
-    return () => {
-      if (!autoStop) {
-        return;
-      }
-
-      if (stop === null) {
-        return;
-      }
-
-      stop();
-    };
-  }, [autoStart, autoStop, start]);
+  }, [sendMessage, props.wallet]);
 
   return {
     start,
     stop,
     publish,
     subscribe,
-    isStreaming: globalMessageStream.code === "success",
-    isStarting: globalMessageStream.code === "pending",
-    isError: globalMessageStream.code === "error",
+    unsubscribe,
+    isReady: state.globalMessageStream?.code === "idle",
+    isPending: state.globalMessageStream?.code === "pending",
+    isSuccess: state.globalMessageStream?.code === "success",
+    isError: state.globalMessageStream?.code === "error",
   };
 };

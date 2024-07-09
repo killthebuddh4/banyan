@@ -313,7 +313,6 @@ export const createBrpc = (args: {
     return createRouter({
       api: routerArgs.api,
       topic: routerArgs.topic,
-      address: wallet.address,
       publish,
       subscribe,
       options: routerArgs.options,
