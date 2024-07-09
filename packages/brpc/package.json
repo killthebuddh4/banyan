@@ -1,9 +1,11 @@
 {
   "name": "@killthebuddha/brpc",
   "type": "module",
-  "exports": {
-    "./*.js": "./build/*.js"
-  },
+  "types": "build/index.d.ts",
+  "module": "build/index.js",
+  "files": [
+    "build"
+  ],
   "scripts": {
     "dev": "tsc --watch --preserveWatchOutput",
     "test": "mocha build/**/*.test.js",

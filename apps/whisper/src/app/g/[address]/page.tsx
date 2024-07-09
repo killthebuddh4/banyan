@@ -1,7 +1,13 @@
 "use client";
 
 import { Wallet } from "@ethersproject/wallet";
-import { useLogin, useBrpc, usePubSub } from "@killthebuddha/fig";
+import {
+  useLogin,
+  usePubSub,
+  useXmtpActions,
+  Message,
+} from "@killthebuddha/fig";
+import { createClient, createRouter } from "@killthebuddha/brpc";
 import { join, post } from "../../owner";
 import { sync, ping, useMemberStore } from "./member";
 import { useEffect, useMemo, useState } from "react";
@@ -16,26 +22,72 @@ export default function Member() {
 
   const wallet = useMemberStore((s) => s.wallet);
 
-  const brpc = useBrpc({ wallet });
+  const actions = useXmtpActions();
+
+  const publish = async (args: {
+    topic: {
+      peerAddress: string;
+      context?: {
+        conversationId: string;
+        metadata: {};
+      };
+    };
+    content: string;
+  }) => {
+    if (wallet === undefined) {
+      throw new Error("Owner :: publish :: wallet is undefined");
+    }
+
+    const result = await actions.sendMessage({
+      wallet,
+      conversation: args.topic,
+      content: args.content,
+    });
+
+    if (!result.ok) {
+      throw new Error(result.error);
+    }
+
+    return { published: result.data };
+  };
+
+  const subscribe = (handler: (message: Message) => void) => {
+    if (wallet === undefined) {
+      throw new Error("Owner :: subscribe :: wallet is undefined");
+    }
+
+    actions.listenToGlobalMessageStream({
+      wallet,
+      id: crypto.randomUUID(),
+      handler,
+    });
+
+    return {
+      unsubscribe: () => {
+        // TODO ignoreGlobalMessageStream
+      },
+    };
+  };
 
   useEffect(() => {
-    (async () => {
-      if (brpc.router === null) {
-        return;
-      }
+    if (wallet === undefined) {
+      return;
+    }
 
-      brpc.router({
-        api: { sync, ping },
-        topic: {
-          peerAddress: "",
-          context: {
-            conversationId: "banyan.sh/whisper",
-            metadata: {},
-          },
-        },
-      });
-    })();
-  }, [brpc.router, serverAddress]);
+    const { start } = createRouter({
+      api: { sync, ping },
+      topic: {
+        peerAddress: "",
+        context: { conversationId: "banyan.sh/whisper", metadata: {} },
+      },
+      publish,
+      subscribe,
+    });
+
+    const { stop } = start();
+
+    return stop;
+  }, [wallet, publish, subscribe]);
 
   const messages = useMemberStore((state) => state.messages);
 
@@ -54,30 +106,35 @@ export default function Member() {
     });
   }, [alias]);
 
-  const { isLoggingIn, isLoggedIn, isLoginError, login } = useLogin({
+  const {
+    isReady: isReadyToLogin,
+    isPending: isLoggingIn,
+    isSuccess: isLoggedIn,
+    login,
+  } = useLogin({
     wallet,
-    opts: { autoLogin: false, env: "production" },
+    opts: { env: "production" },
   });
 
   useEffect(() => {
-    if (wallet === undefined) {
+    if (!isReadyToLogin) {
       return;
     }
 
-    if (login === null) {
-      return;
-    }
-
-    login({});
+    login();
   }, [wallet, login]);
 
-  const { isStarting, isStreaming, isError, start } = usePubSub({
+  const {
+    isReady: isReadyToStream,
+    isSuccess: isStreaming,
+    start,
+  } = usePubSub({
     wallet,
     opts: { autoStart: false },
   });
 
   useEffect(() => {
-    if (start === null) {
+    if (!isReadyToStream) {
       return;
     }
 
@@ -113,13 +170,13 @@ export default function Member() {
 
         {isLoggingIn ? <p>Joining XMTP network...</p> : null}
         {isLoggedIn ? <p>Joined XMTP network!</p> : null}
-        {isStarting ? <p>Connecting to XMTP message stream ...</p> : null}
+        {isReadyToStream ? <p>Connecting to XMTP message stream ...</p> : null}
         {isStreaming ? <p>Connected to XMTP message stream!...</p> : null}
         {isJoining ? <p>Joining conversation...</p> : null}
         {isJoined ? <p>Joined conversation!</p> : null}
       </div>
     );
-  }, [alias, wallet, isStreaming, isStarting, isLoggingIn, isLoggedIn]);
+  }, [alias, wallet, isStreaming, isReadyToStream, isLoggingIn, isLoggedIn]);
 
   const aliasInput = useMemberStore((s) => s.aliasInput);
 
@@ -197,11 +254,7 @@ export default function Member() {
   const messageInput = useMemberStore((s) => s.messageInput);
 
   const brpcClient = useMemo(() => {
-    if (brpc.client === null) {
-      return null;
-    }
-
-    return brpc.client({
+    return createClient({
       api: { join, post },
       topic: {
         peerAddress: serverAddress,
@@ -210,14 +263,12 @@ export default function Member() {
           metadata: {},
         },
       },
+      publish,
+      subscribe,
     });
-  }, [brpc.client, serverAddress]);
+  }, [serverAddress, publish, subscribe]);
 
   useEffect(() => {
-    if (brpcClient === null) {
-      return;
-    }
-
     if (alias === null) {
       return;
     }

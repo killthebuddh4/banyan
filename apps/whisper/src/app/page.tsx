@@ -1,45 +1,99 @@
 "use client";
 
 import { Wallet } from "@ethersproject/wallet";
-import { useLogin, useBrpc, usePubSub } from "@killthebuddha/fig";
+import { useLogin, useStream, useActions, Message } from "@killthebuddha/fig";
+import { createRouter, createClient } from "@killthebuddha/brpc";
 import { useOwnerStore, join, post } from "./owner";
 import { sync, ping } from "./g/[address]/member";
 import { useEffect, useMemo, useState } from "react";
 
 export default function Owner() {
   const wallet = useOwnerStore((s) => s.wallet);
+  const actions = useActions();
 
-  const brpc = useBrpc({ wallet });
+  const publish = async (args: {
+    topic: {
+      peerAddress: string;
+      context?: {
+        conversationId: string;
+        metadata: {};
+      };
+    };
+    content: string;
+  }) => {
+    if (wallet === undefined) {
+      throw new Error("Owner :: publish :: wallet is undefined");
+    }
+
+    const result = await actions.sendMessage({
+      wallet,
+      conversation: args.topic,
+      content: args.content,
+    });
+
+    if (!result.ok) {
+      throw new Error(result.error);
+    }
+
+    return { published: result.data };
+  };
+
+  const subscribe = (handler: (message: Message) => void) => {
+    if (wallet === undefined) {
+      throw new Error("Owner :: subscribe :: wallet is undefined");
+    }
+
+    actions.listenToGlobalMessageStream({
+      wallet,
+      id: crypto.randomUUID(),
+      handler,
+    });
+
+    return {
+      unsubscribe: () => {
+        // TODO ignoreGlobalMessageStream
+      },
+    };
+  };
 
   useEffect(() => {
-    if (brpc.router === null) {
+    if (wallet === undefined) {
       return;
     }
 
-    brpc.router({
+    const { start } = createRouter({
       api: { join, post },
       topic: {
-        peerAddress: "",
-        context: {
-          conversationId: "banyan.sh/whisper",
-          metadata: {},
-        },
+        peerAddress: wallet.address,
+        context: { conversationId: "banyan.sh/whisper", metadata: {} },
       },
+      publish,
+      subscribe,
     });
-  }, [brpc.router]);
+
+    const { stop } = start();
+
+    return stop;
+  }, [wallet, publish, subscribe]);
+
+  const { isReady: isStreaming, start } = useStream({ wallet });
+
+  useEffect(() => {
+    if (!isStreaming) {
+      return;
+    }
+
+    start();
+  }, [start]);
 
   const members = useOwnerStore((s) => s.members);
 
   const brpcClients = useMemo(() => {
-    const client = brpc.client;
-
-    if (client === null) {
-      return null;
-    }
-
     return Object.keys(members).map((address) => {
-      return client({
+      return createClient({
         api: { sync, ping },
+        publish,
+        subscribe,
         topic: {
           peerAddress: address,
           context: {
@@ -49,16 +103,12 @@ export default function Owner() {
         },
       });
     });
-  }, [brpc.client, members]);
+  }, [members, publish, subscribe]);
 
   const messages = useOwnerStore((state) => state.messages);
 
   useEffect(() => {
     (async () => {
-      if (brpcClients === null) {
-        return;
-      }
-
       try {
         await Promise.all(
           brpcClients.map(async (client) => {
@@ -94,35 +144,18 @@ export default function Owner() {
     });
   }, [alias]);
 
-  const { login } = useLogin({
+  const { isReady: isReadyToLogin, login } = useLogin({
     wallet,
-    opts: { autoLogin: false, env: "production" },
+    opts: { env: "production" },
   });
 
   useEffect(() => {
-    if (wallet === undefined) {
+    if (!isReadyToLogin) {
       return;
     }
 
-    if (login === null) {
-      return;
-    }
-
-    login({});
+    login();
   }, [wallet, login]);
-
-  const { isStreaming, start } = usePubSub({
-    wallet,
-    opts: { autoStart: false },
-  });
-
-  useEffect(() => {
-    if (start === null) {
-      return;
-    }
-
-    start();
-  }, [start]);
 
   const aliasInput = useOwnerStore((s) => s.aliasInput);
 

@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { createProcedure } from "@killthebuddha/brpc/createProcedure.js";
+import { createProcedure } from "@killthebuddha/brpc";
 import { Signer } from "@killthebuddha/fig";
 
 type Whisper = {

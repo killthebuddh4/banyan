@@ -3,7 +3,7 @@ import { Message } from "../remote/Message.js";
 import { uniqueMessages } from "../lib/uniqueMessages.js";
 import { useEffect } from "react";
 import { Signer } from "../remote/Signer.js";
-import { usePubSub } from "./usePubSub.js";
+import { useStream } from "./useStream.js";
 
 const useInboxStore = create<{
   messages: Record<string, Message[] | undefined>;
@@ -30,7 +30,7 @@ export const useInbox = (props: {
   wallet?: Signer;
   opts?: { filter: (message: Message) => boolean };
 }) => {
-  const { subscribe } = usePubSub({ wallet: props.wallet });
+  const { subscribe } = useStream({ wallet: props.wallet });
 
   const filter = (() => {
     if (props.opts?.filter === undefined) {
