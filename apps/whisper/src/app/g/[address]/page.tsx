@@ -1,97 +1,18 @@
 "use client";
 
 import { Wallet } from "@ethersproject/wallet";
-import {
-  useLogin,
-  usePubSub,
-  useXmtpActions,
-  Message,
-} from "@killthebuddha/fig";
-import { createClient, createRouter } from "@killthebuddha/brpc";
-import { join, post } from "../../owner";
-import { sync, ping, useMemberStore } from "./member";
-import { useEffect, useMemo, useState } from "react";
-import { useParams } from "next/navigation.js";
+import { useLogin, useStream } from "@killthebuddha/fig";
+import { useJoin } from "@/hooks/useJoin";
+import { usePost } from "@/hooks/usePost";
+import { useMemberStore } from "@/hooks/useMemberStore";
+import { useEffect, useMemo } from "react";
 
 export default function Member() {
-  const { address: serverAddress } = useParams();
-
-  if (typeof serverAddress !== "string") {
-    throw new Error("WHISPER :: Page.tsx (member) :: serverAddress === null");
-  }
-
   const wallet = useMemberStore((s) => s.wallet);
-
-  const actions = useXmtpActions();
-
-  const publish = async (args: {
-    topic: {
-      peerAddress: string;
-      context?: {
-        conversationId: string;
-        metadata: {};
-      };
-    };
-    content: string;
-  }) => {
-    if (wallet === undefined) {
-      throw new Error("Owner :: publish :: wallet is undefined");
-    }
-
-    const result = await actions.sendMessage({
-      wallet,
-      conversation: args.topic,
-      content: args.content,
-    });
-
-    if (!result.ok) {
-      throw new Error(result.error);
-    }
-
-    return { published: result.data };
-  };
-
-  const subscribe = (handler: (message: Message) => void) => {
-    if (wallet === undefined) {
-      throw new Error("Owner :: subscribe :: wallet is undefined");
-    }
-
-    actions.listenToGlobalMessageStream({
-      wallet,
-      id: crypto.randomUUID(),
-      handler,
-    });
-
-    return {
-      unsubscribe: () => {
-        // TODO ignoreGlobalMessageStream
-      },
-    };
-  };
-
-  useEffect(() => {
-    if (wallet === undefined) {
-      return;
-    }
-
-    const { start } = createRouter({
-      api: { sync, ping },
-      topic: {
-        peerAddress: "",
-        context: { conversationId: "banyan.sh/whisper", metadata: {} },
-      },
-      publish,
-      subscribe,
-    });
-
-    const { stop } = start();
-
-    return stop;
-  }, [wallet, publish, subscribe]);
-
   const messages = useMemberStore((state) => state.messages);
-
   const alias = useMemberStore((s) => s.alias);
+  const isJoining = useMemberStore((s) => s.isJoining);
+  const isJoined = useMemberStore((s) => s.isJoined);
 
   useEffect(() => {
     if (typeof alias !== "string") {
@@ -116,33 +37,12 @@ export default function Member() {
     opts: { env: "production" },
   });
 
-  useEffect(() => {
-    if (!isReadyToLogin) {
-      return;
-    }
-
-    login();
-  }, [wallet, login]);
-
   const {
     isReady: isReadyToStream,
+    isPending: isStartingStream,
     isSuccess: isStreaming,
     start,
-  } = usePubSub({
-    wallet,
-    opts: { autoStart: false },
-  });
-
-  useEffect(() => {
-    if (!isReadyToStream) {
-      return;
-    }
-
-    start();
-  }, [start]);
-
-  const isJoining = useMemberStore((s) => s.isJoining);
-  const isJoined = useMemberStore((s) => s.isJoined);
+  } = useStream({ wallet });
 
   const Info = useMemo(() => {
     return (
@@ -252,6 +152,9 @@ export default function Member() {
   }, [aliasInput, alias]);
 
   const messageInput = useMemberStore((s) => s.messageInput);
+
+  const join = useJoin();
+  const post = usePost();
 
   const brpcClient = useMemo(() => {
     return createClient({

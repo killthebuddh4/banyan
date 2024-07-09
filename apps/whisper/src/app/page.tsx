@@ -1,109 +1,17 @@
 "use client";
 
 import { Wallet } from "@ethersproject/wallet";
-import { useLogin, useStream, useActions, Message } from "@killthebuddha/fig";
-import { createRouter, createClient } from "@killthebuddha/brpc";
-import { useOwnerStore, join, post } from "./owner";
-import { sync, ping } from "./g/[address]/member";
+import { useLogin, useStream } from "@killthebuddha/fig";
+import { createClient } from "@killthebuddha/brpc";
+import { useOwnerStore } from "@/hooks/useOwnerStore";
+import { usePing } from "@/hooks/usePing";
+import { useSync } from "@/hooks/useSync";
 import { useEffect, useMemo, useState } from "react";
 
 export default function Owner() {
   const wallet = useOwnerStore((s) => s.wallet);
-  const actions = useActions();
 
-  const publish = async (args: {
-    topic: {
-      peerAddress: string;
-      context?: {
-        conversationId: string;
-        metadata: {};
-      };
-    };
-    content: string;
-  }) => {
-    if (wallet === undefined) {
-      throw new Error("Owner :: publish :: wallet is undefined");
-    }
-
-    const result = await actions.sendMessage({
-      wallet,
-      conversation: args.topic,
-      content: args.content,
-    });
-
-    if (!result.ok) {
-      throw new Error(result.error);
-    }
-
-    return { published: result.data };
-  };
-
-  const subscribe = (handler: (message: Message) => void) => {
-    if (wallet === undefined) {
-      throw new Error("Owner :: subscribe :: wallet is undefined");
-    }
-
-    actions.listenToGlobalMessageStream({
-      wallet,
-      id: crypto.randomUUID(),
-      handler,
-    });
-
-    return {
-      unsubscribe: () => {
-        // TODO ignoreGlobalMessageStream
-      },
-    };
-  };
-
-  useEffect(() => {
-    if (wallet === undefined) {
-      return;
-    }
-
-    const { start } = createRouter({
-      api: { join, post },
-      topic: {
-        peerAddress: wallet.address,
-        context: { conversationId: "banyan.sh/whisper", metadata: {} },
-      },
-      publish,
-      subscribe,
-    });
-
-    const { stop } = start();
-
-    return stop;
-  }, [wallet, publish, subscribe]);
-
-  const { isReady: isStreaming, start } = useStream({ wallet });
-
-  useEffect(() => {
-    if (!isStreaming) {
-      return;
-    }
-
-    start();
-  }, [start]);
-
-  const members = useOwnerStore((s) => s.members);
-
-  const brpcClients = useMemo(() => {
-    return Object.keys(members).map((address) => {
-      return createClient({
-        api: { sync, ping },
-        publish,
-        subscribe,
-        topic: {
-          peerAddress: address,
-          context: {
-            conversationId: "banyan.sh/whisper",
-            metadata: {},
-          },
-        },
-      });
-    });
-  }, [members, publish, subscribe]);
+  const { isReady: isStreaming } = useStream({ wallet });
 
   const messages = useOwnerStore((state) => state.messages);
 
