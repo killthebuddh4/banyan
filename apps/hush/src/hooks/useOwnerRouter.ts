@@ -23,7 +23,7 @@ export const useOwnerRouter = ({ wallet }: { wallet?: Signer }) => {
       api: { join, post },
       topic: {
         peerAddress: wallet.address,
-        context: { conversationId: "banyan.sh/whisper", metadata: {} },
+        context: { conversationId: "banyan.sh/hush", metadata: {} },
       },
       publish,
       subscribe,

@@ -22,7 +22,7 @@ export const useMemberRouter = ({ wallet }: { wallet?: Signer }) => {
       api: { sync, ping },
       topic: {
         peerAddress: wallet.address,
-        context: { conversationId: "banyan.sh/whisper", metadata: {} },
+        context: { conversationId: "banyan.sh/hush", metadata: {} },
       },
       publish,
       subscribe,

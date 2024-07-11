@@ -7,7 +7,7 @@ import { usePost } from "@/hooks/usePost";
 import { useMemberStore } from "@/hooks/useMemberStore";
 import { useEffect, useMemo } from "react";
 
-export default function Member() {
+export const Member = () => {
   const wallet = useMemberStore((s) => s.wallet);
   const messages = useMemberStore((state) => state.messages);
   const alias = useMemberStore((s) => s.alias);
@@ -153,86 +153,62 @@ export default function Member() {
 
   const messageInput = useMemberStore((s) => s.messageInput);
 
-  const join = useJoin();
-  const post = usePost();
-
-  const brpcClient = useMemo(() => {
-    return createClient({
-      api: { join, post },
-      topic: {
-        peerAddress: serverAddress,
-        context: {
-          conversationId: "banyan.sh/whisper",
-          metadata: {},
-        },
-      },
-      publish,
-      subscribe,
-    });
-  }, [serverAddress, publish, subscribe]);
-
   useEffect(() => {
-    if (alias === null) {
-      return;
-    }
-
-    (async () => {
-      useMemberStore.setState((state) => {
-        return {
-          ...state,
-          isJoining: true,
-        };
-      });
-
-      console.log("WHISPER :: MEMBER :: joining conversation as", alias);
-
-      // TODO ERROR HANDLING
-      try {
-        const joinResult = await brpcClient.join({ alias });
-
-        if (!joinResult.ok) {
-          useMemberStore.setState((state) => {
-            return {
-              ...state,
-              isJoining: false,
-              isJoined: false,
-            };
-          });
-        } else if (joinResult.data.joined === false) {
-          useMemberStore.setState((state) => {
-            return {
-              ...state,
-              isJoining: false,
-              isJoined: false,
-            };
-          });
-        } else {
-          const ownerAlias = joinResult.data.ownerAlias;
-
-          if (typeof ownerAlias !== "string") {
-            throw new Error(
-              "This was a hack and should be solved with typescript, if you're seeing this error then go fix the problem correctly.",
-            );
-          }
-
-          useMemberStore.setState((state) => {
-            return {
-              ...state,
-              isJoining: false,
-              isJoined: true,
-              owner: {
-                address: serverAddress,
-                alias: ownerAlias,
-                lastSeen: Date.now(),
-              },
-            };
-          });
-        }
-      } catch (error) {
-        console.error("WHISPER :: MEMBER :: error while joining", error);
-      }
-    })();
-  }, [brpcClient, alias]);
+    // if (alias === null) {
+    //   return;
+    // }
+    // (async () => {
+    //   useMemberStore.setState((state) => {
+    //     return {
+    //       ...state,
+    //       isJoining: true,
+    //     };
+    //   });
+    //   console.log("hush :: MEMBER :: joining conversation as", alias);
+    //   // TODO ERROR HANDLING
+    //   try {
+    //     const joinResult = await brpcClient.join({ alias });
+    //     if (!joinResult.ok) {
+    //       useMemberStore.setState((state) => {
+    //         return {
+    //           ...state,
+    //           isJoining: false,
+    //           isJoined: false,
+    //         };
+    //       });
+    //     } else if (joinResult.data.joined === false) {
+    //       useMemberStore.setState((state) => {
+    //         return {
+    //           ...state,
+    //           isJoining: false,
+    //           isJoined: false,
+    //         };
+    //       });
+    //     } else {
+    //       const ownerAlias = joinResult.data.ownerAlias;
+    //       if (typeof ownerAlias !== "string") {
+    //         throw new Error(
+    //           "This was a hack and should be solved with typescript, if you're seeing this error then go fix the problem correctly.",
+    //         );
+    //       }
+    //       useMemberStore.setState((state) => {
+    //         return {
+    //           ...state,
+    //           isJoining: false,
+    //           isJoined: true,
+    //           owner: {
+    //             address: serverAddress,
+    //             alias: ownerAlias,
+    //             lastSeen: Date.now(),
+    //           },
+    //         };
+    //       });
+    //     }
+    //   } catch (error) {
+    //     console.error("hush :: MEMBER :: error while joining", error);
+    //   }
+    // })();
+  }, []);
 
   const isSending = useMemberStore((s) => s.isSending);
 
@@ -249,48 +225,48 @@ export default function Member() {
       <form
         className="input"
         onSubmit={async (e) => {
-          e.preventDefault();
+          // e.preventDefault();
 
-          if (isSending) {
-            return;
-          }
+          // if (isSending) {
+          //   return;
+          // }
 
-          if (messageInput === "") {
-            return;
-          }
+          // if (messageInput === "") {
+          //   return;
+          // }
 
-          if (brpcClient === null) {
-            return;
-          }
+          // if (brpcClient === null) {
+          //   return;
+          // }
 
-          useMemberStore.setState((state) => {
-            return {
-              ...state,
-              isSending: true,
-            };
-          });
+          // useMemberStore.setState((state) => {
+          //   return {
+          //     ...state,
+          //     isSending: true,
+          //   };
+          // });
 
-          try {
-            await brpcClient.post({
-              text: messageInput,
-            });
+          // try {
+          //   await brpcClient.post({
+          //     text: messageInput,
+          //   });
 
-            useMemberStore.setState((state) => {
-              return {
-                ...state,
-                isSending: false,
-              };
-            });
-          } catch (error) {
-            console.error("WHISPER :: Input.tsx :: error while sending", error);
-          } finally {
-            useMemberStore.setState((state) => {
-              return {
-                ...state,
-                isSending: false,
-              };
-            });
-          }
+          //   useMemberStore.setState((state) => {
+          //     return {
+          //       ...state,
+          //       isSending: false,
+          //     };
+          //   });
+          // } catch (error) {
+          //   console.error("hush :: Input.tsx :: error while sending", error);
+          // } finally {
+          //   useMemberStore.setState((state) => {
+          //     return {
+          //       ...state,
+          //       isSending: false,
+          //     };
+          //   });
+          // }
 
           useMemberStore.setState((state) => {
             return {
@@ -316,7 +292,7 @@ export default function Member() {
         <button type="submit">{isSending ? "Sending..." : "Send"}</button>
       </form>
     );
-  }, [isStreaming, messageInput, isSending, isJoined, brpcClient]);
+  }, [isStreaming, messageInput, isSending, isJoined]);
 
   return (
     <div className="app">
@@ -341,4 +317,4 @@ export default function Member() {
       {MessageInput}
     </div>
   );
-}
+};

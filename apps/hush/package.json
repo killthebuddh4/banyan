@@ -1,5 +1,5 @@
 {
-  "name": "web",
+  "name": "@killthebuddha/hush",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

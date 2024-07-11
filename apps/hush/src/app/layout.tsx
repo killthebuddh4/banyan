@@ -3,7 +3,7 @@ import "./globals.css";
 import { Analytics } from "@vercel/analytics/react";
 
 export const metadata: Metadata = {
-  title: "Whisper",
+  title: "hush",
 };
 
 export default function RootLayout({
@@ -14,6 +14,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="root">
+        <header className="appHeader">
+          <div />
+          <a href="https://github.com">Learn More</a>
+        </header>
         {children}
         <Analytics />
       </body>

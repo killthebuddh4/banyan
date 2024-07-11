@@ -24,7 +24,7 @@ export const usePost = () => {
 
         if (member === undefined) {
           console.warn(
-            "WHISPER :: Owner.tsx :: member not found in post handler but auth succeeded",
+            "hush :: Owner.tsx :: member not found in post handler but auth succeeded",
           );
           return state;
         }

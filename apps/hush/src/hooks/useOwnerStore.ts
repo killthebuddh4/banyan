@@ -13,6 +13,8 @@ export const useOwnerStore = create<{
   >;
   isSending: boolean;
   messages: Whisper[];
+  inviteUrlCopied: boolean;
+  isError: boolean;
 }>(() => ({
   alias: null,
   aliasInput: "",
@@ -21,4 +23,6 @@ export const useOwnerStore = create<{
   members: {},
   messages: [],
   isSending: false,
+  inviteUrlCopied: false,
+  isError: false,
 }));

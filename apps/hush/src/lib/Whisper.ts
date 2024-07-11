@@ -1,4 +1,4 @@
-export type Whisper = {
+export type hush = {
   id: string;
   timestamp: number;
   sender: string;

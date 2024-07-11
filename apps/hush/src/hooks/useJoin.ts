@@ -20,7 +20,7 @@ export const useJoin = () => {
 
       if (alias === null) {
         throw new Error(
-          "WHISPER :: Owner.tsx :: owner alias is null when the join api was called",
+          "hush :: Owner.tsx :: owner alias is null when the join api was called",
         );
       }
 

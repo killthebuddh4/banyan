@@ -1,8 +1,8 @@
-# whisper.banyan.sh
+# hush.ktb.pub
 
 1. Navigate to `/`
 2. A list of instructions.
-3. A button to create whisper
+3. A button to create hush
 4. Click button to generate a URL `/:address`
 5. Wallet is created, signed into XMTP, URL is displayed.
 

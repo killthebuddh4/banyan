@@ -28,7 +28,7 @@ export const useOwnerClient = ({ wallet }: { wallet?: Signer }) => {
       topic: {
         peerAddress: serverAddress,
         context: {
-          conversationId: "banyan.sh/whisper",
+          conversationId: "banyan.sh/hush",
           metadata: {},
         },
       },
